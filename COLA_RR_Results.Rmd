@@ -787,7 +787,7 @@ return(list(thisdat,collist))
 ```{r checkMVN,echo=F}
 #check multivariate normality
 thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','F_mean_LI')]
-pcut <- .05
+pcut <- .00001 #found normalisation by BoxCox created abnormally large variance for variable E - better work with non-normalised. Achieve that by just setting pcut very extreme, so no variable meets criterion for nonnormality
 normed.dat<-normalisedf(thisdat,pcut)
 #now select variables to be used in SEM analysis - will use the _bc versions if they exist. The collist in normed.dat gives the col numbers in correct order
 
@@ -1037,11 +1037,13 @@ ss<- summary(myfit)$PE
 mySEMout <-ss[,-4]
 mySEMout[,4:7]<-round(mySEMout[,4:7],3)
 
-fm<-fitmeasures(myfit)
-mySEMout[(1+srow),1]<-'CFI'
-mySEMout[(1+srow),4]<-round(fm[9],3)
-mySEMout[(2+srow),1]<-'rmsea'
-mySEMout[(2+srow),4]<-round(fm[24],3)
+#add fit measures
+myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+fm<-fitmeasures(myfit,myfitmeasures)
+for(i in 1:length(myfitmeasures)){
+mySEMout[(i+srow),1]<-myfitmeasures[i] #write name of fit measure to col 1
+mySEMout[(i+srow),2]<-round(fm[i],3) #write value to col 2
+}
 return(mySEMout)
 }
 ```
@@ -1211,7 +1213,8 @@ fitmeasures(fit.2Fn.0,wantfits)
 mi <- modindices(fit.2Fn.0, sort = TRUE, maximum.number = 20)
 mi[mi$op == "=~",]
 
-#Changes to model based on observation of size of paths
+#Changes to model based on observation of size of paths.
+#Path D to Fac1 and path B to Fac2 are NS. We can drop these
 
 #After checking model from group 1, now try running with 2nd group and with full sample
 
@@ -1320,19 +1323,24 @@ ddati <- makefactorplot(cfa(model.2Fn, data=ddati),'fit.2Fn',ddati)
 
 ```{r makeSEMtab2,echo=F}
 #Table for SEM output side by side for 2 groups
-makeSEMtab2 <- function(mymodel,mygroups){
-ss<- summary(mymodel)$PE
+makeSEMtab2 <- function(myfit,mygroups){
+ss<- summary(myfit)$PE
  srow<-nrow(ss)
  scol<-ncol(ss)
 mySEMout <- cbind(ss[1:(srow/2),c(1:3,(scol-3):scol)],ss[(1+srow/2):srow,c((scol-3):scol)])
 mySEMout[,4:11]<-round(mySEMout[,4:11],3)
-mySEMout[(srow/2+1):(srow/2+2),]<-NA
+mySEMout[(srow/2+1):(srow/2+4),]<-NA #additional rows for fit measures
 
-fm<-fitmeasures(mymodel)
-mySEMout[(srow/2+1),1]<-'CFI'
-mySEMout[(srow/2+1),4]<-round(fm[9],3)
-mySEMout[(srow/2+2),1]<-'rmsea'
-mySEMout[(srow/2+2),4]<-round(fm[23],3)
+
+#add fit measures
+myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+fm<-fitmeasures(myfit,myfitmeasures)
+for(i in 1:length(myfitmeasures)){
+mySEMout[(i+srow/2),1]<-myfitmeasures[i] #write name of fit measure to col 1
+mySEMout[(i+srow/2),2]<-round(fm[i],3) #write value to col 2
+}
+
+#make different col headers for the 2 groups
 colnames(mySEMout)[4:7]<-paste0(colnames(mySEMout)[4:7],mygroups[1])
 colnames(mySEMout)[8:11]<-paste0(colnames(mySEMout)[8:11],mygroups[2])
 return(mySEMout)
@@ -1441,15 +1449,16 @@ tab3a <- makeSEMtab2(fit3a,c('_L','_R'))
 
 
 fit4 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
- group.equal = c("residuals","loadings","intercepts","lv.variances","lv.covariances"))
+ group.equal = c("loadings","intercepts","means"))
 
 tab4 <- makeSEMtab2(fit4,c('_L','_R'))
 
 # model comparison tests
-lavTestLRT(fit1, fit2, fit3,fit3a,fit4)
+lavTestLRT(fit1, fit2, fit3,fit4)
 
 #see https://users.ugent.be/~yrosseel/lavaan/multiplegroup6Dec2012.pdf
 
+measurementInvariance(model=model.2Fn,data=ddati,meanstructure=T,group="Handed")
 
 #measurementInvariance(model=model.h2a, data = ddati, group = "Handed")
 
@@ -1498,7 +1507,7 @@ tab7G1 <- makeSEMtab(fit7)
 #remove F from F1 and A from F2!  So this leaves:
 
 model.2Fp <- '
-f1 =~  NA*A_P1 + B_P2+C_P3+E_R2  #5 loadings per factor
+f1 =~  NA*A_P1 + B_P2+C_P3+E_R2  #4 loadings per factor
 f2 =~  NA*F_R3+ C_P3+D_R1+ E_R2
 #covariance unspecified, which means there is no constraint on covariance
 f1 ~~ 1*f1
@@ -1581,27 +1590,15 @@ fitmeasures(fit14,c("npar","chisq", "df", "pvalue", "cfi", "rmsea"))
 lavTestLRT(fit1, fit2, fit3,fit3a,fit4)
 
 
-measurementInvariance(model=model.2Fp,data=ddati,group="Handed")
+measurementInvariance(model=model.2Fp,data=ddati,meanstructure=T,group="Handed")
 
 ```
 
 
-
-
-```{r facdir}   
-#this is not sensible! Factor scale is NOT related to LI so above or below 0 is not meaningful. 
-ddati$F1F2<-0
-w<-which(ddati$Factor1>0)
-ddati$F1F2[w]<-ddati$F1F2[w]+10
-w<-which(ddati$Factor2>0)
-ddati$F1F2[w]<-ddati$F1F2[w]+1
-table(ddati$F1F2,ddati$Handed)
-
-
-```
 
 
 ## Analyses using odd and even LIs
+This is just exploratory - I've set oddeven to 0 at start of chunks so it does not automatically run. Just preserving it here in case we want to revisit this idea - which seemed sensible at the time....
 
 ```{r prepare-oddevens,echo=F}
 oddeven <-0
@@ -1722,7 +1719,7 @@ anova(fit1fbase,fit2full)
 
 model.2drop <- '
 f1 =~  1*A_P1_e + 1*A_P1_o + b1*B_P2_e + b1*B_P2_o + c1*C_P3_e + c1*C_P3_o
-f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o++ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
+f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o+ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
  A_P1_e + A_P1_o ~ meanA*1
  B_P2_e + B_P2_o ~ meanB*1
   C_P3_e + C_P3_o ~ meanC*1
@@ -1748,7 +1745,7 @@ meanA <- (mean(mydat$A_P1_e)+mean(mydat$A_P1_o))/2
 
 model.2dropi <- '
 f1 =~  1*A_P1_e + 1*A_P1_o + b1*B_P2_e + b1*B_P2_o + c1*C_P3_e + c1*C_P3_o
-f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o++ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
+f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o+ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
  A_P1_e + A_P1_o ~ meanA*1
  B_P2_e + B_P2_o ~ meanB*1
   C_P3_e + C_P3_o ~ meanC*1
@@ -1765,3 +1762,61 @@ anova(fit1fbase,fit2dropi)
 
 ```
 
+
+```{r sandpit}
+#Checking out computation of chi square
+obs<-cov(ddati[,4:9]) #observed covariances
+obs1 <- obs[!upper.tri(obs)] #all variances and covariances as vector
+#residuals are obs-expected, so let's try for fit 1
+res<-resid(fit1)$cov
+res1<-res[!upper.tri(res)]
+
+cc<-colnames(res)
+rr<-rownames(res)
+rc<-vector()
+v<-0
+for(i in 1:6){
+  for (j in i:6){
+    v<-v+1
+    rc[v]<-paste0(rr[i],'.',cc[j])
+}
+}
+df<-as.data.frame(cbind(rc,obs1,res1))
+df$exp<-df$obs1+df$res1
+
+exp<-obs1+res1
+
+chi<-res1^2/exp
+
+#Goal is to work out how chisq is computed, but what I have found is abnormally large variance of E_R2.  This seems to be introduced by normalisation!
+
+
+
+```
+
+
+```{r sandpit2}
+#check how bifactor model behaves - basically it fails to converge
+#https://gist.github.com/rpietro/7968980
+
+
+#Can get a reasonable result if I just have factor 1 and general factor - but this is getting more similar to the earlier model : though it does uncorrelated factors
+#
+bifactor <- '
+general.factor  =~ A_P1 + B_P2+C_P3 + D_R1 + E_R2
+factor1         =~ A_P1 + B_P2+C_P3
+#factor2         =~ F_R3+ D_R1 + E_R2
+general.factor  ~~ 0*factor1
+#general.factor  ~~ 0*factor2
+#factor1         ~~ 0*factor2
+
+
+'
+ddat1<-ddati[ddati$randgroup==1,] #group1 only for exploring
+fitbiv.1 <- cfa(bifactor, data=ddat1,meanstructure=T)
+tabbiv1<-makeSEMtab(fitbiv.1)
+
+measurementInvariance(model=bifactor,data=ddati,group="randgroup")
+
+
+```
