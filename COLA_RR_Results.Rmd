@@ -1,7 +1,7 @@
 ---
 title: "COLA_results"
 author: "DVM Bishop"
-date: "20/01/2022"
+date: "5 Feb 2022"
 output: word_document
 ---
 
@@ -74,6 +74,7 @@ pformat2=function(myp){
 }
 ```
 
+
 ```{r LIdensityplot,echo=F}
 #generic density plot, subsetted by handedness or another categorical variable
 #includes line showing zero point.
@@ -94,6 +95,47 @@ return(LI.plot)
 ```
 
 
+```{r filltable,echo=F}
+#Generate function to populate summary data frame - same steps for all online tasks
+#This function also repurposed for ftcd
+populate <- function(mydf,mytask,mysummary,writecolnum,tasktype){
+  if(tasktype=='beh'){
+w<-which(colnames(mydf)==paste0(mytask,'.zlat'))
+x<-which(colnames(mydf)==paste0('exclude',mytask))
+odds<-which(colnames(mydf)==paste0(mytask,'.odd.zlat'))
+evens<-which(colnames(mydf)==paste0(mytask,'.even.zlat'))
+  }
+    if(tasktype=='ftcd'){
+w<-which(colnames(mydf)==paste0(mytask,'_mean_LI'))
+x<-which(colnames(mydf)==paste0(mytask,'_exclude'))
+odds<-which(colnames(mydf)==paste0(mytask,'_mean_odd'))
+evens<-which(colnames(mydf)==paste0(mytask,'_mean_even'))
+  }
+  
+thisdat<-mydf[mydf[,x]==0,]
+thisdat$thiscol<-thisdat[,w]
+nL <- nrow(filter(thisdat,Rhanded==0))
+nR <- nrow(filter(thisdat,Rhanded==1))
+tL<- t.test(thisdat$thiscol[thisdat$Rhanded==0])
+tR<- t.test(thisdat$thiscol[thisdat$Rhanded==1])
+sdL<-round(sd(thisdat$thiscol[thisdat$Rhanded==0],na.rm=T),2)
+sdR<-round(sd(thisdat$thiscol[thisdat$Rhanded==1],na.rm=T),2)
+tcompare <- t.test(thisdat$thiscol~thisdat$Rhanded,alternative='less')
+#write N for L and R in row 1 of online summary
+mysummary[1,writecolnum]<-paste0(nL,' LH + ',nR,' RH')
+mysummary[2,writecolnum]<-paste0(round(tL$estimate,2)," (",sdL,")")
+mysummary[3,writecolnum]<-paste0(round(tR$estimate,2)," (",sdR,")")
+mysummary[4,writecolnum]<- paste0('t = ',round(tL$statistic,1),'; ', pformat(tL$p.value))
+mysummary[5,writecolnum]<- paste0('t = ',round(tR$statistic,1),'; ', pformat(tR$p.value))
+mysummary[6,writecolnum]<- paste0('t = ',-round(tcompare$statistic,1),'; ', pformat(tcompare$p.value))
+mysummary[7,writecolnum]<- round(cor(thisdat[,odds],thisdat[,evens],use='complete.obs'),3)
+
+
+
+return(mysummary)
+}
+```
+
 ```{r trianglefunction,echo=F}
 #Gets upper triangle of a correlation matrix
  get_upper_tri <- function(cormat){
@@ -104,7 +146,7 @@ return(LI.plot)
 
 
 
-```{r heatmapfunction}
+```{r heatmapfunction,echo=F}
 #Make a heatmap
 # http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
 makeheatmap <- function(mydf,mycols){
@@ -146,6 +188,224 @@ theme(
 
 return(myheatmap)}
 ```
+
+```{r scatterplusfunction,echo=F}
+#Function for doing scatterplot with marginal density distributions
+doscatterplus <- function(myfile, taskname,mycolnames,myrange){ #myfile contains group in col 1 and the 2 cols to plot in cols 2-3
+colnames(myfile)[2:4]<- mycolnames
+
+r <- round(cor(myfile$Odd,myfile$Even,use="complete.obs",method="spearman"),3)
+myt<-t.test(myfile$All~myfile$Handed)
+myt2 <- t.test(myfile$All) #single group t-test
+text1 <- paste0('Mean diff from zero: \nt = ',round(myt2$statistic,2),"; ", pformat(myt2$p.value))
+text2 <- paste0('L vs R handers \n(all trials):\n t = ',round(myt$statistic,2),"; ", pformat(myt$p.value))
+text3 <-paste0('Spearman rho: ',r)
+p <- ggplot(myfile, aes_string('Odd','Even')) +
+  aes_string(colour = 'Handed') +
+  geom_point() + theme_bw(15)+
+  annotate("text", x = 3.2, y = -3,label=text3,size=3)+
+  annotate("text", x = -2.5, y = 5.5,label=text1,size=3)+
+  annotate("text", x = -2.5, y = 3.5,label=text2,size=3)+
+  geom_hline(yintercept=0,linetype="dashed",colour="grey")+
+  geom_vline(xintercept=0,linetype="dashed",colour="grey")+
+  xlim(myrange)+
+  ylim(myrange)+
+  ggtitle(taskname)
+
+p2 <- ggExtra::ggMarginal(
+  p,
+  type = 'density',
+  margins = 'both',
+  size = 5,
+  groupColour = TRUE,
+  groupFill = TRUE
+)
+return(p2)
+
+}
+
+```
+
+```{r optimalBoxCoxFunction,echo=F}
+#Where a measure is non-normal on Shapiro-Wilk test, the BoxCox transformation is applied.  Because the LIs include negative values, we first add a constant so all values are positive. After applying the BoxCox, we add another constant to ensure that the mean is unchanged by the transformation.
+
+#The BoxCox function is similar to applying a transformation such as log or square root, but rather than pre-specifying the function, we hunt for the optimal value of lambda to give normal data, where newdata <- olddata^lambda-1/lambda
+
+optimalBoxCox <- function(myvector){
+
+#find optimal lambda for Box-Cox transformation 
+
+offset<-min(myvector,na.rm=T)
+origmean <- mean(myvector,na.rm=T)
+respvar <- -offset+.1+myvector
+bc <- boxcox(respvar ~ 1)
+lambda <- bc$x[which.max(bc$y)]
+newresp <- respvar^lambda-1/lambda
+numean<-mean(newresp,na.rm=T)
+newoffset <- numean-origmean
+nuvector<-newresp-newoffset
+return(nuvector)
+
+}
+
+
+```
+
+
+
+```{r do-boxcoxfunction,echo=F}
+#This function identifies columns with nonnormal data and applies optimal BoxCox function, saving the new version of the variable with suffix _bc
+
+#NB I have set this to only do transform if nonnormality gives p < pcut.
+#To ignore normalisation, just use extreme pcut 
+#Concern that otherwise transform  might distort relation between variables?
+normalisedf <- function(thisdat,pcut){ #need a data frame with just the variables to be normalised
+  mymvn <- mvn(thisdat,mvnTest = c("mardia", "hz", "royston", "dh",
+  "energy")) #useful for getting normality check on all vars
+  print(mymvn)
+swlist <-mymvn$univariateNormality
+collist<-vector() #initialise a vector that will hold list of cols to be normalised
+for (i in 1:nrow(swlist)){
+  if (as.numeric(swlist[i,4])>pcut){collist<-c(collist,i)}
+  if (as.numeric(swlist[i,4])<pcut){ #pvalue
+    thisdat$temp<-optimalBoxCox(thisdat[,i])
+    newmean<-mean(thisdat$temp,na.rm=T)
+    colnames(thisdat)[ncol(thisdat)]<-paste0(colnames(thisdat)[i],'_bc')
+    collist<-c(collist,ncol(thisdat))
+  }
+}
+return(list(thisdat,collist))
+}
+```
+
+```{r makeSEMtabfunction,echo=F}
+#Function to make tidy table for SEM output for model with one group
+#This is now largely superseded by bigsummary, though SEMtab has more complete information
+makeSEMtab <- function(myfit){
+ss<- summary(myfit)$PE
+ srow<-nrow(ss)
+ scol<-ncol(ss)
+mySEMout <-ss[,-4]
+mySEMout[,4:7]<-round(mySEMout[,4:7],3)
+
+#add fit measures
+myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+fm<-fitmeasures(myfit,myfitmeasures)
+for(i in 1:length(myfitmeasures)){
+mySEMout[(i+srow),1]<-myfitmeasures[i] #write name of fit measure to col 1
+mySEMout[(i+srow),2]<-round(fm[i],3) #write value to col 2
+}
+return(mySEMout)
+}
+```
+
+```{r makeSEMtab2function,echo=F}
+#Table for SEM output side by side for 2 groups
+makeSEMtab2 <- function(myfit,mygroups){
+ss<- summary(myfit)$PE
+ srow<-nrow(ss)
+ scol<-ncol(ss)
+mySEMout <- cbind(ss[1:(srow/2),c(1:3,(scol-3):scol)],ss[(1+srow/2):srow,c((scol-3):scol)])
+mySEMout[,4:11]<-round(mySEMout[,4:11],3)
+mySEMout[(srow/2+1):(srow/2+4),]<-NA #additional rows for fit measures
+
+
+#add fit measures
+myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+fm<-fitmeasures(myfit,myfitmeasures)
+for(i in 1:length(myfitmeasures)){
+mySEMout[(i+srow/2),1]<-myfitmeasures[i] #write name of fit measure to col 1
+mySEMout[(i+srow/2),2]<-round(fm[i],3) #write value to col 2
+}
+
+#make different col headers for the 2 groups
+colnames(mySEMout)[4:7]<-paste0(colnames(mySEMout)[4:7],mygroups[1])
+colnames(mySEMout)[8:11]<-paste0(colnames(mySEMout)[8:11],mygroups[2])
+return(mySEMout)
+}
+```
+
+
+```{r add-to-bigsummaryfunction,echo=F}
+#This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a chi square comparison with that model and put p value in final row.
+addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
+  colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
+ss<- summary(myfit)$PE #get coefficients from current model
+bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
+thisrow<-1 #initialise counter for factor loadings
+#if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
+#If  no path in the model, it just skips it
+for (f in 1:2){
+for (m in 1:6){
+  thisrow<-thisrow+1
+  w<-which(ss$lhs==paste0('f',f))
+  x<-which(substr(ss$rhs,1,1) == LETTERS[m])
+  myrow<-intersect(w,x)[1]
+  bigsummary[thisrow,writecol]<-round(ss$est[myrow],3)
+}
+}
+#Correlation between factors is added (if it exists)
+myrow<-intersect(which(ss$lhs=='f1'),which(ss$rhs=='f2'))[1]
+if(length(myrow)>0){
+  bigsummary[14,writecol]<-round(ss$est[myrow],3)
+}
+
+wantfits <- c('CFI','rmsea','chisq','df') #fit indices to include
+#NB there are many other fit indices we could add, but if we do, would need to modify bigsummary.
+#Currently script assumes we will have these 4 fit indices 
+
+fm<-fitmeasures(myfit,wantfits)
+#find first row to write to
+r<-which(bigsummary[,1]==wantfits[1]) #find row corresponding to first fit index
+bigsummary[r:(r+length(wantfits)-1),writecol]<-fm #write the fit indices in successive rows, starting with r
+
+
+
+
+#Add chi square comparison with comparisonfit
+if(!is.na(comparisonfit)){
+chicomp <- fitmeasures(comparisonfit,wantfits[3:4]) #get chisq and DF for comparison model
+chidiff<-chicomp[1]-bigsummary[17,writecol]
+dfdiff<-chicomp[2]-bigsummary[18,writecol]
+pval<- 1-pchisq(chidiff,dfdiff) #p-value for chi sq difference
+bigsummary[19,writecol]<-pformat2(pval) #p-value written to row 19
+}
+
+#because this is data.frame, all values in a column must be same format.
+#Starts numeric, but that means Nobs and DF is shown to 3 decimal places. 
+#Can remove decimal places with line below, but then all values become characters
+#In practice, I've found trying to format creates problems, so better to format bigsummary outside this function
+#bigsummary[1,mycol]<-as.character(round(bigsummary[1,mycol],0))
+
+return(bigsummary)
+}
+```
+
+```{r factorscores,echo=F}
+#FUnction to extract factor scores and plot them and save plot
+makefactorplot <- function(myfit,fitname,thisdat){
+lastc <- ncol(thisdat)
+myfacs<-predict(myfit)
+myfacs<-as.data.frame(myfacs)
+colnames(myfacs)<-c("Factor1","Factor2")
+w<-which(colnames(ddati)=='Factor1') #check if we already have col for factors
+if(length(w)==0){
+thisdat<-cbind(thisdat,as.data.frame(myfacs))
+}
+if(length(w)>0){
+  thisdat$Factor1 <- as.data.frame(myfacs[,1])
+  thisdat$Factor2 <- as.data.frame(myfacs[,2])
+}
+
+plotf1f2 <- myscatter(thisdat$Factor1,thisdat$Factor2,xlabel='Factor1',ylabel='Factor2',thisdat)
+
+plotname <- paste0(mydir,"/03-graphic-outputs/factors_",fitname,".png")
+
+ggsave(plotname,width = 5, height = 3)
+return(thisdat)
+}
+
+```
 <!--- GENERIC FUNCTIONS END -->
 
 # Results
@@ -156,6 +416,11 @@ mydir <- "~/Dropbox/COLA_RR_Analysis"
 readfile<-paste0(mydir,"/02-data/combined_data.csv")
 combdat <- read.csv(readfile)
 #We will create a code that reflects whether strict exclusion criteria are met for language. This is 1 for lextale < 80, 10 for gram12err >1, and 11 if both are met
+
+#One subject was wrongly coded as ftcd=1: they came for testing but could not get signal and so we reset ftcd to zero for them.
+w<-which(combdat$ID==3495951)
+combdat$ftcd[w]<-0
+
 combdat$lang2exclude <- 0
 w<- which(combdat$gramerr12>1)
 combdat$lang2exclude[w]<-10
@@ -399,8 +664,10 @@ Figure X3 shows a suggestive trend for a bias to positive LI for the Rhyme Decis
 
 Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on z-LI values for all three online tasks, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
 
+__NB. To do: integrate Shapiro-Wilk results into main table__
 
-```{r beh_normal}
+
+```{r beh-normal,echo=F}
 
 mycols <- c("ID","Rhanded","DL.zlat","RDT.zlat","WC.zlat")
 thisdat <- combdat[,mycols]
@@ -418,47 +685,6 @@ thisdat <- combdat[,mycols]
 onlinesummary <- data.frame(matrix(NA,nrow=8,ncol=4))
 colnames(onlinesummary)<-c('Statistic','Dichotic','Rhyme','Comprehension')
 onlinesummary[,1]<-c('N','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r','Test-retest r')
-```
-
-```{r filltable,echo=F}
-#Generate function to populate summary data frame - same steps for all online tasks
-#This function also repurposed for ftcd
-populate <- function(mytask,mysummary,writecolnum,tasktype){
-  if(tasktype=='beh'){
-w<-which(colnames(mycomb)==paste0(mytask,'.zlat'))
-x<-which(colnames(mycomb)==paste0('exclude',mytask))
-odds<-which(colnames(mycomb)==paste0(mytask,'.odd.zlat'))
-evens<-which(colnames(mycomb)==paste0(mytask,'.even.zlat'))
-  }
-    if(tasktype=='ftcd'){
-w<-which(colnames(mycomb)==paste0(mytask,'_mean_LI'))
-x<-which(colnames(mycomb)==paste0(mytask,'_exclude'))
-odds<-which(colnames(mycomb)==paste0(mytask,'_mean_odd'))
-evens<-which(colnames(mycomb)==paste0(mytask,'_mean_even'))
-  }
-  
-thisdat<-mycomb[mycomb[,x]==0,]
-thisdat$thiscol<-thisdat[,w]
-nL <- nrow(filter(thisdat,Rhanded==0))
-nR <- nrow(filter(thisdat,Rhanded==1))
-tL<- t.test(thisdat$thiscol[thisdat$Rhanded==0])
-tR<- t.test(thisdat$thiscol[thisdat$Rhanded==1])
-sdL<-round(sd(thisdat$thiscol[thisdat$Rhanded==0],na.rm=T),2)
-sdR<-round(sd(thisdat$thiscol[thisdat$Rhanded==1],na.rm=T),2)
-tcompare <- t.test(thisdat$thiscol~thisdat$Rhanded,alternative='less')
-#write N for L and R in row 1 of online summary
-mysummary[1,writecolnum]<-paste0(nL,' LH + ',nR,' RH')
-mysummary[2,writecolnum]<-paste0(round(tL$estimate,2)," (",sdL,")")
-mysummary[3,writecolnum]<-paste0(round(tR$estimate,2)," (",sdR,")")
-mysummary[4,writecolnum]<- paste0('t = ',round(tL$statistic,1),'; ', pformat(tL$p.value))
-mysummary[5,writecolnum]<- paste0('t = ',round(tR$statistic,1),'; ', pformat(tR$p.value))
-mysummary[6,writecolnum]<- paste0('t = ',-round(tcompare$statistic,1),'; ', pformat(tcompare$p.value))
-mysummary[7,writecolnum]<- round(cor(thisdat[,odds],thisdat[,evens],use='complete.obs'),3)
-
-
-
-return(mysummary)
-}
 ```
 
 
@@ -488,16 +714,16 @@ sess3 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess3.csv'))
 
 mytask<-'DL'
 writecolnum <- 2 #column of online summary to write to for this task
-onlinesummary <- populate(mytask,onlinesummary,writecolnum,'beh')
+onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 
 mytask<-'RDT'
 writecolnum <- 3 #column of online summary to write to for this task
-onlinesummary <- populate(mytask,onlinesummary,writecolnum,'beh')
+onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 onlinesummary[8,3]<-round(cor(sess1$RDT.zlat,sess3$RDT.zlat,use='complete.obs'),3)
 
 mytask<-'WC'
 writecolnum <- 4 #column of online summary to write to for this task
-onlinesummary <- populate(mytask,onlinesummary,writecolnum,'beh')
+onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 onlinesummary[8,4]<-round(cor(sess1$WC.zlat,sess3$WC.zlat,use='complete.obs'),3)
 
 ft<-flextable(onlinesummary)
@@ -544,7 +770,8 @@ The Word Comprehension task did rather better in terms of reliability, with spli
 
 ### Data Quality and Outliers for fTCD
 ``` {r dataqual, echo=FALSE, warning=FALSE}
-
+#As pre-registered, we identify cases who have high values of SE for the LI, as this indicates the measurements are unusually variable from trial to trial
+#We compute Qlimit based on Hoaglan-Iglewicz formula and exclude cases that exceed this value.
 # Identify outliers
 for (t in 1:6){
   SEcol <- which(colnames(combdat) == paste0(LETTERS[t], '_mean_se'))
@@ -555,6 +782,7 @@ for (t in 1:6){
 # If there are at least 10 trials, include the data
   excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
   trialscol = which(colnames(combdat) == paste0(LETTERS[t], '_N'))
+  combdat[,excludecol] <- NA #initialise with NA
   combdat[which(combdat[ , trialscol] > 9), excludecol] <- 0
   combdat[which(combdat[ , trialscol] < 10), excludecol] <- 1
   
@@ -562,11 +790,14 @@ for (t in 1:6){
   combdat[which(combdat[ , SEcol] > Qlimit) , excludecol] <- 1
 }
 
-# Count number of missing or excluded datapoints per task. ZW: These numbers include people without fTCD, is this really what we want?
+# Count number of missing or excluded datapoints per task. 
+
+
+# First set to NA those who did not do ftcd
 n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
 for (t in 1:6){
   excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
-  n_excludeLI[t] = length(which(combdat[ , excludecol] > 0)) + length(which(is.na(combdat[ , excludecol])))
+  n_excludeLI[t] = length(which(combdat[ , excludecol] > 0)) 
 }
 
 # Should any participants be excluded? If a participant has more than one excluded task, the participant is excluded entirely
@@ -577,60 +808,20 @@ n_excluded = length(which(combdat$DopExclude == 1))
 
 ddat<- filter(combdat,DopExclude==0,excluded==0,ftcd==1) #not really necessary to create this, but done for consistency with previous script : this has just those who did ftcd and who were not excluded on demographics or ftcd.
 
-```
-
-### Normality
-```{r fTCD_normal}
-
-mycols <- c("ID","Rhanded","A_mean_LI","B_mean_LI","C_mean_LI","D_mean_LI","E_mean_LI","F_mean_LI")
-thisdat <- ddat[,mycols]
-
-  for (t in 3:8){ #each test
-    s<-shapiro.test(thisdat[,t])$p.value
-    print(paste0(colnames(thisdat)[t],' Normality test, p-value: ',round(s,5)))
-    }
-
-```
-
-```{r scatterplus,echo=F}
-#Function for doing scatterplot with marginal density distributions
-doscatterplus <- function(myfile, taskname,mycolnames,myrange){ #myfile contains group in col 1 and the 2 cols to plot in cols 2-3
-colnames(myfile)[2:4]<- mycolnames
-
-r <- round(cor(myfile$Odd,myfile$Even,use="complete.obs",method="spearman"),3)
-myt<-t.test(myfile$All~myfile$Handed)
-myt2 <- t.test(myfile$All) #single group t-test
-text1 <- paste0('Mean diff from zero: \nt = ',round(myt2$statistic,2),"; ", pformat(myt2$p.value))
-text2 <- paste0('L vs R handers \n(all trials):\n t = ',round(myt$statistic,2),"; ", pformat(myt$p.value))
-text3 <-paste0('Spearman rho: ',r)
-p <- ggplot(myfile, aes_string('Odd','Even')) +
-  aes_string(colour = 'Handed') +
-  geom_point() + theme_bw(15)+
-  annotate("text", x = 3.2, y = -3,label=text3,size=3)+
-  annotate("text", x = -2.5, y = 5.5,label=text1,size=3)+
-  annotate("text", x = -2.5, y = 3.5,label=text2,size=3)+
-  geom_hline(yintercept=0,linetype="dashed",colour="grey")+
-  geom_vline(xintercept=0,linetype="dashed",colour="grey")+
-  xlim(myrange)+
-  ylim(myrange)+
-  ggtitle(taskname)
-
-p2 <- ggExtra::ggMarginal(
-  p,
-  type = 'density',
-  margins = 'both',
-  size = 5,
-  groupColour = TRUE,
-  groupFill = TRUE
-)
-return(p2)
-
+# We now count how many included participants omitted a single task
+n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
+for (t in 1:6){
+  excludecol = which(colnames(ddat) == paste0(LETTERS[t], '_exclude'))
+  n_excludeLI[t] = length(which(ddat[ , excludecol] > 0)) 
 }
 
 ```
 
+We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with missing data on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) were as follows: `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
+
+
 <!--- Need to decide on colour scheme and stick to it-->
-```{r selectplots,echo=F}
+```{r selectplots,echo=F, warning=F}
 tasknames <- c('Word generation','Sentence generation','Phonological decision','Word comprehension','Sentence comprehension','Syntactic decision')
 ddat$Handed<-as.factor(ddat$Rhanded)
 levels(ddat$Handed)<-c("Left","Right")
@@ -659,12 +850,6 @@ for (i in 1:length(tasknames)){
 
 
 
-
-
-## LI Summary Statistics
-
-The pirate plot shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) for left and right handed participants. One sample t-tests were computed to test whether the group LI values differed significantly from zero, i.e. showed significant lateralisation. In left handers, tasks A, B and C were left lateralised; task D was right lateralised; and tasks E and F were not significantly lateralised. In right handers, all six tasks differed significantly for zero. (NB - no correction for multiple comparisons). Between-group t-tests were also computed to test whether lateralisation differed between left and right handers. In all cases, LI values were significantly stronger in the right handers than the left handers.
-
 ```{r LIpirates, echo=FALSE, warning=FALSE}
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
 
@@ -688,11 +873,8 @@ colnames(LIdata) <- c('ID','Handed','A','B','C','D','E','F')
 LIdata$Handed <- as.factor(LIdata$Handed)
 levels(LIdata$Handed)<-c("L","R")
 
-#only one person had missing data on task A, and they had NA for all tasks.
-#We will delete this case when moving to long form to avoid later problems.
-w<- which(is.na(LIdata$A))
 
-longdata.d <- pivot_longer(data = LIdata[-w,], cols = c(3:8), names_to = 'Task', values_to = 'LI')
+longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', values_to = 'LI')
 pirateplot(data = longdata.d, LI ~ Handed * Task,ylim=c(-6,8))
 abline(h=0)
 
@@ -700,20 +882,26 @@ for (i in 1:6){
   text(horizpts[i], vertpts[i], tasknames2[i], #add label for task
      cex = .8)
 }
-title(main=paste0('Distributions of LI Data \nN = ',length(LIdata$ID)))
+#title(main=paste0('Distributions of LI Data \nN = ',length(LIdata$ID)))
 
 dev.off()
 
 ```
+![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers ](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_pirates.jpg)
 
+## LI Summary Statistics
+
+The pirate plot shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) for left and right handed participants. One sample t-tests were computed to test whether the group LI values differed significantly from zero, i.e. showed significant lateralisation. In left handers, tasks A, B and C were left lateralised; task D was right lateralised; and tasks E and F were not significantly lateralised. In right handers, tasks A, B, C and E were significantly left-lateralised.  Between-group t-tests were also computed to test whether lateralisation differed between left and right handers, using a one-tailed test as we had a directional prediction that R-handers would be more left-lateralised than L-handers. LI values were significantly stronger in the right handers than the left handers for all tasks except Word Comprehension.
+
+Split-half reliability was computed for LI indices by computing the LI based just on odd or even trials, and taking the correlation between the two values. As can be seen in Table x, values were generally between .73 and .83, except for Word Comprehension, where split-half reliability was only .58. 
 
 ```{r doppler-ttests,echo=F}
 #Make a table to show characteristics of different tests
 
 
-ftcdsummary <- data.frame(matrix(NA,nrow=8,ncol=7))
+ftcdsummary <- data.frame(matrix(NA,nrow=7,ncol=7))
 colnames(ftcdsummary)<-c('Statistic',LETTERS[1:6])
-ftcdsummary[,1]<-c('N','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r','Test-retest r')
+ftcdsummary[,1]<-c('N','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r')
 ```
 
 ```{r fill-ftcdsummary,echo=F}
@@ -722,67 +910,19 @@ for (t in 1:6){
 mytask<-LETTERS[t]
 writecolnum <- 1+t #column of online summary to write to for this task
 
-ftcdsummary <- populate(mytask,ftcdsummary,writecolnum,'ftcd')
+ftcdsummary <- populate(ddat,mytask,ftcdsummary,writecolnum,'ftcd')
+#ftcdsummary <- ftcdsummary[1:(nrow(ftcdsummary)-1),]
 }
 ft<-flextable(ftcdsummary)
 ft<-autofit(ft)
 ft
 ```
 ### Checking normality of fTCD data
+__DB note: Can do this now in one step using the MVN function - this checks multivariate normality as well as normality of individual measures. I wrote some functions to fix measures that were not univariate normal; this involves the Box Cox function.  However, I then got concerned that fixing the non-normality might introduce undesirable other changes in the data- it did, for instance greatly increase the variance of just task E. I have analysed data with and without data normalisation, and it does not have much impact, so I think we could report main result without any changes, and just have alternative analysis available for those who want it. Importantly, the data don't seem wildly skewed or bimodal for any of the tasks (as can be seen from the density plots). But we could discuss this further - or perhaps just flag it up and see if reviewers want more on this.  Also, even after fixing univariate normality, we don't achieve multivariate normality. I think just describing these issues may be best way forward, rather than trying to fix everything and getting further and further from original data. __
 
-The planned approach to analysis, structural equation modeling (SEM), assumes multivariate normality. A preliminary check using the Shapiro-Wilk test found that the distribution of LIs on most of the measures departed significantly from normal, typically because of skew, with a long tail on one side. To make data suitable for entry into SEM, the Box-Cox transformation was applied to normalise the distributions as far as possible. Results are shown in Table x.
+__BIT OF TEXT ORIGINALLY USED HERE. The planned approach to analysis, structural equation modeling (SEM), assumes multivariate normality. A preliminary check using the Shapiro-Wilk test found that the distribution of LIs on most of the measures departed significantly from normal. To make data suitable for entry into SEM, the Box-Cox transformation was applied to normalise the distributions as far as possible. Results are shown in Table x.__
 
-```{r optimalBoxCoxFunction,echo=F}
-#Where a measure is non-normal on Shapiro-Wilk test, the BoxCox transformation is applied.  Because the LIs include negative values, we first add a constant so all values are positive. After applying the BoxCox, we add another constant to ensure that the mean is unchanged by the transformation.
-
-#The BoxCox function is similar to applying a transformation such as log or square root, but rather than pre-specifying the function, we hunt for the optimal value of lambda to give normal data, where newdata <- olddata^lambda-1/lambda
-
-optimalBoxCox <- function(myvector){
-
-#find optimal lambda for Box-Cox transformation 
-
-offset<-min(myvector,na.rm=T)
-origmean <- mean(myvector,na.rm=T)
-respvar <- -offset+.1+myvector
-bc <- boxcox(respvar ~ 1)
-lambda <- bc$x[which.max(bc$y)]
-newresp <- respvar^lambda-1/lambda
-numean<-mean(newresp,na.rm=T)
-newoffset <- numean-origmean
-nuvector<-newresp-newoffset
-return(nuvector)
-
-}
-
-
-```
-
-
-
-```{r do-boxcox,echo=F}
-#This function identifies columns with nonnormal data and applies optimal BoxCox function, saving the new version of the variable with suffix _bc
-
-#NB I have set this to only do transform if nonnormality gives p < pcut.
-#To ignore normalisation, just use extreme pcut 
-#Concern that otherwise transform  might distort relation between variables?
-normalisedf <- function(thisdat,pcut){ #need a data frame with just the variables to be normalised
-  mymvn <- mvn(thisdat,mvnTest = c("mardia", "hz", "royston", "dh",
-  "energy")) #useful for getting normality check on all vars
-  print(mymvn)
-swlist <-mymvn$univariateNormality
-collist<-vector() #initialise a vector that will hold list of cols to be normalised
-for (i in 1:nrow(swlist)){
-  if (as.numeric(swlist[i,4])>pcut){collist<-c(collist,i)}
-  if (as.numeric(swlist[i,4])<pcut){ #pvalue
-    thisdat$temp<-optimalBoxCox(thisdat[,i])
-    newmean<-mean(thisdat$temp,na.rm=T)
-    colnames(thisdat)[ncol(thisdat)]<-paste0(colnames(thisdat)[i],'_bc')
-    collist<-c(collist,ncol(thisdat))
-  }
-}
-return(list(thisdat,collist))
-}
-```
+As noted above, there were a few participants with missing data on a single measure. Before running the SEM analysis, the mice() package was run in R to impute these missing values. 
 
 ```{r checkMVN,echo=F}
 #check multivariate normality
@@ -797,6 +937,8 @@ nunames<- c('A_P1','B_P2','C_P3','D_R1','E_R2','F_R3') #cols for SEM; will use _
 thisdat[,nunames]<-thisdat[,normed.dat[[2]]]
 
 #some checks on how the normalisation has worked.
+normcheck <- 0 #Can set to 1 to see plots of data pre- vs post-normalisation
+if(normcheck==1){
 nc <- ncol(thisdat)
 for (i in 1:6){
   plot(thisdat[,i],thisdat[,(nc-6+i)],xlab=colnames(thisdat)[i],ylab=colnames(thisdat)[(nc-6+i)])
@@ -805,16 +947,10 @@ for (i in 1:6){
   text(-2,4,paste0(m1,': ',m2))
   abline(0,1,lty=2)
 }
-
-#remove case if no data on A_P1 - need to do this for both ddat and thisdat
-w<-which(is.na(thisdat$A_P1))
-if(length(w)>0){
-thisdat<-thisdat[-w,]
-ddat<-ddat[-w,]
 }
 
 #Interpolate missing values using mice package
-thisdat.i <- mice(thisdat[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500)
+thisdat.i <- mice(thisdat[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
 ddati <-cbind(ddat[,c('ID','male','Handed')],complete(thisdat.i,1))
 
 
@@ -840,7 +976,7 @@ Models B1 and B2 are mathematically equivalent, differing only in the specific v
 
 
 
-```{r bivplotfunction,echo=F}
+```{r bivplotfunction,echo=F,warning=F}
 #Function to make a bivariate plot subdivided by group, with spearman correlation in plot
 
 #When we call this function we have already created temporary x and y cols (tempx and tempy) to be used in this function
@@ -921,7 +1057,7 @@ NOTE THAT THE CORRELATION BETWEEN WC AND RDT IS ACTUALLY QUITE CLOSE TO THE RELI
 
 
 
-```{r aicmodels}
+```{r aicmodels,echo=F}
 #Specify models
 
   #Model A all correlated
@@ -950,7 +1086,7 @@ NOTE THAT THE CORRELATION BETWEEN WC AND RDT IS ACTUALLY QUITE CLOSE TO THE RELI
     
 ```    
 
-```{r runAIC}
+```{r runAIC,echo=F}
 set.seed(50) #make reproducible
 bLIdat$Group<-1+rbinom(nrow(bLIdat),1,.5)
 table(bLIdat$Handed,bLIdat$Group)
@@ -1000,7 +1136,7 @@ flextable(AICdf)
 ```
 Summary from the Aikake weights analysis is shown in Table x. In both Groups, the best fitting model is Model A. Nevertheless, consideration of the results of the two subgroups indicates how labile results from such an analysis can be, even with over 200 participants per group. In Group 1, the difference between Models A and B2 is small, whereas in Group 2, Model A is the clear winner.
 
-NB - this may need reconsidering depending on how we handle issues of reliability/non-normality.
+__NB - this may need reconsidering depending on how we handle issues of reliability/non-normality.__
 
 ## Hypothesis 2: Testing a two-factor model using fTCD data
 
@@ -1008,9 +1144,11 @@ Our second preregistered prediction was: __The data will fit a model where 'lang
 
 It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
  
-The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because we had two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, we changed some of the tasks, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model which constrains which indicators can load on two factors. This is compared to a unitary model, in which all tasks load on a single factor.
+The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because they had two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model which constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-```{r modelfit}
+Figure x shows the pattern of correlations between LIs for the different tasks as a heat map. THe two-factor model predicts that tests A-C will be positively correlated, and tests D-F will be positively correlated, but there will be weaker or absent correlations across these two subsets of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations between clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+
+```{r modelfit,echo=F}
 
 #nb we will use the variables from ddati
 
@@ -1027,26 +1165,18 @@ myheatmap
 ggsave(paste0(mydir,"/03-graphic-outputs/ftcd-heatmap.png"),width = 6, height = 6)
 
 ```
-```{r makeSEMtab,echo=F}
-#Function to make tidy table for SEM output for model with one group
-#This is now largely superseded by bigsummary, though SEMtab has more complete information
-makeSEMtab <- function(myfit){
-ss<- summary(myfit)$PE
- srow<-nrow(ss)
- scol<-ncol(ss)
-mySEMout <-ss[,-4]
-mySEMout[,4:7]<-round(mySEMout[,4:7],3)
+__Note from DB: I am planning on putting in quite a detailed explanation of SEM as it not widely used in this field. This is a bit of a placeholder for now.__
 
-#add fit measures
-myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
-fm<-fitmeasures(myfit,myfitmeasures)
-for(i in 1:length(myfitmeasures)){
-mySEMout[(i+srow),1]<-myfitmeasures[i] #write name of fit measure to col 1
-mySEMout[(i+srow),2]<-round(fm[i],3) #write value to col 2
-}
-return(mySEMout)
-}
-```
+Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. Figure 1x shows the single factor model on the left, and a two-factor model on the right. The latent factors are shown in ovals, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure 1x have a precise mathematical interpretation, and so it is possible to obtain a measure of goodness of fit for observed data in relation to a model. We can already see by inspecting the heatmap of Figure x that a single-factor model is unlikely to provide a good fit to the observed data, because it would predict similar levels of correlation between all variables.  
+
+SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected covariances. 
+
+There is no single method for evaluating the fit of a model to observed data. A chi square test can given an estimate of the extent of departure of a observed values from expectation: a good model is one where chi square is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. However, it is usually possible to improve fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Where models are 'nested', with a more complex model including all the parameters of a base model, then model fit can be compared by subtraction of the chi square and degrees of freedom for the two models; the difference in chi square is then evaluated, and can indicate whether the more complex model gives a better fit than base model. 
+
+Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. Another measure is the Root Mean Square Error of Approximation (RMSEA) is a 'badness of fit' measure, where a value of zero indicates good fit.
+ 
+
+![Single factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF1.jpg) ![Two factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF2.jpg) 
 
 
 ```{r initialisebigsummary,echo=F}
@@ -1058,64 +1188,9 @@ bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> F
 
 
 
-```{r makebigSEMtab,echo=F}
-#This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a chi square comparison with that model and put p value in final row.
-addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
-  colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
-ss<- summary(myfit)$PE #get coefficients from current model
-bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
-
-thisrow<-1 #initialise counter for factor loadings
-#if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
-#If  no path in the model, it just skips it
-for (f in 1:2){
-for (m in 1:6){
-  thisrow<-thisrow+1
-  w<-which(ss$lhs==paste0('f',f))
-  x<-which(substr(ss$rhs,1,1) == LETTERS[m])
-  myrow<-intersect(w,x)[1]
-  bigsummary[thisrow,writecol]<-round(ss$est[myrow],3)
-}
-}
-#Correlation between factors is added (if it exists)
-myrow<-intersect(which(ss$lhs=='f1'),which(ss$rhs=='f2'))[1]
-if(length(myrow)>0){
-  bigsummary[14,writecol]<-round(ss$est[myrow],3)
-}
-
-wantfits <- c('CFI','rmsea','chisq','df') #fit indices to include
-#NB there are many other fit indices we could add, but if we do, would need to modify bigsummary.
-#Currently script assumes we will have these 4 fit indices 
-
-fm<-fitmeasures(myfit,wantfits)
-#find first row to write to
-r<-which(bigsummary[,1]==wantfits[1]) #find row corresponding to first fit index
-bigsummary[r:(r+length(wantfits)-1),writecol]<-fm #write the fit indices in successive rows, starting with r
-
-bigsummary[2:17,writecol]<-round(bigsummary[2:17,writecol],3) #round all the numeric values
 
 
-#Add chi square comparison with comparisonfit
-if(!is.na(comparisonfit)){
-chicomp <- fitmeasures(comparisonfit,wantfits[3:4]) #get chisq and DF for comparison model
-chidiff<-chicomp[1]-bigsummary[17,writecol]
-dfdiff<-chicomp[2]-bigsummary[18,writecol]
-pval<- 1-pchisq(chidiff,dfdiff) #p-value for chi sq difference
-bigsummary[19,writecol]<-pformat2(pval) #p-value written to row 19
-}
-
-#because this is data.frame, all values in a column must be same format.
-#Starts numeric, but that means Nobs and DF is shown to 3 decimal places. 
-#Can remove decimal places with line below, but then all values become characters
-#In practice, I've found trying to format creates problems, so better to format bigsummary outside this function
-#bigsummary[1,mycol]<-as.character(round(bigsummary[1,mycol],0))
-
-return(bigsummary)
-}
-```
-
-
-```{r factormodels,echo=F}
+```{r factormodels,echo=F,include=F}
 #In lavaan, we first define the factor model between quotes
 #So this step doesn't do anything - just sets up the model to be run later
 
@@ -1172,30 +1247,16 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8
 
 
 ```
-The fit of both the one-factor and the two-factor model is poor. Therefore, as planned we divided the sample into two random subsamples, 1 and 2. The first subsample is used in an exploratory analysis. We start with tasks A-E linked to Factor 1 and tasks B-F linked to Factor 2, and then drop non-significant paths. This gives a revised model with considerably improved fit, as shown in Figure x, where tasks A, B, C, and E load on Factor 1, and tasks C, D, E and F load on Factor 2. 
+We used the lavaan() package to perform the pre-registered model comparison. Table z summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
+
+Therefore, as planned we divided the sample into two random subsamples, 1 and 2. The first subsample is used in an exploratory analysis. We start with tasks A-E linked to Factor 1 and tasks B-F linked to Factor 2, and then drop non-significant paths. This gives a revised model with considerably improved fit, as shown in Figure x, where tasks A, B, C, and E load on Factor 1, and tasks C, D, E and F load on Factor 2. 
 
 This model is then run using data from subsample 2. Table x shows that the fit is actually better for subsample 2 than subsample 1, but it also indicates how model fit can vary with samples of this size. Table x also shows the fit of the revised 2-factor model for the full sample. The model fit falls short of meeting criteria for a good fit, though it is much better than for the previous model. Given the limitations of the dataset, we concluded this is likely to be the optimal model that can be achieved, and so we proceeded to test whether the same model was appropriate for left- and right-handers.  
 
 
 
 
-
-
-```{r case175remove}
-removebit <-0 #just keeping this here but want to avoid triggering it!
-
-if(removebit==1){
-#case 175 looks v odd - Left hander who is bivariate outlier - +ve for A and F, -ve for others
-  #Try removing to see if this case is causing negative variances in variable B
-  #Nope - doesn't fix the problem. Keep this one in
-ddati<-ddati[-175,]
-}
-
-```
-
-
-
-```{r newmodel,echo=F}
+```{r newmodel,echo=F,include=F}
 #We explore for best model using just half the data (randgroup = 1)
 mygroup <-1
 mydat<- ddati[ddati$randgroup==mygroup,]
@@ -1221,9 +1282,24 @@ mi[mi$op == "=~",]
 model.2Fn <- '
 f1 =~  A_P1 + B_P2+C_P3+ E_R2
 f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
+#adding constraints to force variances to be > .01
+# A_P1 ~~ varA*A_P1
+# B_P2 ~~ varB*B_P2
+# C_P3 ~~ varC*C_P3
+# D_R1 ~~ varD*D_R1
+# E_R2 ~~ varE*E_R2
+# F_R3 ~~ varF*F_R3
+# varA > 0.01
+# varB > 0.01
+# varC > 0.01
+# varD > 0.01
+# varE > 0.01
+# varF > 0.01
+
 '
 fit.1F.1 <-cfa(model.1F, data=mydat)
 fit.2Fn.1 <- cfa(model.2Fn, data=mydat)
+tab.2Fn.1 <- makeSEMtab(fit.2Fn.1)
 bigsummary<- addmodel(bigsummary,fit.2Fn.1,fit.1F.1 ,'Model.2Fn.1',writecol=4) #summary from this model written to col 4 of bigsummary - becauase different subsample, can't compare with prior model in bigsummary
 
 
@@ -1282,31 +1358,7 @@ thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) +
 }
 ```
 
-```{r factorscores}
-#FUnction to extract factor scores and plot them and save plot
-makefactorplot <- function(myfit,fitname,thisdat){
-lastc <- ncol(thisdat)
-myfacs<-predict(myfit)
-myfacs<-as.data.frame(myfacs)
-colnames(myfacs)<-c("Factor1","Factor2")
-w<-which(colnames(ddati)=='Factor1') #check if we already have col for factors
-if(length(w)==0){
-thisdat<-cbind(thisdat,as.data.frame(myfacs))
-}
-if(length(w)>0){
-  thisdat$Factor1 <- as.data.frame(myfacs[,1])
-  thisdat$Factor2 <- as.data.frame(myfacs[,2])
-}
 
-plotf1f2 <- myscatter(thisdat$Factor1,thisdat$Factor2,xlabel='Factor1',ylabel='Factor2',thisdat)
-
-plotname <- paste0(mydir,"/03-graphic-outputs/factors_",fitname,".png")
-
-ggsave(plotname,width = 5, height = 3)
-return(thisdat)
-}
-
-```
 
 
  
@@ -1321,31 +1373,7 @@ ddati <- makefactorplot(cfa(model.2Fn, data=ddati),'fit.2Fn',ddati)
 
 
 
-```{r makeSEMtab2,echo=F}
-#Table for SEM output side by side for 2 groups
-makeSEMtab2 <- function(myfit,mygroups){
-ss<- summary(myfit)$PE
- srow<-nrow(ss)
- scol<-ncol(ss)
-mySEMout <- cbind(ss[1:(srow/2),c(1:3,(scol-3):scol)],ss[(1+srow/2):srow,c((scol-3):scol)])
-mySEMout[,4:11]<-round(mySEMout[,4:11],3)
-mySEMout[(srow/2+1):(srow/2+4),]<-NA #additional rows for fit measures
 
-
-#add fit measures
-myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
-fm<-fitmeasures(myfit,myfitmeasures)
-for(i in 1:length(myfitmeasures)){
-mySEMout[(i+srow/2),1]<-myfitmeasures[i] #write name of fit measure to col 1
-mySEMout[(i+srow/2),2]<-round(fm[i],3) #write value to col 2
-}
-
-#make different col headers for the 2 groups
-colnames(mySEMout)[4:7]<-paste0(colnames(mySEMout)[4:7],mygroups[1])
-colnames(mySEMout)[8:11]<-paste0(colnames(mySEMout)[8:11],mygroups[2])
-return(mySEMout)
-}
-```
 ## Model equivalency for left- and right-handers  
 <!---Level of measurement equivalency are assessed through model fit of a series of nested multiple group models.  
 Substantial decrease in goodness of fit indicates non-invariance
@@ -1392,7 +1420,7 @@ At the next step, (scalar invariance), the item intercepts are set to be the sam
 In a final step (strict invariance), we constrain item residual variances as well as factor loadings and intercepts to be equal across groups. Here we obtained a substantial worsening of model fit, indicating that the mean difference between groups on the latent factors is not the same. This is as we would expect, given the substantial differences seen in mean factor scores of left- and right-handers. 
 
 
-```{r measurementinvariance,echo=F}
+```{r measurementinvariance,echo=F,include=F}
 #https://towardsdatascience.com/measurement-invariance-definition-and-example-in-r-15b4efcab351
 
 
@@ -1400,19 +1428,10 @@ In a final step (strict invariance), we constrain item residual variances as wel
 
 
 measurementInvariance(model=model.2Fn,data=ddati,group="Handed")
-#This gives error message re negative variance; also says command is deprecated.
+#This gives message to say command is deprecated.
 #It gives substantial change to model fit for the final fit.means model.
 
 
-
-
-#However, doing the same thing a different way gives different result for fit4.
-#Aargh - note the DFs are different.
-
-#Both results are weird in that I would have thought the estimates of observed intercepts are v different for the 2 groups, and so would expect fit3 to be highly significant. Makes me think it will be necessary to check this another way - maybe in OpenMx.  
-#3/2/22 - Kline book p 256 is helpful: problem is that we scale both groups so that indicator variable is 1, but means differ, this can be misleading. So should 
-
-#C
 
 
 #Problems with model fit - seems due to extreme case in task D.
@@ -1420,403 +1439,109 @@ measurementInvariance(model=model.2Fn,data=ddati,group="Handed")
 #try with this case excluded
 #modeldat<-modeldat[-w,] - makes no difference!
 
+#NB makeSEMtab2 is a function defined at top of script - just makes it easier to compare parameters across groups
+
 # configural invariance
-fit1 <- cfa(model.2Fn, data = ddati,meanstructure=T, group = "Handed")
-tab1 <- makeSEMtab2(fit1,c('_L','_R'))  #in tab1, everything varies for the 2 groups
+fitM1 <- cfa(model.2Fn, data = ddati,meanstructure=T, group = "Handed")
+
+tabM1 <- makeSEMtab2(fitM1,c('_L','_R'))  #in tab1, everything varies for the 2 groups
 
 # weak invariance
-fit2 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
+fitM2 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
             group.equal = "loadings")
-tab2 <- makeSEMtab2(fit2,c('_L','_R'))
+tabM2 <- makeSEMtab2(fitM2,c('_L','_R'))
 #in tab2, the factor loadings are same for the 2 groups, but everything else can vary
 
 
-
-
 # strong invariance
-fit3 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
+fitM3 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
             group.equal = c("intercepts", "loadings"))
-tab3 <- makeSEMtab2(fit3,c('_L','_R'))
+tabM3 <- makeSEMtab2(fitM3,c('_L','_R'))
 #THis does have same intercepts and loadings, but the correlation between f1/f2 and the variances of each factor can differ, as well as the residuals.
 
 # strong invariance with variances too?
-fit3a <- cfa(model.2Fn, ddati,meanstructure=T, group = "Handed",
-            group.equal = c("intercepts", "loadings","lv.variances","lv.covariances"))
-tab3a <- makeSEMtab2(fit3a,c('_L','_R'))
+#fit3a <- cfa(model.2Fn, ddati,meanstructure=T, group = "Handed",
+#            group.equal = c("intercepts", "loadings","lv.variances","lv.covariances"))
+#tab3a <- makeSEMtab2(fit3a,c('_L','_R'))
+# This is not included in usual hierarchy of models - omit for now
 
-
-#THis does have same intercepts and loadings, but the correlation between f1/f2 and the variances of each factor can differ, as well as the residuals.
-
-
-fit4 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
+fitM4 <- cfa(model.2Fn, ddati, meanstructure=T,group = "Handed",
  group.equal = c("loadings","intercepts","means"))
 
-tab4 <- makeSEMtab2(fit4,c('_L','_R'))
+tabM4 <- makeSEMtab2(fitM4,c('_L','_R'))
 
 # model comparison tests
-lavTestLRT(fit1, fit2, fit3,fit4)
+lavTestLRT(fitM1, fitM2, fitM3,fitM4)
 
 #see https://users.ugent.be/~yrosseel/lavaan/multiplegroup6Dec2012.pdf
 
-measurementInvariance(model=model.2Fn,data=ddati,meanstructure=T,group="Handed")
-
-#measurementInvariance(model=model.h2a, data = ddati, group = "Handed")
 
 ```
 
-So results from measurement invariance test are very counterintuitive. The model fit does not worsen when intercepts are fixed - yet the intercepts are hugely different for L and R handers, with massive effect size on t-test. So I am wondering if I am misunderstanding what the analysis does here. 
+So results from measurement invariance test show that model fit does not worsen when intercepts are fixed, but the factor means for the two groups are very different.
 
-```{r alternativefactorss}
-#Fixing variance of F1 and F2 rather than one path
-#2 factor production/reception model
-model.2Fx <- '
-f1 =~  NA*A_P1 + B_P2+C_P3
-f2 =~ NA*F_R3 + D_R1 + E_R2  #original 2 factor model: 
-#covariance unspecified, which means there is no constraint on covariance
-f1 ~~ 1*f1
-f2 ~~ 1*f2
-'
-fit5 <- cfa(model.2Fx, ddati, meanstructure=T,group = "randgroup")
-tab5G <- makeSEMtab2(fit5,c('_G1','_G2'))
+# Prediction 4
+__On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised.__
 
-#Just use group 1
-ddatg1 <- ddati[ddati$randgroup==1,]
-ddatg2 <- ddati[ddati$randgroup==2,]
+As stated in our preregistration, we first adopted the simple approach of dichotomising laterality at a cutoff of zero for each task, and then performed a chi square analysis to test for association with handedness. For 6 measures, we adopted a Bonferroni-corrected alpha level of .02/6 = .003. 
 
-model.2Fy <- '
-f1 =~  NA*A_P1 + B_P2+C_P3+D_R1+ E_R2  #5 loadings per factor
-f2 =~  NA*F_R3+ B_P2+C_P3+D_R1+ E_R2
-#covariance unspecified, which means there is no constraint on covariance
-f1 ~~ 1*f1
-f2 ~~1 *f2
-'
-fit6 <- cfa(model.2Fy, ddatg1, meanstructure=T,group = "randgroup")
-tab6G1 <- makeSEMtab(fit6) 
-
-#remove D from F1 and B from F2 and run again
-model.2Fw <- '
-f1 =~  NA*A_P1 + B_P2+C_P3+F_R3+ E_R2  #5 loadings per factor
-f2 =~  NA*F_R3+ A_P1+C_P3+D_R1+ E_R2
-#covariance unspecified, which means there is no constraint on covariance
-f1 ~~ 1*f1
-f2 ~~1 *f2
-'
-fit7 <- cfa(model.2Fw, ddatg1, meanstructure=T,group = "randgroup")
-tab7G1 <- makeSEMtab(fit7) 
-
-#remove F from F1 and A from F2!  So this leaves:
-
-model.2Fp <- '
-f1 =~  NA*A_P1 + B_P2+C_P3+E_R2  #4 loadings per factor
-f2 =~  NA*F_R3+ C_P3+D_R1+ E_R2
-#covariance unspecified, which means there is no constraint on covariance
-f1 ~~ 1*f1
-f2 ~~1 *f2
-'
-fit8 <- cfa(model.2Fp, ddatg1, meanstructure=T)
-tab8G1 <- makeSEMtab(fit8) 
-#Still get -ve covariance for B - and for some others
-
-
-fit9 <- cfa(model.2Fp, ddatg2, meanstructure=T)
-tab8G2 <- makeSEMtab(fit9) 
-#Perfect fit !!!  But still some -ve covs
-
-
-measurementInvariance(model=model.2Fp,data=ddati,group="randgroup")
-
-measurementInvariance(model=model.2Fp,data=ddati,group="Handed")
-
-fit0 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed")
-tab0H <- makeSEMtab2(fit0,c('_L','_R'))
-#This has 12 df  #npar = 42
-#16 paths, 12 vars, 2 cov, 12 means
-#16+12+2+12 =42
-
-
-fit10 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed",
- group.equal = c("residuals","loadings","intercepts","lv.variances","lv.covariances"))
-
-tab10H <- makeSEMtab2(fit10,c('_L','_R'))
-#This has 31 df  #npar = 23
-#8 paths, 6 vars, 1 cov, 6 means, 2 factor vars (just for group R - fixed in group L)
-# 8+6+1+6+2 = 23
-
-
-fit11 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed",
- group.equal = c("residuals","loadings","intercepts","means"))
-
-tab11H <- makeSEMtab2(fit11,c('_L','_R'))
-#This has 32 df  #npar = 22
-#8 paths, 6 vars, 2 covs (differ for L and R), 6 means, 
-# 8+6+2+6 = 22
-
-fit12 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed",
- group.equal = c("residuals","loadings","means"))
-
-tab12H <- makeSEMtab2(fit12,c('_L','_R'))
-#This has 26 df  #npar = 28
-#So this is same df as for the final model in the measurement invariance
-#8 paths, 6 vars, 12 means, 2 covs
-#Note that the fixed factor means are both zero, but the intercepts vary between groups
-
-
-#This has 26 df  #npar = 28
-#So this is same df as for the final model in the measurement invariance
-#8 paths, 6 vars, 12 means, 2 covs
-#Note that the fixed factor means are both zero, but the intercepts vary between groups
-
-
-fit13 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed",
- group.equal = c("residuals","loadings","intercepts","means"))
-
-tab13H <- makeSEMtab2(fit13,c('_L','_R'))
-#This has 32 df, 22 parameters
-
-
-fit14 <- cfa(model.2Fp, ddati, meanstructure=T,group = "Handed",
- group.equal = c("loadings","intercepts"))
-
-tab14H <- makeSEMtab2(fit14,c('_L','_R'))
-fitmeasures(fit14,c("npar","chisq", "df", "pvalue", "cfi", "rmsea"))
-#This has 24 df, 30 parameters
-
-
-
-#DF for the 4 outputs from measurement invariance are 12, 20, 24 and 26
-
-
-# model comparison tests
-lavTestLRT(fit1, fit2, fit3,fit3a,fit4)
-
-
-measurementInvariance(model=model.2Fp,data=ddati,meanstructure=T,group="Handed")
-
-```
-
-
-
-
-## Analyses using odd and even LIs
-This is just exploratory - I've set oddeven to 0 at start of chunks so it does not automatically run. Just preserving it here in case we want to revisit this idea - which seemed sensible at the time....
-
-```{r prepare-oddevens,echo=F}
-oddeven <-0
-if(oddeven == 1){
-
-#I had hoped having 2 measures per task - ie odd and even LI - would improve fit, but it gets much worse!
-#Not sure why - I guess there are many more terms in the model and also the individual measures are less reliable.
-#I'll leave this here for historic interest, but for the analysis of 2 handedness groups, seems preferable to revert to the previous analysis with the regular mean LIs. 
-
-#We will adopt the approach used in previous paper by Woodhead et al, using the odd and even LIs for each task as repeated measures. 
-
-#We first need to create a file with the relevant measures renamed
-
-wantcols <-c('ID','male' ,'Handed','DopExclude','A_mean_even','A_mean_odd','B_mean_even','B_mean_odd','C_mean_even','C_mean_odd','D_mean_even','D_mean_odd','E_mean_even','E_mean_odd','F_mean_even','F_mean_odd')
-ddat2 <- ddat[,wantcols]
-
-w<-which(is.na(ddat2$A_mean_even)) #subject with missing data on all LI; remove
-if(length(w)>0){
-ddat2<-ddat2[-w,]
+```{r categorical-assignment, echo=F}
+mycols<-paste0(LETTERS[1:6],'_mean_LI')
+for (i in 1:6){
+  c<-which(colnames(ddat)==mycols[i])
+  myvector<-rep(NA, nrow(ddat))
+  w<-which(ddat[,c]>0.000000001)
+  myvector[w]<-1
+  w<-which(ddat[,c]<0)
+  myvector[w]<-0
+  ddat[,(1+ncol(ddat))]<-myvector
+  colnames(ddat)[ncol(ddat)] <- paste0(LETTERS[i],'_catlatL')
 }
+```
 
-#thisdat <- ddat[,c('A_mean_even','A_mean_odd','B_mean_even','B_mean_odd','C_mean_even','C_mean_odd','D_mean_even','D_mean_odd','E_mean_even','E_mean_odd','F_mean_even','F_mean_odd')]
+```{r category-analysis,echo=F}
+chidf <- data.frame(matrix(NA,nrow=6,ncol=5))
+colnames(chidf) <- c('Task','pL_Lhander','pL_Rhander','chisq','p')
+nucols <- paste0(LETTERS[1:6],'_catlatL')
+  myL <- filter(ddat,Handed=='Left')
+  myR <- filter(ddat,Handed=='Right')
+for (i in 1:6){
+    c<-which(colnames(ddat)==nucols[i])
+ 
+  myt<-table(ddat$Handed,ddat[,c])
+  chitab<-chisq.test(myt)
+  chidf[i,1]<-LETTERS[i]
+  chidf[i,2]<-round(sum(myL[,c],na.rm=T)/nrow(myL),3)
+  chidf[i,3]<-round(sum(myR[,c],na.rm=T)/nrow(myR),3)
+  chidf[i,4]<-round(chitab$statistic,2)
+  chidf[i,5]<-pformat2(chitab$p.value)
 
-#concerned that the BoxCox transform is distorting distributions - plots suggest ti is inadvisable, so ignore here 
-#normed.dat<-normalisedf(thisdat)
-#now select variables to be used in SEM analysis - will use the _bc versions if they exist. The collist in normed.dat gives the col numbers in correct order
-#thisdat <- normed.dat[[1]]
-
-#some checks on how the normalisation has worked.
-# nc <- ncol(thisdat)
-# for (i in 1:6){
-#   plot(thisdat[,i],thisdat[,(nc-6+i)])
-#   m1<-round(mean(thisdat[,i],na.rm=T),2)
-#   m2<-round(mean(thisdat[,(nc-6+1)],na.rm=T),2)
-#   text(-2,4,paste0(m1,': ',m2))
-# }
-
-
-w<-which(colnames(ddat2)=='A_mean_even')
-nunames<- c('A_P1_e','A_P1_o','B_P2_e','B_P2_o','C_P3_e','C_P3_o','D_R1_e','D_R1_o',
-            'E_R2_e','E_R2_o','F_R3_e','F_R3_o') #col names for SEM
-colnames(ddat2)[w:(w+11)]<-nunames
-
-
-#Interpolate missing values using mice package
-thisdat.i <- mice(thisdat[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500)
-ddati2 <-cbind(ddat[,c('ID','male','Handed')],complete(thisdat.i,1))
-set.seed(1)
-ddati2$randgroup<-1+rbinom(nrow(ddati2),1,.5) #create random group 1 or 2 for later split
-table(ddati2$Handed,ddati2$randgroup) #just check handedness not too unevenly split
 }
-
+  ft<-flextable(chidf)
+  autofit(ft)
 ```
 
 
-```{r exploremodeloddeven,echo=F}
+After testing associations for individual measures, we categorise individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests, and conduct a chi-square test contrasting the proportion of left- and right-handers on this composite measure.
 
-if(oddeven==1){
-mydat<- ddati2[ddati$randgroup==1,]
-#Start by having all measures linked to F1 and F2, with A as indicator variable for F1 and F as indicator variable for F2
+```{r ntestL,echo=F}
+ddat$Nleft <- ddat$A_catlatL+ ddat$B_catlatL+ddat$C_catlatL+ddat$D_catlatL+ddat$E_catlatL+ddat$F_catlatL
 
-model.1fbase <- '
-f1 =~  1*A_P1_e + 1*A_P1_o + b*B_P2_e + b*B_P2_o + c*C_P3_e + c*C_P3_o+f*F_R3_e + f*F_R3_o + d*D_R1_e + d*D_R1_o + e*E_R2_e + e*E_R2_o
- A_P1_e + A_P1_o ~ meanA*1
- B_P2_e + B_P2_o ~ meanB*1
-  C_P3_e + C_P3_o ~ meanC*1
- D_R1_e + D_R1_o ~ meanD*1
- E_R2_e + E_R2_o ~ meanE*1
-  F_R3_e + F_R3_o ~ meanF*1
-'
-
-fit1fbase <- cfa(model.1fbase, data=mydat,meanstructure=T)
-summary(fit1fbase)
-fitmeasures(fit1fbase)
-
-model.2forig <- '
-f1 =~  1*A_P1_e + 1*A_P1_o + b*B_P2_e + b*B_P2_o + c*C_P3_e + c*C_P3_o
-f2 =~  1*F_R3_e + 1*F_R3_o + d*D_R1_e + d*D_R1_o + e*E_R2_e + e*E_R2_o
- A_P1_e + A_P1_o ~ meanA*1
- B_P2_e + B_P2_o ~ meanB*1
-  C_P3_e + C_P3_o ~ meanC*1
- D_R1_e + D_R1_o ~ meanD*1
- E_R2_e + E_R2_o ~ meanE*1
-  F_R3_e + F_R3_o ~ meanF*1
-'
+tabN <- table(ddat$Nleft,ddat$Handed)
+round(prop.table(tabN,2),3)
 
 
-#2 modified factor production/reception model 
-#started with all vars linked to both factors, - that would not converge, so dropped those with weak paths
-#for final model C and E load on both factors - gives reasonable (not brilliant!) fit
+ddat$NleftABCE <- ddat$A_catlatL+ ddat$B_catlatL+ddat$C_catlatL+ddat$E_catlatL
 
+tabN4 <- table(ddat$NleftABCE,ddat$Handed)
+round(prop.table(tabN4,2),3)
 
-fit2forig <- cfa(model.2forig, data=mydat,meanstructure=T)
+ddat$hand3cat <- ddat$Rhanded
+ddat$hand3cat[ddat$EHI.LI<(-90)]<--1
 
-summary(fit2forig)
-fitmeasures(fit2forig)
-anova(fit1fbase,fit2forig)
-
-#Now try original Woodhead et al model with everything attached to both factors, except for indicators.
-
-
-model.2full <- '
-f1 =~  1*A_P1_e + 1*A_P1_o + b1*B_P2_e + b1*B_P2_o + c1*C_P3_e + c1*C_P3_o+0*F_R3_e + 0*F_R3_o + d1*D_R1_e + d1*D_R1_o + e1*E_R2_e + e1*E_R2_o
-f2 =~  0*A_P1_e + 0*A_P1_o + b2*B_P2_e + b2*B_P2_o + c2*C_P3_e + c2*C_P3_o+1*F_R3_e + 1*F_R3_o + d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
- A_P1_e + A_P1_o ~ meanA*1
- B_P2_e + B_P2_o ~ meanB*1
-  C_P3_e + C_P3_o ~ meanC*1
- D_R1_e + D_R1_o ~ meanD*1
- E_R2_e + E_R2_o ~ meanE*1
-  F_R3_e + F_R3_o ~ meanF*1
-'
-
-fit2full <- cfa(model.2full, data=mydat,meanstructure=T)
-
-summary(fit2full)
-fitmeasures(fit2full)
-anova(fit1fbase,fit2full)
-
-model.2drop <- '
-f1 =~  1*A_P1_e + 1*A_P1_o + b1*B_P2_e + b1*B_P2_o + c1*C_P3_e + c1*C_P3_o
-f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o+ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
- A_P1_e + A_P1_o ~ meanA*1
- B_P2_e + B_P2_o ~ meanB*1
-  C_P3_e + C_P3_o ~ meanC*1
- D_R1_e + D_R1_o ~ meanD*1
- E_R2_e + E_R2_o ~ meanE*1
-  F_R3_e + F_R3_o ~ meanF*1
-'
-
-fit2drop <- cfa(model.2drop, data=mydat,meanstructure=T)
-
-summary(fit2drop)
-fitmeasures(fit2drop)
-anova(fit1fbase,fit2drop)
-
-#Trying to constrain intercepts for odds and evens to be the same
-
-meanA <- (mean(mydat$A_P1_e)+mean(mydat$A_P1_o))/2
-meanB <- (mean(mydat$B_P2_e)+mean(mydat$B_P2_o))/2
-meanC <- (mean(mydat$C_P3_e)+mean(mydat$C_P3_o))/2
-meanA <- (mean(mydat$A_P1_e)+mean(mydat$A_P1_o))/2
-meanA <- (mean(mydat$A_P1_e)+mean(mydat$A_P1_o))/2
-meanA <- (mean(mydat$A_P1_e)+mean(mydat$A_P1_o))/2
-
-model.2dropi <- '
-f1 =~  1*A_P1_e + 1*A_P1_o + b1*B_P2_e + b1*B_P2_o + c1*C_P3_e + c1*C_P3_o
-f2 =~  1*F_R3_e + 1*F_R3_o + c2*C_P3_e + c2*C_P3_o+ d2*D_R1_e + d2*D_R1_o + e2*E_R2_e + e2*E_R2_o
- A_P1_e + A_P1_o ~ meanA*1
- B_P2_e + B_P2_o ~ meanB*1
-  C_P3_e + C_P3_o ~ meanC*1
- D_R1_e + D_R1_o ~ meanD*1
- E_R2_e + E_R2_o ~ meanE*1
-  F_R3_e + F_R3_o ~ meanF*1
-'
-fit2dropi <- cfa(model.2dropi, data=mydat,meanstructure=T)
-
-summary(fit2dropi)
-fitmeasures(fit2dropi)
-anova(fit1fbase,fit2dropi)
-}
+tabN4a <- table(ddat$NleftABCE,ddat$hand3cat)
+tabN4a
+round(prop.table(tabN4a,2),3)
 
 ```
 
-
-```{r sandpit}
-#Checking out computation of chi square
-obs<-cov(ddati[,4:9]) #observed covariances
-obs1 <- obs[!upper.tri(obs)] #all variances and covariances as vector
-#residuals are obs-expected, so let's try for fit 1
-res<-resid(fit1)$cov
-res1<-res[!upper.tri(res)]
-
-cc<-colnames(res)
-rr<-rownames(res)
-rc<-vector()
-v<-0
-for(i in 1:6){
-  for (j in i:6){
-    v<-v+1
-    rc[v]<-paste0(rr[i],'.',cc[j])
-}
-}
-df<-as.data.frame(cbind(rc,obs1,res1))
-df$exp<-df$obs1+df$res1
-
-exp<-obs1+res1
-
-chi<-res1^2/exp
-
-#Goal is to work out how chisq is computed, but what I have found is abnormally large variance of E_R2.  This seems to be introduced by normalisation!
-
-
-
-```
-
-
-```{r sandpit2}
-#check how bifactor model behaves - basically it fails to converge
-#https://gist.github.com/rpietro/7968980
-
-
-#Can get a reasonable result if I just have factor 1 and general factor - but this is getting more similar to the earlier model : though it does uncorrelated factors
-#
-bifactor <- '
-general.factor  =~ A_P1 + B_P2+C_P3 + D_R1 + E_R2
-factor1         =~ A_P1 + B_P2+C_P3
-#factor2         =~ F_R3+ D_R1 + E_R2
-general.factor  ~~ 0*factor1
-#general.factor  ~~ 0*factor2
-#factor1         ~~ 0*factor2
-
-
-'
-ddat1<-ddati[ddati$randgroup==1,] #group1 only for exploring
-fitbiv.1 <- cfa(bifactor, data=ddat1,meanstructure=T)
-tabbiv1<-makeSEMtab(fitbiv.1)
-
-measurementInvariance(model=bifactor,data=ddati,group="randgroup")
-
-
-```
