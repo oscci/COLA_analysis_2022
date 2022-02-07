@@ -6,6 +6,7 @@ output: word_document
 ---
 
 <!--- Github project COLA_analysis_2022 initiated on 4 Feb 2022. Working version currently on Dropbox; this is a clone to allow version control --->
+<!---DB Updated 7 Feb 2022; removing AIC analysis, with explanation--->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -187,6 +188,71 @@ theme(
                 title.position = "top", title.hjust = 0.5))
 
 return(myheatmap)}
+```
+
+
+```{r bivplotfunction,echo=F,warning=F}
+#Function to make a bivariate plot subdivided by group, with spearman correlation in plot. Handedness coded by shape.
+
+#When we call this function we have already created temporary x and y cols (tempx and tempy) to be used in this function
+bivplot<-function(bivdat,name1,name2){
+#correlations for each group
+cor1 <- cor.test(bivdat$tempx[bivdat$Group==1],bivdat$tempy[bivdat$Group==1],method="spearman")
+cor2 <- cor.test(bivdat$tempx[bivdat$Group==2],bivdat$tempy[bivdat$Group==2],method="spearman")
+lab1<- paste0("Group 1: rs = ",round(cor1$estimate,3))
+lab2<- paste0("Group 2: rs = ",round(cor2$estimate,3))   
+
+myplot <- ggplot(bivdat, aes(x=tempx, y=tempy, color=Handedness,shape=as.factor(Group))) +
+  xlab(name1)+
+   ylab(name2)+
+  xlim(-10,10)+
+  ylim(-10,10)+
+  geom_point()+
+  scale_shape_manual(name="Group (random)",
+                     labels=c(1,2),
+                     values=c(1,16))+
+  scale_color_manual(name="Handedness",
+                       labels=c("Left","Right"),
+                       values=c("blue","red"))+
+  geom_hline(yintercept=0,linetype="dashed")+
+   geom_vline(xintercept=0,linetype="dashed")+
+  annotate("text", x=-5, y=9.5, label= lab1,size=3) +
+  annotate("text", x=-5, y=8, label= lab2,size=3)   
+  return(myplot)
+}
+
+
+```
+
+
+```{r bivplotfunction2,echo=F,warning=F}
+#Function to make a bivariate plot colour coded by handedness, with spearman correlation in plot
+
+#When we call this function we have already created temporary x and y cols (tempx and tempy) to be used in this function
+bivplot2<-function(bivdat,name1,name2){
+#correlations for each group
+cor1 <- cor.test(bivdat$tempx[bivdat$Rhanded==0],bivdat$tempy[bivdat$Rhanded==0],method="spearman")
+cor2 <- cor.test(bivdat$tempx[bivdat$Rhanded==1],bivdat$tempy[bivdat$Rhanded==1],method="spearman")
+lab1<- paste0("L-handers: rs = ",round(cor1$estimate,2))
+lab2<- paste0("R-handers: rs = ",round(cor2$estimate,2))   
+
+myplot <- ggplot(bivdat, aes(x=tempx, y=tempy, color=Handedness)) +
+  xlab(name1)+
+   ylab(name2)+
+  xlim(-10,10)+
+  ylim(-10,10)+
+   geom_point(shape=1, size=1)+
+  scale_color_manual(name="Handedness",
+                       labels=c("Left","Right"),
+                       values=c("blue","red"))+
+  geom_hline(yintercept=0,linetype="dashed")+
+   geom_vline(xintercept=0,linetype="dashed")+
+  annotate("text", x=-5.5, y=9.5, label= lab1,size=2.8) +
+  annotate("text", x=-5.5, y=8, label= lab2,size=2.8)   
+  return(myplot)
+}
+
+
 ```
 
 ```{r scatterplusfunction,echo=F}
@@ -476,17 +542,6 @@ __1. Dichotic listening__
 
 ```{r dichotic.plot,echo=F}
 
-#NB the odd/even values were not computed for zlat so we do it here.
-
-myR <-mycomb$DL.R.odd
-myL <-mycomb$DL.L.odd
-n <- myR + myL
-mycomb$DL.odd.zlat <- (myR/n-.5)/sqrt(myR/n*myL/n/n)
-myR <-mycomb$DL.R.even
-myL <-mycomb$DL.L.even
-n <- myR + myL
-mycomb$DL.even.zlat <- (myR/n-.5)/sqrt(myR/n*myL/n/n)
-
 
 mycomb$DLsig <-0
 w<-which(abs(mycomb$DL.zlat)>1.96)
@@ -684,30 +739,13 @@ thisdat <- combdat[,mycols]
 
 onlinesummary <- data.frame(matrix(NA,nrow=8,ncol=4))
 colnames(onlinesummary)<-c('Statistic','Dichotic','Rhyme','Comprehension')
-onlinesummary[,1]<-c('N','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r','Test-retest r')
+onlinesummary[,1]<-c('N','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r','Test-retest r (N = x)')
 ```
 
 
 ```{r fillonlinesummary,echo=F}
 
-#need to censor odd and even zlat values
-w<-which(mycomb$DL.odd.zlat< (-10))
-mycomb$DL.odd.zlat[w] <- -10
-w<-which(mycomb$DL.odd.zlat> 10)
-mycomb$DL.odd.zlat[w] <- 10
-w<-which(mycomb$DL.even.zlat< (-10))
-mycomb$DL.even.zlat[w] <- -10
-w<-which(mycomb$DL.even.zlat> 10)
-mycomb$DL.even.zlat[w] <- 10
-
-#also censor overall DL
-w<-which(mycomb$DL.zlat< (-10))
-mycomb$DL.zlat[w] <- -10
-w<-which(mycomb$DL.zlat> 10)
-mycomb$DL.zlat[w] <- 10
-
-
-#also need to read in sess1 and sess3 for the test-retest data
+#need to read in sess1 and sess3 for the test-retest data
 
 sess1 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess1.csv'))
 sess3 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess3.csv'))
@@ -741,8 +779,7 @@ jpeg(plotname, width = 800, height = 500)
 bLIdat <- combdat %>% 
   dplyr::select(ID, Rhanded, DL.zlat,RDT.zlat,WC.zlat)
 colnames(bLIdat) <- c('ID','Handed','Dichotic','Rhyme','Comprehension')
-bLIdat$Dichotic[bLIdat$Dichotic>10]<-10
-bLIdat$Dichotic[bLIdat$Dichotic<(-10)]<- -10
+
 bLIdat$Handed <- as.factor(bLIdat$Handed)
 levels(bLIdat$Handed)<-c("L","R")
 longdata.b <- pivot_longer(data = bLIdat, cols = c(3:5), names_to = 'Task', values_to = 'LI')
@@ -964,52 +1001,12 @@ ddati <-cbind(ddat[,c('ID','male','Handed')],complete(thisdat.i,1))
 
 __The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and OVP task), which is not accountable for in terms of low reliability of measures.__ 
 
-For this analysis we focused on predicting patterns of covariance between the three online tasks, as we do not have sufficient indicators for modeling with latent variables. We prespecified four possible covariance structures, which were then compared using AIC weights. This is a subset of SEM that does not include any latent variables or directional paths. It allows us to constrain particular covariance patterns and report the 'best' model according to AIC weights.
-
-The four models are:  
-Model A, where all LIs are intercorrelated to a similar degree
-Model B1,  where LIs for the two receptive language measures (dichotic listening and word comprehension) are intercorrelated, but independent of rhyme detection
-Model B2, where LIs for the two tasks involving visual presentation and written language (word comprehension and rhyme detection) are intercorrelated, and independent of the auditory task, dichotic listening.
-Model C, where all LIs are independent of one another.
-
-Models B1 and B2 are mathematically equivalent, differing only in the specific variables that are correlated. On a priori grounds, we favour model B1, which is compatible with our overall 2-factor model of language lateralisation. We tested B2, however, as we predicted that this pattern of correlation might occur if the laterality index was dependent more on mode of presentation (visual vs auditory) than on task demands.  Note that where we specified tests as correlated in a model, the extent of correlation will be constrained by test reliability. 
+We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section x below).  
 
 
 
-```{r bivplotfunction,echo=F,warning=F}
-#Function to make a bivariate plot subdivided by group, with spearman correlation in plot
 
-#When we call this function we have already created temporary x and y cols (tempx and tempy) to be used in this function
-bivplot<-function(bivdat,name1,name2){
-#correlations for each group
-cor1 <- cor.test(bivdat$tempx[bivdat$Group==1],bivdat$tempy[bivdat$Group==1],method="spearman")
-cor2 <- cor.test(bivdat$tempx[bivdat$Group==2],bivdat$tempy[bivdat$Group==2],method="spearman")
-lab1<- paste0("Group 1: rs = ",round(cor1$estimate,3))
-lab2<- paste0("Group 2: rs = ",round(cor2$estimate,3))   
-
-myplot <- ggplot(bivdat, aes(x=tempx, y=tempy, color=Handedness,shape=as.factor(Group))) +
-  xlab(name1)+
-   ylab(name2)+
-  xlim(-10,10)+
-  ylim(-10,10)+
-  geom_point()+
-  scale_shape_manual(name="Group (random)",
-                     labels=c(1,2),
-                     values=c(1,16))+
-  scale_color_manual(name="Handedness",
-                       labels=c("Left","Right"),
-                       values=c("blue","red"))+
-  geom_hline(yintercept=0,linetype="dashed")+
-   geom_vline(xintercept=0,linetype="dashed")+
-  annotate("text", x=-5, y=9.5, label= lab1,size=3) +
-  annotate("text", x=-5, y=8, label= lab2,size=3)   
-  return(myplot)
-}
-
-
-```
-
-```{r behavcorrs,echo=F}
+```{r behavcorrs,echo=F,warning=F}
 
 
 bivdat <- filter(mycomb,excludeRDT==0,excludeDL==0,excludeWC==0)
@@ -1025,18 +1022,18 @@ bivdat$tempx <- bivdat$DL.zlat
 bivdat$tempy <- bivdat$RDT.zlat
 name1 <-"Dichotic Listening z-lat"
 name2 <- "Rhyme decision z-lat"
-DL_RD_plot <- bivplot(bivdat,name1,name2) #this is our specially created function
+DL_RD_plot <- bivplot2(bivdat,name1,name2) #this is our specially created function
 #I've commented out saving the individual plots, just because I've used ggarange to make a composite plot with all 3 pairings
 #ggsave(paste0(mydir,"/03-graphic-outputs/DL-RDT.png"),width = 6, height = 4)
 
 bivdat$tempy <- bivdat$WC.zlat
 name2 <- "Word Comprehension z-lat"
-DL_WC_plot <- bivplot(bivdat,name1,name2)
+DL_WC_plot <- bivplot2(bivdat,name1,name2)
 #ggsave(paste0(mydir,"/03-graphic-outputs/DL-WC.png"),width = 6, height = 4)
 
 bivdat$tempx <- bivdat$RDT.zlat
 name1 <- "Rhyme Decision z-lat"
-RD_WC_plot <- bivplot(bivdat,name1,name2)
+RD_WC_plot <- bivplot2(bivdat,name1,name2)
 #ggsave(paste0(mydir,"/03-graphic-outputs/RD-WC.png"),width = 6, height = 4)
 
 #For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
@@ -1044,99 +1041,11 @@ allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 3, nrow = 1,comm
 ggsave(paste0(mydir,"/03-graphic-outputs/allbiv.png"),width = 9, height = 3)
 ```
 
-Our power analysis showed that the best way to demonstrate superiority of a 2-factor model is by replicating model comparison on two random halves of the sample. Accordingly, the sample was divided into two random halves: Group 1 contained `r handgrouptab[1,1]` left-handers and `r handgrouptab[2,1]` right-handers; Group 2 contained `r handgrouptab[1,2]` left-handers and `r handgrouptab[2,2]` right-handers.  
 
-Figure x shows scatterplots of the bivariate relationships between the three variables, coded by Group (i.e. the random subset 1 or 2). It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. However, on formal test, this model is rejected, because it predicts no association between Dichotic Listening and the other variables, whereas in practice a weak association is found between Dichotic Listening and Rhyme Judgement. 
+Figure x shows scatterplots of the bivariate relationships between the three variables. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
 
-FOR DISCUSSION:  
-NEED TO SAY SOMETHING ABOUT RELIABILITY -  COULD WE REPEAT WITH ODD/EVEN INCORPORATED?
-ALSO, THIS ANAYSIS IS PARAMETRIC WHEREAS DATA IS NON_NORMAL_ NEED TO CONSIDER IF WE SHOULD DO SOMETHING ABOUT THIS.
-NOTE THAT THE CORRELATION BETWEEN WC AND RDT IS ACTUALLY QUITE CLOSE TO THE RELIABILITY OF WC.
+Note that correlations will be influenced by test reliability. Indeed, the correlation between Rhyme Decision and Word Comprehension is close in magnitude to the split half reliability of the two measures. 
 
-
-
-
-
-```{r aicmodels,echo=F}
-#Specify models
-
-  #Model A all correlated
-    modelA<-"
-    Rhyme~~Dichotic
-    Rhyme~~Comprehension
-    Dichotic~~Comprehension
-    "
-    #Model B 2 correlated (Comprehension and dichotic)
-    modelB<-"
-    Rhyme~~0*Dichotic
-    Rhyme~~0*Comprehension
-    Dichotic~~Comprehension"
-    
-    #model C all independent
-    modelC<-"
-    Rhyme~~0*Dichotic
-    Rhyme~~0*Comprehension
-    Dichotic~~0*Comprehension"
-
-    #Model BB 2 correlated (Comprehension and rhyme)
-    modelBB<-"
-    Rhyme~~0*Dichotic
-    Rhyme~~Comprehension
-    Dichotic~~0*Comprehension"
-    
-```    
-
-```{r runAIC,echo=F}
-set.seed(50) #make reproducible
-bLIdat$Group<-1+rbinom(nrow(bLIdat),1,.5)
-table(bLIdat$Handed,bLIdat$Group)
-
-
-AICdf <- data.frame(matrix(NA,nrow=2,ncol=7))
-colnames(AICdf)<-c('Group','modelA','modelB1','modelB2','modelC','bestfit','chi.p.vs.C')
-group <- c('Group.1','Group.2')
-latcols <- c('Dichotic','Rhyme','Comprehension')
-
-thisrow<-0
-
-  for (g in 1:2){ # grouping - 1 or 2}
-    
-    aicdat<-bLIdat
-    if(g==1){aicdat<-bLIdat[bLIdat$Group==1,]}
-    if(g==2){aicdat<-bLIdat[bLIdat$Group==2,]}  
-
-    thisrow<-thisrow+1
- 
-    fitA <- cfa(modelA, data=aicdat) #
-    fitB1 <- cfa(modelB, data=aicdat)
-    fitC <- cfa(modelC, data=aicdat)
-    fitB2 <- cfa(modelBB,data=aicdat)
-    
-   aic_vector1<- c(fitMeasures(fitA, "aic"),fitMeasures(fitB1, "aic"),fitMeasures(fitB2, "aic"),fitMeasures(fitC,"aic"))
-   
-    AICdf$Group[thisrow]<-g
-    AICdf[thisrow,2:5]<-round(akaike.weights(aic_vector1)$weights,3)
-   bestfit <- which(AICdf[thisrow,2:5]==max(AICdf[thisrow,2:5]))
-     AICdf$bestfit[thisrow] <- LETTERS[bestfit]
-     
-
-    
- if(bestfit<3)
- {
-   compfit<-fitA
-   if(bestfit==2){compfit<-fitB1}
-#If true model is not C, can it be distinguished from model C (all independent)
-    AICdf$chi.p.vs.C[thisrow] <- round(anova(compfit,fitC)$`Pr(>Chisq)`[2],3)
- }
- }#end of g loop
-
-
-#Need to add appropriate label to table - the entries in body of table are Aikake weights
-flextable(AICdf)
-```
-Summary from the Aikake weights analysis is shown in Table x. In both Groups, the best fitting model is Model A. Nevertheless, consideration of the results of the two subgroups indicates how labile results from such an analysis can be, even with over 200 participants per group. In Group 1, the difference between Models A and B2 is small, whereas in Group 2, Model A is the clear winner.
-
-__NB - this may need reconsidering depending on how we handle issues of reliability/non-normality.__
 
 ## Hypothesis 2: Testing a two-factor model using fTCD data
 
@@ -1144,9 +1053,9 @@ Our second preregistered prediction was: __The data will fit a model where 'lang
 
 It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
  
-The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because they had two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model which constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
+The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because thee were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-Figure x shows the pattern of correlations between LIs for the different tasks as a heat map. THe two-factor model predicts that tests A-C will be positively correlated, and tests D-F will be positively correlated, but there will be weaker or absent correlations across these two subsets of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations between clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+Figure x shows the pattern of correlations between LIs for the different tasks as a heat map. THe two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
 
 ```{r modelfit,echo=F}
 
@@ -1167,16 +1076,22 @@ ggsave(paste0(mydir,"/03-graphic-outputs/ftcd-heatmap.png"),width = 6, height = 
 ```
 __Note from DB: I am planning on putting in quite a detailed explanation of SEM as it not widely used in this field. This is a bit of a placeholder for now.__
 
-Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. Figure 1x shows the single factor model on the left, and a two-factor model on the right. The latent factors are shown in ovals, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure 1x have a precise mathematical interpretation, and so it is possible to obtain a measure of goodness of fit for observed data in relation to a model. We can already see by inspecting the heatmap of Figure x that a single-factor model is unlikely to provide a good fit to the observed data, because it would predict similar levels of correlation between all variables.  
+### Summary of the Structural equation modeling approach  
+Because Structural equation modeling (SEM) is not widely used in laterality research, we provide here a brief explanation, to aid interpretation of the subsequent analysis.  
 
-SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected covariances. 
+Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. Figure 1x shows the single factor model on the left, and a two-factor model on the right. The latent factors are shown in ovals, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure 1x have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing whether the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure x that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict similar the clustering of correlations that is evident. 
 
-There is no single method for evaluating the fit of a model to observed data. A chi square test can given an estimate of the extent of departure of a observed values from expectation: a good model is one where chi square is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. However, it is usually possible to improve fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Where models are 'nested', with a more complex model including all the parameters of a base model, then model fit can be compared by subtraction of the chi square and degrees of freedom for the two models; the difference in chi square is then evaluated, and can indicate whether the more complex model gives a better fit than base model. 
+SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected covariances. 
 
-Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. Another measure is the Root Mean Square Error of Approximation (RMSEA) is a 'badness of fit' measure, where a value of zero indicates good fit.
+It may be noted that the path diagrams shown in Figure x include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is used to scale the estimates. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
+
+There is no single method for evaluating the fit of a model to observed data. A chi square test can given an estimate of the extent of departure of a observed values from expectation: a good model is one where chi square is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. However, it is usually possible to improve fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Where models are 'nested', with a more complex model including all the parameters of a base model, then model fit can be compared by subtraction of the chi square and degrees of freedom for the two models; the difference in chi square is then evaluated, and can indicate whether the more complex model gives as good a fit as a base model with fewer parameters. 
+
+Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. Another measure is the Root Mean Square Error of Approximation (RMSEA) is a 'badness of fit' measure, where a value of zero indicates good fit, and values below .05 are widely regarded as indicating acceptable fit. We report here values for chi square, CFI and rmsea. 
  
 
-![Single factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF1.jpg) ![Two factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF2.jpg) 
+![Single factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF1.jpg) 
+![Two factor](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/PathfigF2.jpg) 
 
 
 ```{r initialisebigsummary,echo=F}
@@ -1193,17 +1108,6 @@ bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> F
 ```{r factormodels,echo=F,include=F}
 #In lavaan, we first define the factor model between quotes
 #So this step doesn't do anything - just sets up the model to be run later
-
-#Single factor model : I've kept here the original way we defined this, but it's confusing becausae it does refer to f1 and f2, though they are then designed to have correlation of 1, so are in effect identical.  
-#But further confusion because the first variable on the right hand side defaults to being the index variable, with path = 1. So if set up with 2 factors, both A and D are set to one.
-#So next bit of code is just preserved in case we do need it, but seems preferable to define more simply
-# model.1F <- '
-# f1 =~   A_P1 + B_P2 + C_P3
-# f2 =~   D_R1 + E_R2 + F_R3
-# 
-# f1 ~~ 1*f2  #single factor model, f1 and f2 constrained to covariance of one
-# 
-# ' 
 
 #This is definition of single factor model we will use here. A_P1 will be index variable with path of 1. 
 model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3' 
@@ -1544,4 +1448,107 @@ tabN4a
 round(prop.table(tabN4a,2),3)
 
 ```
+# Are online behavioural measures comparable to direct measures of cerebral blood flow in indexing language laterality?
+
+A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationshp between the two, even for the two measures, Word Comprehension and Rhyme Decision, that has analogues in fTCD (tasks D and C respectively).
+
+```{r bigheatmap,echo=F}
+
+mydf <- combdat[combdat$DopExclude==0,] #need to ensure online LIs from excluded are not included
+mycolsb<-c("DL.zlat","RDT.zlat","WC.zlat",  "A_mean_LI", "B_mean_LI","C_mean_LI", "D_mean_LI","E_mean_LI", "F_mean_LI")
+bigheatmap <- makeheatmap(mydf,mycolsb)
+bigheatmap
+
+```
+__Need to double check that all appropriate exclusions have been made here__.
+
+We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
+
+The online Word Comprehension measure failed both checks: split-half reliability was below .6, and the correlation with the fTCD Word Comprehension laterality index was close to zero.  Rhyme decision narrowly passed both checks: split-half reliability was `r onlinesummary[7,4]` (though test-retest reliability was only`r onlinesummary[8,4]`).  The correlation between the online Rhyme Detection and fTCD Phonological Decision was `r round(cor(mydf$RDT.zlat,mydf$C_mean_LI,use='complete.obs'),3)`. 
+
+
+
+```{r newmodel,echo=F,include=F}
+#We explore for best model using just half the data (randgroup = 1)
+
+model.2Fnx <- '
+f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+RDT.zlat
+f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI+DL.zlat
+'
+fit.2Fnx <- cfa(model.2Fnx, data=mycomb)
+summary(fit.2Fnx)
+wantfits <- c('CFI','rmsea','chisq','df')
+
+fitmeasures(fit.2Fnx,wantfits)
+
+
+model.2Fny <- '
+f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+RDT.zlat+DL.zlat
+f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI
+'
+fit.2Fny <- cfa(model.2Fny, data=mycomb)
+summary(fit.2Fny)
+wantfits <- c('CFI','rmsea','chisq','df')
+
+fitmeasures(fit.2Fny,wantfits)
+#Changes to model based on observation of size of paths.
+#Path D to Fac1 and path B to Fac2 are NS. We can drop these
+
+#After checking model from group 1, now try running with 2nd group and with full sample
+
+tab.2Fnx <- makeSEMtab(fit.2Fnx)
+tab.2Fny <- makeSEMtab(fit.2Fny)
+
+
+pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_bigA")
+semPaths(fit.2Fnx, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
+    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+
+pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_bigB")
+semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
+    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+
+#Just for completeness - check that RDT does not work with F2
+model.2Fnz <- '
+f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+DL.zlat
+f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI+RDT.zlat
+'
+fit.2Fnz <- cfa(model.2Fnz, data=mycomb)
+summary(fit.2Fnz)
+wantfits <- c('CFI','rmsea','chisq','df')
+
+fitmeasures(fit.2Fnz,wantfits)
+tab.2Fnz <- makeSEMtab(fit.2Fnz)
+#Yes - the path from RDT to F2 is NS
+
+
+```
+The pattern of correlations shown in the heatmap already suggests that the pre-registered model, with Rhyme Judgement loading on Factor 1, and Dichotic Listening on Factor 2, will not be a good fit, because Dichotic Listening is correlated more strongly with the fTCD measures that load on Factor 1. This was confirmed: the path from Dichotic Listening to Factor 2 was non-significant.  
+
+Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This gave a better fit, with significant paths from both of these measures, as shown in Figure x. 
+
+```{r modelfitbighand,echo=F}
+#Redo best fitting model with handedness groups
+measurementInvariance(model=model.2Fny,data=mycomb,meanstructure=T,group="Rhanded")
+
+
+```
+
+# Discussion
+
+To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers.
+
+## Evidence for a single laterality dimension  
+
+Previous attempts to consider the dimensionality of language lateralisation have been obscured by two issues. First, researchers have tended to focus only on measures that show left-lateralisation at the population level, treating unlateralised measures as uninteresting. Second, many studies have been conducted with measures whose reliability was not established. If two laterality indices are not correlated, it could just be because they are unreliable, and so it has been easy to dismiss lack of correlation between laterality measures as uninformative. 
+
+Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal test, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Judgement, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
+
+For the fTCD data, we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. In addition, and consistent with Woodhead et al (xxxx), we confirmed here that tasks that are not lateralised at the population-level can nevertheless have highly reliable laterality indices, indicating that individual differences in degree of lateralisation are stable.
+
+Our use of structural equation modeling leads to a focus on correlations between laterality indices while largely disregarding means. This approach reveals that two language tasks can have correlated laterality indices, even when one task is lateralised at the population level and the other is not - for example Phonological Decision and Word Comprehension. Such observations seem compatible with a simple model, in which a person's strength of lateralisation is consistent across language tasks, but tasks vary in terms of their mean laterality bias. 
+
+Our previous study using SEM found that this simple model could not adequately account for the pattern of correlations between laterality indices. Rather, the correlations patterned in a way that suggested there were (at least) two underlying factors that influenced language lateralisation. The current study again failed to support a single factor model of lateralisation.  The alternative model that we had proposed, that involved a division between language production and language reception accounted for more variance, but still left a great deal unexplained, and overall the fit was poor. Accordingly, we divided the sample into two subgroups to explore different models and found one that gave reasonable fit, which was then replicated in the second half of the sample. This again had a two factor structure  
+
+
 

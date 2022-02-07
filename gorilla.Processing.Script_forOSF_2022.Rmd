@@ -5,10 +5,12 @@ date: started 2022-01-06
 ---
 
 Modified script based on Adam Parker's original.
+Updated 7/2/22 to just make name format of dichotic odd/even zlat files consistent with other tasks.
 --------------------------------------------------------------------------------------------------------------------------------
 Script now reads raw Gorilla data from .Rdata files - these were created from the OSF .csv files. 
 Eventually we will save .Rdata files on OSF - they are much smaller than .csv so easier to work with.
 Gorilla link is here: https://app.gorilla.sc/admin/project/29613
+
 -------------------------------------------------------------------------------------------------------------------------------
 
 The tasks and questionnaires processed within this notebook are:
@@ -824,7 +826,7 @@ w<-which(Lsubjectf$avg<mycutoff)
 if(length(w)>0){
 Lsubjectf$LI[w] <- NA}
 # now create a data frame for lat index 
-Lsubjectf <- select(Lsubjectf, "subject", "LI")
+Lsubjectf <- dplyr::select(Lsubjectf, "subject", "LI")
 # now merge with allsum
 # First check if this column already exists and delete it if so
 w<-which(colnames(allsum)==mycolname)
@@ -854,7 +856,7 @@ makeZ <- function(allsum,origdat,task,mycolname,polarity,mycutoff){
 # reformat data frame
 keeps <- c("subject", "side", "X1") #X1 holds either accuracy or RT
 Zdf <- origdat[keeps]
-Zdf <- spread(Zdf, side, X1)
+Zdf <- spread(Zdf,key=side, value=X1)
 # calculate each participants' z score for laterality 
 Zdf <- 
   Zdf %>% 
@@ -868,7 +870,7 @@ is.na(Zdf) <- do.call(cbind,lapply(Zdf, is.infinite))
 Zdf <- na.omit(Zdf)
 Zdf$Z <- Zdf$Z*polarity #polarity can be set to reverse sign - eg for RT a large score is bad, whereas for acc it is good, so can have opp polarity
 # now create a data frame for lat index 
-Zdf <- select(Zdf, "subject", "Z")
+Zdf <- dplyr::select(Zdf, "subject", "Z")
 # now merge with allsum
 # First check if this column already exists and delete it if so
 w<-which(colnames(allsum)==mycolname)
@@ -1059,16 +1061,16 @@ DL.aggR.odd <- aggregate(dichotic_LRx_odd$CorrectR,by=list(dichotic_LRx_odd$subj
 DL.aggL.even <- aggregate(dichotic_LRx_even$CorrectL,by=list(dichotic_LRx_even$subject),FUN=sum)
 DL.aggR.even <- aggregate(dichotic_LRx_even$CorrectR,by=list(dichotic_LRx_even$subject),FUN=sum)
 ncases <- nrow(DL.aggL)
-allsum$DL.R.odd<-allsum$DL.R.even<-allsum$DL.L.odd<-allsum$DL.L.even<-allsum$DL.R <- allsum$DL.L <- NA #initialise columns
+allsum$DL.odd.R<-allsum$DL.even.R<-allsum$DL.odd.L<-allsum$DL.even.L<-allsum$DL.R <- allsum$DL.L <- NA #initialise columns
 for(i in 1:ncases){  #doing row by row to ensure properly aligned
   mysub<-DL.aggL$Group.1[i]
   w<-which(allsum$subject==mysub)
   allsum$DL.L[w] <- DL.aggL[i,2]
    allsum$DL.R[w] <- DL.aggR[i,2]
-  allsum$DL.R.odd[w] <- DL.aggR.odd[i,2]
-   allsum$DL.L.odd[w] <- DL.aggL.odd[i,2]
-  allsum$DL.R.even[w] <- DL.aggR.even[i,2]
-   allsum$DL.L.even[w] <- DL.aggL.even[i,2]
+  allsum$DL.odd.R[w] <- DL.aggR.odd[i,2]
+   allsum$DL.odd.L[w] <- DL.aggL.odd[i,2]
+  allsum$DL.even.R[w] <- DL.aggR.even[i,2]
+   allsum$DL.even.L[w] <- DL.aggL.even[i,2]
  
 }
 ```
@@ -1083,8 +1085,8 @@ NEGATIVE LIs indicate better scores in Left ear (i.e., right hemisphere dominanc
 
 ```{r makeLI_DL}
 allsum$DL.LI <-round(100*(allsum$DL.R-allsum$DL.L)/(allsum$DL.R+allsum$DL.L),1)
-allsum$DL.LI.odd<-round(100*(allsum$DL.R.odd-allsum$DL.L.odd)/(allsum$DL.R.odd+allsum$DL.L.odd),1)
-allsum$DL.LI.even<-round(100*(allsum$DL.R.even-allsum$DL.L.even)/(allsum$DL.R.even+allsum$DL.L.even),1)
+allsum$DL.odd.LI<-round(100*(allsum$DL.odd.R-allsum$DL.odd.L)/(allsum$DL.odd.R+allsum$DL.odd.L),1)
+allsum$DL.even.LI<-round(100*(allsum$DL.even.R-allsum$DL.even.L)/(allsum$DL.even.R+allsum$DL.even.L),1)
 
 #Use generic density plot function to show distribution of L and R handers
 #allsum$temp<-allsum$DL.LI #ZW: moved these columns into myfile
@@ -1101,9 +1103,9 @@ DL.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xr
 DL.LI.plot
 
 #look at odd even agreement
-mycor=cor.test(myfile$DL.LI.odd,myfile$DL.LI.even)
+mycor=cor.test(myfile$DL.odd.LI,myfile$DL.even.LI)
 mycor
-plot(myfile$DL.LI.odd,myfile$DL.LI.even,col=(1+myfile$Rhanded))
+plot(myfile$DL.odd.LI,myfile$DL.even.LI,col=(1+myfile$Rhanded))
 legend('bottomright', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
 abline(h=0)
 abline(v=0)
@@ -1120,12 +1122,12 @@ for (i in 1:3){
   cR <- which(colnames(allsum)=='DL.R')
   cL <- which(colnames(allsum)=='DL.L')
   if (i==1){
-  cR <- which(colnames(allsum)=='DL.R.odd')
-  cL <- which(colnames(allsum)=='DL.L.odd')
+  cR <- which(colnames(allsum)=='DL.odd.R')
+  cL <- which(colnames(allsum)=='DL.odd.L')
   }
     if (i==2){
-  cR <- which(colnames(allsum)=='DL.R.even')
-  cL <- which(colnames(allsum)=='DL.L.even')
+  cR <- which(colnames(allsum)=='DL.even.R')
+  cL <- which(colnames(allsum)=='DL.even.L')
   }
 allsum$DL.n <- allsum[,cR]+allsum[,cL] # Total number of correct DL trials
 allsum$DL.zlat <- ((allsum[,cR]/allsum$DL.n)-.5)/sqrt((allsum[,cR]/allsum$DL.n)*(allsum[,cL]/allsum$DL.n)/allsum$DL.n)
@@ -1135,10 +1137,10 @@ w<-which(allsum$DL.zlat< -10)
 allsum$DL.zlat[w]<- -10 #set floor value to -10
 nc <- which(colnames(allsum)=='DL.n')
 if (i==1){
-  colnames(allsum)[nc:(nc+1)]<-c('DL.n.odd','DL.zlat.odd')
+  colnames(allsum)[nc:(nc+1)]<-c('DL.odd.n','DL.odd.zlat')
 }
 if (i==2){
-  colnames(allsum)[nc:(nc+1)]<-c('DL.n.even','DL.zlat.even')
+  colnames(allsum)[nc:(nc+1)]<-c('DL.even.n','DL.even.zlat')
 }
 #if i is 3 we have value based on all the trials, so name is retained
 }
@@ -1407,7 +1409,9 @@ Once the data is ready, just get a count for LI calculation.
   scales_all <- scales_all %>% 
     mutate(side = if_else(Response== "Top", top_bias, bottom_bias))
   # generate smaller df
-  scales_df <- scales_all %>% count(subject, side)
+  # DB - had trouble with 'count' function - possibly a clash?
+  scales_df <- scales_all %>% dplyr::count(subject, side)
+
 
 ```
 
@@ -1740,25 +1744,25 @@ Check exclusions
 
 #for each laterality measure, create a duplicate column where excluded on that measure are NA; makes it possible to analyse together with appropriate exclusions for each measure 
 
-combsum$DL.zlat.e<-combsum$DL.zlat
-combsum$DL.zlat.e[combsum$excludeDL==1]<-NA
-combsum$RDT.zlat.e<-combsum$RDT.zlat
-combsum$RDT.zlat.e[combsum$excludeRDT==1]<-NA
-combsum$WC.zlat.e<-combsum$WC.zlat
-combsum$WC.zlat.e[combsum$excludeWC==1]<-NA
+combsum$DL.zlat.ex<-combsum$DL.zlat
+combsum$DL.zlat.ex[combsum$excludeDL==1]<-NA
+combsum$RDT.zlat.ex<-combsum$RDT.zlat
+combsum$RDT.zlat.ex[combsum$excludeRDT==1]<-NA
+combsum$WC.zlat.ex<-combsum$WC.zlat
+combsum$WC.zlat.ex[combsum$excludeWC==1]<-NA
 
-combsum$A.LI.e<-combsum$A_mean_LI
-combsum$A.LI.e[combsum$A_exclude==1]<-NA
-combsum$B.LI.e<-combsum$B_mean_LI
-combsum$B.LI.e[combsum$B_exclude==1]<-NA
-combsum$C.LI.e<-combsum$C_mean_LI
-combsum$C.LI.e[combsum$C_exclude==1]<-NA
-combsum$D.LI.e<-combsum$D_mean_LI
-combsum$D.LI.e[combsum$D_exclude==1]<-NA
-combsum$E.LI.e<-combsum$E_mean_LI
-combsum$E.LI.e[combsum$E_exclude==1]<-NA
-combsum$F.LI.e<-combsum$F_mean_LI
-combsum$F.LI.e[combsum$F_exclude==1]<-NA
+combsum$A.LI.ex<-combsum$A_mean_LI
+combsum$A.LI.ex[combsum$A_exclude==1]<-NA
+combsum$B.LI.ex<-combsum$B_mean_LI
+combsum$B.LI.ex[combsum$B_exclude==1]<-NA
+combsum$C.LI.ex<-combsum$C_mean_LI
+combsum$C.LI.ex[combsum$C_exclude==1]<-NA
+combsum$D.LI.ex<-combsum$D_mean_LI
+combsum$D.LI.ex[combsum$D_exclude==1]<-NA
+combsum$E.LI.ex<-combsum$E_mean_LI
+combsum$E.LI.ex[combsum$E_exclude==1]<-NA
+combsum$F.LI.ex<-combsum$F_mean_LI
+combsum$F.LI.ex[combsum$F_exclude==1]<-NA
 
 
 combsum$ftcd <- 0
@@ -1793,7 +1797,7 @@ table1(~ factor(male) + age  + factor(bilingual)+factor(lexCode)+factor(gramerr1
 # Test whether fTCD LI values differ for people who were included / excluded based on session 1 language proficiency measures
 
 
-table1(~ DL.zlat.e+RDT.zlat.e+WC.zlat.e+A.LI.e+B.LI.e+C.LI.e+D.LI.e+E.LI.e+F.LI.e|factor(langexclude) , data=ftcdyes)
+table1(~ DL.zlat.ex+RDT.zlat.ex+WC.zlat.ex+A.LI.ex+B.LI.ex+C.LI.ex+D.LI.ex+E.LI.ex+F.LI.ex|factor(langexclude) , data=ftcdyes)
 
 aovDL <- aov(DL.zlat ~ langexclude, data = ftcdyes)
 # Summary of the analysis
@@ -1807,27 +1811,27 @@ aovWC <- aov(WC.zlat ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovWC)
 
-aovALIe <- aov(A.LI.e ~ langexclude, data = ftcdyes)
+aovALIe <- aov(A.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovALIe)
 
-aovBLIe <- aov(B.LI.e ~ langexclude, data = ftcdyes)
+aovBLIe <- aov(B.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovBLIe)
 
-aovCLIe <- aov(C.LI.e ~ langexclude, data = ftcdyes)
+aovCLIe <- aov(C.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovCLIe)
 
-aovDLIe <- aov(D.LI.e ~ langexclude, data = ftcdyes)
+aovDLIe <- aov(D.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovDLIe)
 
-aovELIe <- aov(E.LI.e ~ langexclude, data = ftcdyes)
+aovELIe <- aov(E.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovELIe)
 
-aovFLIe <- aov(F.LI.e ~ langexclude, data = ftcdyes)
+aovFLIe <- aov(F.LI.ex ~ langexclude, data = ftcdyes)
 # Summary of the analysis
 summary(aovFLIe)
 
