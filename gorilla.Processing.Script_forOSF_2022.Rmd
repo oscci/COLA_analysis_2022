@@ -6,6 +6,7 @@ date: started 2022-01-06
 
 Modified script based on Adam Parker's original.
 Updated 7/2/22 to just make name format of dichotic odd/even zlat files consistent with other tasks.
+Updated ZW 10/2/22 to add date, so can compute interval for sess1 vs sess3
 --------------------------------------------------------------------------------------------------------------------------------
 Script now reads raw Gorilla data from .Rdata files - these were created from the OSF .csv files. 
 Eventually we will save .Rdata files on OSF - they are much smaller than .csv so easier to work with.
@@ -235,13 +236,13 @@ For each subject, we loop through and write information to a summary file, **all
 allsub <- unique(all_dat$subject) #list of subjects
 allsub<-allsub[!is.na(allsub)]
 nsub <-length(allsub) 
-allsum <- data.frame(matrix(ncol = 16, nrow = nsub))  # create data frame to write to
+allsum <- data.frame(matrix(ncol = 17, nrow = nsub))  # create data frame to write to
 
 
 #where possible code variables numerically
 colnames(allsum) <- 
   c("subject", "session","ID","age", "male", "Rfooted", "Rhanded", "education", "bilingual", "languages", "AoA.English",
-    "mother.LH", "father.LH", "siblings", "siblings.LH", "centre") #centre is testing location
+    "mother.LH", "father.LH", "siblings", "siblings.LH", "centre", "date") #centre is testing location
 
 #select rows with Demographic data . 
 demo_dat <- all_dat[all_dat$Task.Name== "Demographics",]
@@ -291,6 +292,8 @@ for (i in 1:nsub) { # loop through subjects in serial order
     allsum$siblings[i] <- tmp[tmp$Question.Key == "sibling.number",]$Response # number of siblings
     allsum$siblings.LH[i] <- tmp[tmp$Question.Key == "siblings.left.handed",]$Response # sibling handedness
     allsum$centre[i] <- tmp[tmp$Question.Key == "siblings.left.handed",]$branch.phr3
+    
+    allsum$date[i] <- tmp$UTC.Date[1]
   }
 }
 
@@ -759,6 +762,7 @@ for (i in 1:nsub) { # loop through subjects
   # create outlier variable
   w1 <- which(origdat$RT[myrows]>upper_limit) #rows with outlier, nb RELATIVE to myrows range
   origdat$outlier[myrows[w1]]<-1
+  
 }
 #For RT we just remove slow outliers, so ignore lower_limit
 origdat$RT[origdat$outlier>0]<-NA #RT variable now has outliers excluded as NA
@@ -1051,6 +1055,12 @@ outbit2
 
 #new version with outliers removed - this does not remove participants, but it removes trials where responses are very fast or very slow.
 dichotic_LRx <- dichotic_LR[dichotic_LR$outlier==0,]
+print(paste0('total Error (0) and Correct(1) after RT exclusions'))
+print('Left Ear')
+print(table(dichotic_LRx$CorrectL))
+print('Right Ear')
+print(table(dichotic_LRx$CorrectR))
+
 dichotic_LRx_odd <- dichotic_LRx[seq(1,nrow(dichotic_LRx),2),]
 dichotic_LRx_even <- dichotic_LRx[seq(2,nrow(dichotic_LRx),2),]
 
