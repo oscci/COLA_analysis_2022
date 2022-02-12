@@ -1,7 +1,7 @@
 ---
 title: "COLA_results"
 author: "DVM Bishop"
-date: "10 Feb 2022"
+date: "12 Feb 2022"
 output: word_document
 ---
 
@@ -810,12 +810,12 @@ onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 mytask<-'RDT'
 writecolnum <- 3 #column of online summary to write to for this task
 onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
-onlinesummary[8,3]<-round(cor(sess1$RDT.zlat,sess3$RDT.zlat,use='complete.obs'),3)
+onlinesummary[12,3]<-round(cor(sess1$RDT.zlat,sess3$RDT.zlat,use='complete.obs'),3)
 
 mytask<-'WC'
 writecolnum <- 4 #column of online summary to write to for this task
 onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
-onlinesummary[8,4]<-round(cor(sess1$WC.zlat,sess3$WC.zlat,use='complete.obs'),3)
+onlinesummary[12,4]<-round(cor(sess1$WC.zlat,sess3$WC.zlat,use='complete.obs'),3)
 
 tabnumber <- tabnumber+1
 ft<-flextable(onlinesummary)
@@ -845,7 +845,7 @@ abline(h=0)
 
 title(main=paste0('Distributions of z-LI \non behavioural tasks; N = ',length(bLIdat$ID)))
 
-dev.off()
+
 
 ```
 <!--- Need to describe retest sample somewhere -->
@@ -976,7 +976,7 @@ for (i in 1:6){
 }
 #title(main=paste0('Distributions of LI Data \nN = ',length(LIdata$ID)))
 
-dev.off()
+whatever<-dev.off()
 fignumber<-fignumber+1
 ```
 ![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers ](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_pirates.jpg)
@@ -996,7 +996,7 @@ colnames(ftcdsummary)<-c('Statistic',LETTERS[1:6])
 ftcdsummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half r')
 ```
 
-```{r fill-ftcdsummary,echo=F}
+```{r fill-ftcdsummary, echo=FALSE, warning=FALSE,message=F}
 #We use the same function 'populate' to populate the data frame as we had for behavioural tasks - the 'ftcd' term at end of function call ensures correct columns are found
 for (t in 1:6){
 mytask<-LETTERS[t]
@@ -1017,7 +1017,7 @@ __BIT OF TEXT ORIGINALLY USED HERE. The planned approach to analysis, structural
 
 As noted above, there were a few participants with missing data on a single measure. Before running the SEM analysis, the mice() package was run in R to impute these missing values. 
 
-```{r checkMVN,echo=F}
+```{r checkMVN, echo=FALSE, warning=FALSE,message=F}
 #https://www.statisticssolutions.com/testing-normality-in-structural-equation-modeling/
 #"In SEM, where your sample size is expected to be very large, this means that Mardia’s coefficient is almost always guaranteed to be significant. Thus, the significance test on its own does not provide very useful information. In light of this, it is recommended that the significance tests be used in conjunction with descriptive statistics, namely the kurtosis values for individual variables (Stevens, 2009). Kurtosis values greater than 3.00 in magnitude may indicate that a variable is not normally distributed (Westfall & Henning, 2013)."
 
@@ -1044,6 +1044,7 @@ for (i in 1:6){
   abline(0,1,lty=2)
 }
 }
+whatever<-dev.off() #should suppress dev.off in text
 ```
 
 
@@ -1152,9 +1153,10 @@ Our second preregistered prediction was: __The data will fit a model where 'lang
 
 It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
  
-The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because thee were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
+The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because there were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-Figure x shows the pattern of correlations between LIs for the different tasks as a heat map. THe two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+Figure x shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+_ZW: should this text say task C (Phonological Decision) and task E (sentence comprehension), R=.665?_
 
 ```{r modelfit,echo=F}
 
@@ -1204,7 +1206,7 @@ bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> F
 
 
 
-```{r factormodels,echo=F,include=F}
+```{r factormodels,echo=F,include=F, warning=F}
 #In lavaan, we first define the factor model between quotes
 #So this step doesn't do anything - just sets up the model to be run later
 
