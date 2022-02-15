@@ -3,9 +3,10 @@ title: "COLA_results"
 author: "DVM Bishop"
 date: "13 Feb 2022"
 output:
-  pdf_document: default
+  word_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 <!--- Github project COLA_analysis_2022 initiated on 4 Feb 2022. Working version currently on Dropbox; this is a clone to allow version control --->
@@ -53,6 +54,7 @@ usePackage("ggpubr")
 usePackage("reshape2")
 usePackage("mice")
 usePackage("MVN") #multivariate normality
+#require(semproducible) #from devtools::install_github("peterdalle/semproducible")
 
 options(scipen=999)
 
@@ -1053,7 +1055,7 @@ for (i in 1:6){
   abline(0,1,lty=2)
 }
 }
-dev.off() #should suppress dev.off in text
+
 ```
 
 
@@ -1232,6 +1234,16 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8
 #measurementInvariance(model=model.2F,estimator="WLSMV",data=ddati,group="Handed")
 
 ```
+
+```{r trysemproducible,echo=F}
+# semproducible is intended to give you output in a format suitable for adding to journal.
+# Currently not used. 
+# Reproduce lavaan model.
+#code <- semproducible(fit1, ,model.1F)
+ #cat(code)
+
+```
+
 We used the lavaan() package to perform the pre-registered model comparison. To take into account non-normality of some variables, the WLSMV estimator was specified; this uses weighted least squares with robust standard errors and a mean- and variance adjusted test statistic, and makes no distributional assumptions about the observed variables. Table z summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
 
 Therefore, as planned we divided the sample into two random subsamples, 1 and 2. The first subsample is used in an exploratory analysis. We start with tasks A-E linked to Factor 1 and tasks B-F linked to Factor 2, and then drop non-significant paths. This gives a revised model with considerably improved fit, as shown in Figure x, where tasks A, B, C, and E load on Factor 1, and tasks C, D, E and F load on Factor 2. 
@@ -1258,8 +1270,8 @@ fitmeasures(fit.2Fall.1,wantfits)
 
 #This gives impossible values with negative variance estimate
 
-#More sense to make changes to model based on observation of heatmap.
-#Low correlations between D and F & Fac1 and path A and B & Fac2. We can drop these
+#More sense to make changes to model based on observation of heatmap for group 1.
+#Low correlations between D and F & Fac1 and path A and B & Fac2 (v similar to heatmap for whole sample). We can drop these
 
 #After checking model from group 1, now try running with 2nd group and with full sample
 
@@ -1439,7 +1451,7 @@ fitM4 <- cfa(model.2Fn, ddati, estimator="WLSMV",meanstructure=T,group = "Handed
 tabM4 <- makeSEMtab2(fitM4,c('_L','_R'))
 
 # model comparison tests
-lavTestLRT(fitM0,fitM1, fitM2, fitM3,fitM3a, fitM4)
+mylavtest<-lavTestLRT(fitM1, fitM2, fitM3,fitM3a, fitM4)
 
 #see https://users.ugent.be/~yrosseel/lavaan/multiplegroup6Dec2012.pdf
 
@@ -1547,19 +1559,38 @@ ntestL_F1_LHs<-round(prop.table(tabN4a,2),3)
 
 
 ```
-It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. Although the trend is for more right-handers to show this pattern than left-handers, the difference is not significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
+It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. Although the trend is for more right-handers to show this pattern than left-handers, the difference is not significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
-It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand much lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. 
+It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. The implications of this observation will be considered further in the Discussion.
 
 # Are online behavioural measures comparable to direct measures of cerebral blood flow in indexing language laterality?
 
 A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationsihp between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (tasks D and C respectively).
 
+
+```{r preparedata,echo=F}
+ncol<-ncol(ddati)
+for (i in 1:nrow(ddati)){
+  mysub <- ddati$ID[i]
+  w<-which(combdat$ID==mysub)
+  ddati$DL_z[i] <- combdat$DL.zlat.ex[w]
+   ddati$RDT_z[i] <- combdat$RDT.zlat.ex[w]
+   ddati$WC_z[i] <- combdat$WC.zlat.ex[w]
+}
+
+#impute missing values using mice package
+nunames<-c('DL_z','RDT_z','WC_z')
+thisdat.j <- mice(ddati[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
+ddati <-cbind(ddati[,1:12],complete(thisdat.j,1))
+```
+
+
+
 ```{r bigheatmap,echo=F}
 
-mydf <- combdat[combdat$DopExclude==0,] #need to ensure online LIs from excluded are not included
-mycolsb<-c("DL.zlat","RDT.zlat","WC.zlat",  "A_mean_LI", "B_mean_LI","C_mean_LI", "D_mean_LI","E_mean_LI", "F_mean_LI")
-bigheatmap <- makeheatmap(mydf,mycolsb)
+ #need to ensure online LIs from excluded are not included
+mycolsb<-c("DL_z","RDT_z","WC_z",  "A_P1", "B_P2","C_P3", "D_R1","E_R2", "F_R3")
+bigheatmap <- makeheatmap(ddati,mycolsb)
 bigheatmap
 
 ```
@@ -1567,69 +1598,60 @@ __Need to double check that all appropriate exclusions have been made here__.
 
 We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
 
-The online Word Comprehension measure failed both checks: split-half reliability was below .6, and the correlation with the fTCD Word Comprehension laterality index was close to zero.  Rhyme Decision narrowly passed both checks: split-half reliability was `r onlinesummary[7,4]` (though test-retest reliability was only`r onlinesummary[8,4]`).  The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(mydf$RDT.zlat,mydf$C_mean_LI,use='complete.obs'),3)`. Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery) and Rhyme Decision.
+The online Word Comprehension measure failed both checks: split-half reliability was below .6, and the correlation with the fTCD Word Comprehension laterality index was close to zero.  Rhyme Decision narrowly passed both checks: split-half reliability was `r onlinesummary[7,4]` (though test-retest reliability was only`r onlinesummary[8,4]`).  The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`. Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery) and Rhyme Decision.
 
-We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, it is more with production tasks. 
+We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, the strongest association is with production tasks. 
 
 
 
 ```{r newmodelx,echo=F,include=F}
 
+model.2Fnbase <- '
+f1 =~  A_P1+B_P2+C_P3+E_R2+0*RDT_z
+f2 =~  F_R3+D_R1+E_R2+C_P3+0*+DL_z
+'
+fit.2Fnbase <- cfa(model.2Fnbase,estimator="WLSMV", data=ddati)
+summary(fit.2Fnbase)
+wantfits <- c('CFI','rmsea','chisq','df')
+fitmeasures(fit.2Fn,wantfits)
 
 model.2Fnx <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+RDT.zlat.ex
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI+DL.zlat.ex
+f1 =~  A_P1+B_P2+C_P3+E_R2+RDT_z
+f2 =~  F_R3+D_R1+E_R2+C_P3+DL_z
 '
-fit.2Fnx <- cfa(model.2Fnx,estimator="WLSMV", data=mycomb)
+fit.2Fnx <- cfa(model.2Fnx,estimator="WLSMV", data=ddati)
 summary(fit.2Fnx)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fnx,wantfits)
-measurementInvariance(model=model.2Fnx,estimator="WLSMV",eanstructure=T,data=mycomb,group="Handedness")
-
+measurementInvariance(model=model.2Fnx,estimator="WLSMV",meanstructure=T,data=ddati,group="Handed")
+anova(fit.2Fnbase,fit.2Fnx)
 
 model.2Fny <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+RDT.zlat.ex+DL.zlat.ex
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI
+f1 =~  A_P1+B_P2+C_P3+E_R2+RDT_z+DL_z
+f2 =~  F_R3+D_R1+E_R2+C_P3
 '
-fit.2Fny <- cfa(model.2Fny, estimator="WLSMV",data=mycomb)
+fit.2Fny <- cfa(model.2Fny,estimator="WLSMV", data=ddati)
 summary(fit.2Fny)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fny,wantfits)
-measurementInvariance(model=model.2Fny,estimator="WLSMV",data=mycomb,eanstructure=T,group="Handedness")
+measurementInvariance(model=model.2Fny,estimator="WLSMV",data=ddati,meanstructure=T,group="Handed")
+anova(fit.2Fnbase,fit.2Fny)
 
-
+tab.2Fnbase <- makeSEMtab(fit.2Fnbase)
 tab.2Fnx <- makeSEMtab(fit.2Fnx)
 tab.2Fny <- makeSEMtab(fit.2Fny)
 
 model.2Fnz <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+DL.zlat.ex
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI
+f1 =~  A_P1+B_P2+C_P3+E_R2+DL_z+0*RDT_z
+f2 =~  F_R3+D_R1+E_R2+C_P3
 '
-fit.2Fnz <- cfa(model.2Fnz, estimator="WLSMV",data=mycomb)
+fit.2Fnz <- cfa(model.2Fnz,estimator="WLSMV", data=ddati)
 summary(fit.2Fnz)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fnz,wantfits)
-measurementInvariance(model=model.2Fnz,estimator="WLSMV",data=mycomb,meanstructure=T,group="Handedness")
+measurementInvariance(model=model.2Fnz,estimator="WLSMV",data=ddati,meanstructure=T,group="Handed")
+anova(fit.2Fnbase,fit.2Fnz)
 
-model.2Fnzz <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+DL.zlat.ex
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI
-'
-fit.2Fnzz <- cfa(model.2Fnzz, estimator="WLSMV",meanstructure=T,data=mycomb)
-summary(fit.2Fnzz)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2Fnzz,wantfits)
-measurementInvariance(model=model.2Fnzz,estimator="WLSMV",data=mycomb,group="Handedness")
-
-model.2Fnzzz <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI+DL.zlat.ex
-'
-fit.2Fnzzz <- cfa(model.2Fnzzz, estimator="WLSMV",data=mycomb)
-summary(fit.2Fnzzz)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2Fnzzz,wantfits)
-measurementInvariance(model=model.2Fnzzz,estimator="WLSMV",data=mycomb,meanstructure=T,group="Handedness")
 
 pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_bigA")
 semPaths(fit.2Fnx, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
@@ -1639,47 +1661,44 @@ pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_bigB")
 semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
     sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
 
-#Just for completeness - check that RDT does not work with F2
-model.2Fnz <- '
-f1 =~  A_mean_LI+B_mean_LI+C_mean_LI+E_mean_LI+DL.zlat
-f2 =~  F_mean_LI+D_mean_LI+E_mean_LI+C_mean_LI+RDT.zlat
-'
-fit.2Fnz <- cfa(model.2Fnz, data=mycomb)
-summary(fit.2Fnz)
-wantfits <- c('CFI','rmsea','chisq','df')
 
-fitmeasures(fit.2Fnz,wantfits)
-tab.2Fnz <- makeSEMtab(fit.2Fnz)
-#Yes - the path from RDT to F2 is NS
-
-
+#Looking at residuals : dichotic has high variability and big residuals - may be worth trying to scale it - or possibly just censor at a less extreme value
 ```
-The pattern of correlations shown in the heatmap already suggests that the pre-registered model, with Rhyme Judgement loading on Factor 1, and Dichotic Listening on Factor 2, will not be a good fit, because Dichotic Listening is correlated more strongly with the fTCD measures that load on Factor 1. This was confirmed: the path from Dichotic Listening to Factor 2 was non-significant.  
+ In practice, the model including a link from Rhyme Decision to Factor 1, and Dichotic Listening to Factor 2 gave a better fit than a model with both paths set to zero. Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This also gave excellent fit, with significant paths from both of these measures, as shown in Figure x. 
 
-Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This gave a better fit, with significant paths from both of these measures, as shown in Figure x. 
-
-```{r modelfitbighand,echo=F}
-#Redo best fitting model with handedness groups
-measurementInvariance(model=model.2Fny,data=mycomb,meanstructure=T,group="Rhanded")
-
-
-```
 
 # Discussion
 
-To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers.
+To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers?
 
 ## Evidence for a single laterality dimension  
 
-Previous attempts to consider the dimensionality of language lateralisation have been obscured by two issues. First, researchers have tended to focus only on measures that show left-lateralisation at the population level, treating unlateralised measures as uninteresting. Second, many studies have been conducted with measures whose reliability was not established. If two laterality indices are not correlated, it could just be because they are unreliable, and so it has been easy to dismiss lack of correlation between laterality measures as uninformative. 
+Previous attempts to consider the dimensionality of language lateralisation have been obscured by two issues. First, many studies have been conducted with measures whose reliability was not established. If two laterality indices are not correlated, it could just be because they are unreliable, and so it has been easy to dismiss lack of correlation between laterality measures as uninformative. Second, researchers have tended to focus only on measures that show left-lateralisation at the population level, treating unlateralised language measures as uninteresting. 
 
-Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal test, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Judgement, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
+Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal model comparison, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Judgement, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
 
-For the fTCD data, we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. In addition, and consistent with Woodhead et al (xxxx), we confirmed here that tasks that are not lateralised at the population-level can nevertheless have highly reliable laterality indices, indicating that individual differences in degree of lateralisation are stable.
+For the fTCD data, we again found good evidence for reliability of LIs on most tasks, even though some tasks were not left-lateralised. Consistent with Woodhead et al (2021), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, and others the right. The LI from the Word Comprehension task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. In addition, this task showed a trend for right-hemisphere bias, particularly in left-handers. 
 
-Our use of structural equation modeling leads to a focus on correlations between laterality indices while largely disregarding means. This approach reveals that two language tasks can have correlated laterality indices, even when one task is lateralised at the population level and the other is not - for example Phonological Decision and Word Comprehension. Such observations seem compatible with a simple model, in which a person's strength of lateralisation is consistent across language tasks, but tasks vary in terms of their mean laterality bias. 
+With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two subgroups to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
 
-Our previous study using SEM found that this simple model could not adequately account for the pattern of correlations between laterality indices. Rather, the correlations patterned in a way that suggested there were (at least) two underlying factors that influenced language lateralisation. The current study again failed to support a single factor model of lateralisation.  The alternative model that we had proposed, that involved a division between language production and language reception accounted for more variance, but still left a great deal unexplained, and overall the fit was poor. Accordingly, we divided the sample into two subgroups to explore different models and found one that gave reasonable fit, which was then replicated in the second half of the sample. This again had a two factor structure  
+In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  Models that included Dichotic Listening and Rhyme Decision gave better fit when non-zero paths were included from these measures, than when they were set to zero, but the best fit was seen for a model where both Dichotic Listening and Rhyme Judgement loaded on Factor 1 (with language production tasks), rather than when Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
+
+## Left vs Right Handers  
+For both online and fTCD LIs, with just one exception, there was a consistent trend for stronger left-hemisphere bias in right-handers than in left-handers. This reached significance on all measures except fTCD Word Comprehension. The exception was online Rhyme Judgement, which was not left-lateralised and where means for left- and right-handers were very similar. 
+
+The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures, we had concluded that there may be more dissociation between factors in left-handers, but the sample size was small for this kind of analysis.  Even with the current sample size, power to detect model invariance is limited. Having noted those limitations, our analysis suggested that there was no reason to postulate different models for left- vs right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means.  As an analogy, we could say this would be like showing that the relationship between height and weight is similar in males and females, even though females are on average shorter and lighter. 
+
+## Interpreting the two-factor structure    
+```{r taskanalysis,echo=F}
+tasks <- read.csv(paste0(mydir,"/05-writeup/task details.csv"))
+ftasks <- flextable(tasks[,1:7])
+ftasks
+tabnumber <- tabnumber+1
+```
+Table `tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Comprehension on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
+
+Sentence Comprehension also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have covertly repeated sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we had dropped from the current study a List Generation task used by Woodhead, Rutherford and Bishop (2020) that simply involved repeating overlearned sequences such as days of the week, as it had been only weakly lateralised. The Sentence Comprehension task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
+
 
 
 ## Supplementary materials  
