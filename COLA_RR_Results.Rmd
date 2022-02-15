@@ -1,7 +1,7 @@
 ---
 title: "COLA_results"
 author: "DVM Bishop"
-date: "13 Feb 2022"
+date: "15 Feb 2022"
 output:
   word_document: default
   html_document:
@@ -102,6 +102,50 @@ return(LI.plot)
 }
 ```
 
+
+```{r densfunction,echo=F}
+#Function to do a density plot for specified file coded by group
+#(Not sure if output differs from previous function! - need to check)
+
+dodensity <- function(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle){
+  
+ 
+scatterdens <- ggplot(mydat,aes(x = myx, y = myy,col=mygroup)) + 
+  geom_point(shape = 4,  size = 1)+
+  scale_color_manual(name=namegroup,
+                       labels=grouplabels,
+                       values=c("blue","red"))+
+  labs(x = namex,y=namey)+
+  ggtitle(mytitle) 
+if (mylines==1){
+   scatterdens<-scatterdens+geom_abline(intercept = 0, slope = 1)
+}
+if (mylines==2){
+   scatterdens<-scatterdens+geom_hline(yintercept = 0,linetype="dashed")+
+   geom_vline(xintercept = 0,linetype="dashed")
+}
+
+ 
+dens1 <- ggplot(mydat, aes(x = myx, fill = mygroup)) + 
+  geom_density(alpha = 0.4) + 
+  geom_vline(xintercept = 0, linetype="dotted")+
+  theme_void() + 
+  theme(legend.position = "none")
+
+dens2 <- ggplot(mydat, aes(x = myy, fill = mygroup)) + 
+  geom_density(alpha = 0.4) + 
+  geom_vline(xintercept = 0, linetype="dotted")+
+  theme_void() + 
+  theme(legend.position = "none") + 
+  coord_flip()
+
+alldens<-dens1 + plot_spacer() + scatterdens + dens2 + 
+  plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
+
+#ggsave(paste0(mydir,"/03-graphic-outputs/",plotname,".png"),width = 5, height = 4)
+return(alldens)
+}
+```
 
 ```{r filltable,echo=F,warning=F}
 #Generate function to populate summary data frame - same steps for all online tasks
@@ -750,37 +794,26 @@ As is evident from Supplementary figure `r suppfignumber`, the z-LI score is ver
 __2-3. Rhyme Decision and Word Comprehension__  
 `r suppfignumber<- suppfignumber+1`Density plots and scattergrams for these two tasks are shown together in Supplementary Figure `r suppfignumber`, as both have z-LIs computed on the basis of correct RTs to visual stimuli presented to the left and right.  
 
+
+
 ```{r RD-WC-densities,echo=F,include=F}
 #We will plot RD and WC together as they both involve z-LI from RTs
 
 RDWCdat<-filter(mycomb,excludeRDT==0,excludeWC==0)
 
-RDWCdens <- ggplot(RDWCdat, aes(x = RDT.zlat, y = WC.zlat,col=Handedness)) + 
-  geom_point(shape = 4,  size = 1)+
-  scale_color_manual(name="Handedness",
-                       labels=c("Left","Right"),
-                       values=c("blue","red"))+
-  ggtitle("Rhyme Decision vs Word Comprehension") +
-   geom_abline(intercept = 0, slope = 1)
+myx<-RDWCdat$RDT.zlat.ex
+myy<-RDWCdat$WC.zlat.ex
 
-  
+mydat<-as.data.frame(cbind(myx,myy,mygroup))
+mydat$mygroup<-as.factor(mydat$mygroup)
+namex<-'Rhyme Decision zLI'
+namey<-"Word Comprehension zLI"
+namegroup <- "Handedness"
+grouplabels<- c("Left","Right")
+mylines<-1 #diagonal line showing point of equality
+mycompositeplot <- dodensity(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle)
 
-dens1 <- ggplot(RDWCdat, aes(x = RDT.zlat, fill = Handedness)) + 
-  geom_density(alpha = 0.4) + 
-  geom_vline(xintercept = 0, linetype="dotted")+
-  theme_void() + 
-  theme(legend.position = "none")
-
-dens2 <- ggplot(RDWCdat, aes(x = WC.zlat, fill = Handedness)) + 
-  geom_density(alpha = 0.4) + 
-  geom_vline(xintercept = 0, linetype="dotted")+
-  theme_void() + 
-  theme(legend.position = "none") + 
-  coord_flip()
-
-dens1 + plot_spacer() + RDWCdens + dens2 + 
-  plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
-
+mycompositeplot
 ggsave(paste0(mydir,"/03-graphic-outputs/AFig5_RDWCdens.png"),width = 5, height = 4)
 
 
@@ -1337,7 +1370,9 @@ thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) +
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
     xlab(xlabel)+
-    ylab(ylabel)
+    ylab(ylabel)+
+  geom_hline(yintercept=0, linetype="dashed")+
+    geom_vline(xintercept=0, linetype="dashed")
  #NB scale of factors is NOT centred on LI of zero!
   return(thisscatter)
 }
@@ -1713,3 +1748,35 @@ Supplementary Figure 2
 ```
 
 
+```{r anothertryfactors,echo=F}
+mys<-standardizedSolution(fit.2Fn)
+wts1 <- mys$est.std[1:4]
+wts2 <-mys$est.std[5:8]
+ddati$f1<-wts1[1]*ddati$A_P1+
+  wts1[2]*ddati$B_P2+
+  wts1[3]*ddati$C_P3+
+  wts1[4]*ddati$E_R2
+
+ddati$f2<-wts2[1]*ddati$F_R3+
+  wts2[2]*ddati$C_P3+
+  wts2[3]*ddati$D_R1+
+  wts2[4]*ddati$E_R2
+
+myx<-ddati$f1
+myy<-ddati$f2
+mygroup< ddati$Handed
+mydat<-as.data.frame(cbind(myx,myy,mygroup))
+mydat$mygroup<-as.factor(mydat$mygroup)
+namex<-'Factor 1'
+namey<-"Factor 2"
+namegroup <- "Handedness"
+grouplabels<- c("Left","Right")
+mylines<-2 #horiz and vertical lines showing zero
+mytitle <- "Factors derived from standardized weighted \nsum from modified 2 factor model"
+mycompositeplot <- dodensity(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle)
+
+mycompositeplot
+ggsave(paste0(mydir,"/03-graphic-outputs/standfactors.png"),width = 5, height = 4)
+
+
+```
