@@ -1,7 +1,7 @@
 ---
 title: "COLA_results"
 author: "DVM Bishop"
-date: "15 Feb 2022"
+date: "17 Feb 2022"
 output:
   word_document: default
   html_document:
@@ -54,7 +54,10 @@ usePackage("ggpubr")
 usePackage("reshape2")
 usePackage("mice")
 usePackage("MVN") #multivariate normality
-#require(semproducible) #from devtools::install_github("peterdalle/semproducible")
+usePackage("viridis") #possibly for control over colours in ggplot
+usePackage("hrbrthemes") #for fancy themes in ggplot?
+
+#hrbrthemes::import_roboto_condensed()  #not sure if needed - was in example with ggplot
 
 options(scipen=999)
 
@@ -804,6 +807,7 @@ RDWCdat<-filter(mycomb,excludeRDT==0,excludeWC==0)
 myx<-RDWCdat$RDT.zlat.ex
 myy<-RDWCdat$WC.zlat.ex
 
+mygroup <- RDWCdat$Rhanded
 mydat<-as.data.frame(cbind(myx,myy,mygroup))
 mydat$mygroup<-as.factor(mydat$mygroup)
 namex<-'Rhyme Decision zLI'
@@ -811,6 +815,7 @@ namey<-"Word Comprehension zLI"
 namegroup <- "Handedness"
 grouplabels<- c("Left","Right")
 mylines<-1 #diagonal line showing point of equality
+mytitle <- 'Rhyme Decision vs Word Comprehension'
 mycompositeplot <- dodensity(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle)
 
 mycompositeplot
@@ -827,7 +832,7 @@ Before testing specific predictions about interrelationships between measures, w
 
 
 
-```{r DL-ttests,echo=F}
+```{r DL-ttests,echo=F, message=F, warning=F}
 #Make a table to show characteristics of different tests
 
 onlinesummary <- data.frame(matrix(NA,nrow=12,ncol=4))
@@ -836,7 +841,7 @@ onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality',
 ```
 
 
-```{r fillonlinesummary,echo=F}
+```{r fillonlinesummary,echo=F, message=F, warning=F}
 
 
 
@@ -860,6 +865,7 @@ ft<-autofit(ft)
 ft
 
 ```
+
 ```{r behpirates, echo=FALSE, warning=FALSE,message=F}
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
 
@@ -1293,8 +1299,6 @@ mydat<- ddati[ddati$randgroup==mygroup,]
 model.2Fall <- '
 f1 =~  A_P1 + B_P2+C_P3+D_R1+ E_R2
 f2 =~  F_R3 + B_P2+ C_P3 +D_R1+ E_R2 
-
-
 '
 fit.2Fall.1 <- cfa(model.2Fall,estimator="WLSMV", data=mydat)
 tab.2Fall <- makeSEMtab(fit.2Fall.1)
@@ -1302,6 +1306,104 @@ wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fall.1,wantfits)
 
 #This gives impossible values with negative variance estimate
+
+#Model that is based on Woodhead et al
+model.2FZW <- '
+f1 =~  B_P2+A_P1 +C_P3+D_R1+ E_R2+F_R3
+f2 =~  NA*C_P3 +D_R1+ E_R2 +F_R3+A_P1
+f1~~1*f1
+'
+
+fit.2FZW.1 <- cfa(model.2FZW,estimator="WLSMV", data=mydat)
+tab.2FZW <- makeSEMtab(fit.2FZW.1)
+wantfits <- c('CFI','rmsea','chisq','df')
+fitmeasures(fit.2FZW.1,wantfits)
+#This gives nonfunctional model: cannot invert matrix plus negative variance estimates.
+
+#make oddeven file so can try same model as Woodhead et al
+wantcols <- c("ID","male","Rhanded","A_mean_odd","A_mean_even","B_mean_odd","B_mean_even","C_mean_odd","C_mean_even","D_mean_odd","D_mean_even","E_mean_odd","E_mean_even","F_mean_odd","F_mean_even","DopExclude")
+ddat_OE <- combdat[combdat$ftcd==1,wantcols]
+ddat_OE<-ddat_OE[ddat_OE$DopExclude==0,]
+
+#impute missing values using mice package
+nunames<-wantcols[4:15]
+thisdat.j <- mice(ddat_OE[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
+ddat_OE <-cbind(ddat_OE[,1:3],complete(thisdat.j,1))
+
+colnames(ddat_OE)<-c("ID","male","Rhanded","A_o","A_e","B_o","B_e","C_o","C_e","D_o","D_e","E_o","E_e","F_o","F_e")
+set.seed(50)
+
+ddat_OE$randgroup<-1+rbinom(nrow(ddat_OE),1,.5) #create random group 1 or 2 for later split
+mygroup <-1
+mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
+
+#Model that is same as Woodhead et al
+model.2FZW2 <- '
+f1 =~  1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
+       a*A_o+a*A_e +
+       c*C_o+c*C_e+
+       d*D_o+d*D_e+
+       e*E_o+e*E_e+
+       f*F_o+f*F_e
+f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e
+       e2*E_o+e2*E_e+
+       f2*F_o+f2*F_e+
+       a2*A_o+a2*A_e +
+       c2*C_o+c2*C_e  #only B is omitted from f2
+
+f2~~1*f2
+A_o~~av*A_o #equate variances for odds and evens
+A_e~~av*A_e
+B_o~~bv*B_o
+B_e~~bv*B_e
+C_o~~cv*C_o
+C_e~~cv*C_e
+D_o~~dv*D_o
+D_e~~dv*D_e
+E_o~~ev*E_o
+E_e~~ev*E_e
+F_o~~fv*F_o
+F_e~~fv*F_e
+'
+
+fit.2FZW2.1 <- cfa(model.2FZW2,estimator="WLSMV", data=mydat)
+tab.2FZW2 <- makeSEMtab(fit.2FZW2.1)
+wantfits <- c('CFI','rmsea','chisq','df')
+fitmeasures(fit.2FZW2.1,wantfits)
+#This gives matrix not positive definite
+
+#Paths suggest dropping nonsig paths from f1 to D and F 
+# and A from F2 (B is already missing as was excluded from model)
+model.2FZW2a <- '
+f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
+       a*A_o+a*A_e +
+       c*C_o+c*C_e+
+       e*E_o+e*E_e
+f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ 
+       c*C_o+c*C_e+
+       e2*E_o+e2*E_e+
+       f2*F_o+f2*F_e
+f1~~1*f1
+f2~~1*f2
+A_o~~av*A_o #equate variances for odds and evens
+A_e~~av*A_e
+B_o~~bv*B_o
+B_e~~bv*B_e
+C_o~~cv*C_o
+C_e~~cv*C_e
+D_o~~dv*D_o
+D_e~~dv*D_e
+E_o~~ev*E_o
+E_e~~ev*E_e
+F_o~~fv*F_o
+F_e~~fv*F_e
+'
+
+fit.2FZW2a.1 <- cfa(model.2FZW2a,estimator="WLSMV", data=mydat)
+tab.2FZW2a <- makeSEMtab(fit.2FZW2a.1)
+wantfits <- c('CFI','rmsea','chisq','df')
+fitmeasures(fit.2FZW2a.1,wantfits)
+#Converges nicely
 
 #More sense to make changes to model based on observation of heatmap for group 1.
 #Low correlations between D and F & Fac1 and path A and B & Fac2 (v similar to heatmap for whole sample). We can drop these
@@ -1376,6 +1478,7 @@ thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) +
  #NB scale of factors is NOT centred on LI of zero!
   return(thisscatter)
 }
+
 ```
 
 
@@ -1710,7 +1813,7 @@ To simplify the interpretation of this complex dataset, it helps to focus on two
 
 Previous attempts to consider the dimensionality of language lateralisation have been obscured by two issues. First, many studies have been conducted with measures whose reliability was not established. If two laterality indices are not correlated, it could just be because they are unreliable, and so it has been easy to dismiss lack of correlation between laterality measures as uninformative. Second, researchers have tended to focus only on measures that show left-lateralisation at the population level, treating unlateralised language measures as uninteresting. 
 
-Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal model comparison, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Judgement, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
+Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal model comparison, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Decision, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
 
 For the fTCD data, we again found good evidence for reliability of LIs on most tasks, even though some tasks were not left-lateralised. Consistent with Woodhead et al (2021), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, and others the right. The LI from the Word Comprehension task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. In addition, this task showed a trend for right-hemisphere bias, particularly in left-handers. 
 
@@ -1749,6 +1852,8 @@ Supplementary Figure 2
 
 
 ```{r anothertryfactors,echo=F}
+#Trying to extract factor scores that are not centred on zero.
+#Not sure this is legit!
 mys<-standardizedSolution(fit.2Fn)
 wts1 <- mys$est.std[1:4]
 wts2 <-mys$est.std[5:8]
@@ -1778,5 +1883,35 @@ mycompositeplot <- dodensity(mydat,myx,myy,mygroup,namex,namey,namegroup,groupla
 mycompositeplot
 ggsave(paste0(mydir,"/03-graphic-outputs/standfactors.png"),width = 5, height = 4)
 
+
+```
+
+
+```{r plotexplore}
+
+
+latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
+w<-which(colnames(ddati) %in% latcols)
+means<-colMeans(ddati[,w])
+nucols<-min(w)+order(means,decreasing=T)-1
+
+for (i in 1:6){
+  thiscol<-colnames(ddati)[nucols[i]]
+  thisx<-'x'
+  thisgroup<-'Handed'
+# Plot
+ddati %>%
+  ggplot( aes_string(x=thiscol, color=thisgroup, fill=thisgroup)) +
+  geom_density(alpha=0.6) +
+  #scale_fill_viridis(discrete=TRUE) +
+  #scale_color_viridis(discrete=TRUE) +
+  theme_ipsum() +
+  theme(
+    legend.position="none"
+  ) 
+
+}
+#need to set x axis from -6 to 8 to accommodate all. Can then add zero point.
+#Also add better task labels and maybe means for L and R
 
 ```
