@@ -1409,7 +1409,7 @@ fitmeasures(fit.2FZW2a.1,wantfits)
 #Low correlations between D and F & Fac1 and path A and B & Fac2 (v similar to heatmap for whole sample). We can drop these
 
 #After checking model from group 1, now try running with 2nd group and with full sample
-
+mydat<- ddati[ddati$randgroup==mygroup,] #back to full LI scores
 model.2Fn <- '
 f1 =~  A_P1 + B_P2+C_P3+ E_R2
 f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
@@ -1887,31 +1887,50 @@ ggsave(paste0(mydir,"/03-graphic-outputs/standfactors.png"),width = 5, height = 
 ```
 
 
+```{r densplotsfunction,echo=F}
+#overlapping density plots
+densplots<-function(mydat,thiscol,thisgroup,mylab){
+  myplot <- ggplot(data=ddati, aes_string(x=thiscol, color=thisgroup, fill=thisgroup)) +
+  geom_density(alpha=0.5) +
+  annotate(geom="text", x=-6, y=.3, label=mylab,hjust=0,size=4)+
+  #scale_fill_viridis(discrete=TRUE) +
+  #scale_color_viridis(discrete=TRUE) +
+  xlim(-6,8)+
+    ylim(0,.36)+
+  geom_vline(xintercept = 0,linetype="dotted")+
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),legend.position="none")
+  return(myplot)
+}
+```
+
 ```{r plotexplore}
 
 
 latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
+latnames<-c("Word Generation","Sentence Generation","Phonological Decision","Word Comprehension","Sentence Comprehension","Syntactic Decision")
 w<-which(colnames(ddati) %in% latcols)
 means<-colMeans(ddati[,w])
-nucols<-min(w)+order(means,decreasing=T)-1
-
+nuorder <- order(means,decreasing=T)
+nucols<-min(w)+nuorder-1
+plotlist<-NULL
 for (i in 1:6){
+  filename<-paste0(mydir,'/03-graphic-outputs/densplot_',i,'.png')
   thiscol<-colnames(ddati)[nucols[i]]
-  thisx<-'x'
   thisgroup<-'Handed'
-# Plot
-ddati %>%
-  ggplot( aes_string(x=thiscol, color=thisgroup, fill=thisgroup)) +
-  geom_density(alpha=0.6) +
-  #scale_fill_viridis(discrete=TRUE) +
-  #scale_color_viridis(discrete=TRUE) +
-  theme_ipsum() +
-  theme(
-    legend.position="none"
-  ) 
+  mylab<-latnames[nuorder[i]]
+  thisplot <- densplots(ddati,thiscol,thisgroup,mylab)
+  ggsave(filename,width = 6, height = 3)
+  #There should be a way to avoid the next bit of clunky code!
+  d6<-thisplot
+  if(i==1){d1<-thisplot}
+  if(i==2){d2<-thisplot}
+  if(i==3){d3<-thisplot}
+  if(i==4){d4<-thisplot}
+  if(i==5){d5<-thisplot}
 
 }
-#need to set x axis from -6 to 8 to accommodate all. Can then add zero point.
-#Also add better task labels and maybe means for L and R
+alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 1, nrow = 6,common.legend=TRUE)
+ggsave(paste0(mydir,"/03-graphic-outputs/alldens.png"),width = 3, height = 9)
 
 ```
