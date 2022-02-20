@@ -1,7 +1,7 @@
 ---
-title: "COLA_results"
-author: "DVM Bishop"
-date: "17 Feb 2022"
+title: "Registered Report: Results"
+author: "COLA consortium"
+date: "20 Feb 2022"
 output:
   word_document: default
   html_document:
@@ -9,8 +9,6 @@ output:
   pdf_document: default
 ---
 
-<!--- Github project COLA_analysis_2022 initiated on 4 Feb 2022. Working version currently on Dropbox; this is a clone to allow version control --->
-<!---DB Updated 7 Feb 2022; removing AIC analysis, with explanation--->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -352,103 +350,6 @@ return(p2)
 
 ```
 
-```{r optimalBoxCoxFunction,echo=F}
-#Where a measure is non-normal on Shapiro-Wilk test, the BoxCox transformation is applied.  Because the LIs include negative values, we first add a constant so all values are positive. After applying the BoxCox, we add another constant to ensure that the mean is unchanged by the transformation.
-
-#The BoxCox function is similar to applying a transformation such as log or square root, but rather than pre-specifying the function, we hunt for the optimal value of lambda to give normal data, where newdata <- olddata^lambda-1/lambda
-
-optimalBoxCox <- function(myvector){
-
-#find optimal lambda for Box-Cox transformation 
-
-offset<-min(myvector,na.rm=T)
-origmean <- mean(myvector,na.rm=T)
-respvar <- -offset+.1+myvector
-bc <- boxcox(respvar ~ 1)
-lambda <- bc$x[which.max(bc$y)]
-newresp <- respvar^lambda-1/lambda
-numean<-mean(newresp,na.rm=T)
-newoffset <- numean-origmean
-nuvector<-newresp-newoffset
-return(nuvector)
-
-}
-
-
-```
-
-```{r commonBoxCoxFunction,echo=F}
-#Where a measure is non-normal on Shapiro-Wilk test, the BoxCox transformation is applied.  Because the LIs include negative values, we first add a constant so all values are positive. After applying the BoxCox, we add another constant to ensure that the mean is unchanged by the transformation.
-
-#The BoxCox function is similar to applying a transformation such as log or square root, but rather than pre-specifying the function, we hunt for the optimal value of lambda to give normal data, where newdata <- olddata^lambda-1/lambda
-
-commonBoxCox <- function(myvector){
-
-#find optimal lambda for Box-Cox transformation 
-
-offset<-min(myvector,na.rm=T)
-origmean <- mean(myvector,na.rm=T)
-respvar <- -offset+.1+myvector
-lambda<-1.12
-newresp <- respvar^lambda-1/lambda
-numean<-mean(newresp,na.rm=T)
-newoffset <- numean-origmean
-nuvector<-newresp-newoffset
-return(nuvector)
-
-}
-
-
-```
-
-
-```{r do-boxcoxfunction,echo=F}
-#This function identifies columns with nonnormal data and applies optimal BoxCox function, saving the new version of the variable with suffix _bc
-
-#NB I have set this to only do transform if nonnormality gives p < pcut.
-#To ignore normalisation, just use extreme pcut 
-#Concern that otherwise transform  might distort relation between variables?
-normalisedf <- function(thisdat,pcut){ #need a data frame with just the variables to be normalised
-  mymvn <- mvn(thisdat,mvnTest = c("mardia", "hz", "royston", "dh",
-  "energy")) #useful for getting normality check on all vars
-  print(mymvn)
-swlist <-mymvn$univariateNormality
-collist<-vector() #initialise a vector that will hold list of cols to be normalised
-for (i in 1:nrow(swlist)){
-  if (as.numeric(swlist[i,4])>pcut){collist<-c(collist,i)}
-  if (as.numeric(swlist[i,4])<pcut){ #pvalue
-    thisdat$temp<-optimalBoxCox(thisdat[,i])
-    newmean<-mean(thisdat$temp,na.rm=T)
-    colnames(thisdat)[ncol(thisdat)]<-paste0(colnames(thisdat)[i],'_bc')
-    collist<-c(collist,ncol(thisdat))
-  }
-}
-return(list(thisdat,collist))
-}
-```
-
-
-```{r do-commonboxcoxfunction,echo=F}
-#This function applies common BoxCox function, saving the new version of the variable with suffix _bc
-
-#NB I have set this to only do transform if nonnormality gives p < pcut.
-#To ignore normalisation, just use extreme pcut 
-#Concern that otherwise transform  might distort relation between variables?
-normalisedfcommon <- function(thisdat,pcut){ #need a data frame with just the variables to be normalised. pcut not used here
-
-collist<-1:6 #initialise a vector that will hold list of cols to be normalised
-for (i in 1:6){
-
-    thisdat$temp<-commonBoxCox(thisdat[,i])
-    newmean<-mean(thisdat$temp,na.rm=T)
-    colnames(thisdat)[ncol(thisdat)]<-paste0(colnames(thisdat)[i],'_bc')
-    collist<-c(collist,ncol(thisdat))
-  }
-
-return(list(thisdat,collist))
-}
-```
-
 ```{r makeSEMtabfunction,echo=F}
 #Function to make tidy table for SEM output for model with one group
 #This is now largely superseded by bigsummary, though SEMtab has more complete information
@@ -532,16 +433,6 @@ bigsummary[r:(r+length(wantfits)-1),writecol]<-fm #write the fit indices in succ
 
 
 
-
-#Add chi square comparison with comparisonfit
-if(!is.na(comparisonfit)){
-chicomp <- fitmeasures(comparisonfit,wantfits[3:4]) #get chisq and DF for comparison model
-chidiff<-chicomp[1]-bigsummary[17,writecol]
-dfdiff<-chicomp[2]-bigsummary[18,writecol]
-pval<- 1-pchisq(chidiff,dfdiff) #p-value for chi sq difference
-bigsummary[19,writecol]<-pformat2(pval) #p-value written to row 19
-}
-
 #because this is data.frame, all values in a column must be same format.
 #Starts numeric, but that means Nobs and DF is shown to 3 decimal places. 
 #Can remove decimal places with line below, but then all values become characters
@@ -577,11 +468,29 @@ return(thisdat)
 }
 
 ```
+
+
+```{r densplotsfunction,echo=F}
+#overlapping density plots 
+densplots<-function(mydat,thiscol,thisgroup,mylab){
+  myplot <- ggplot(data=ddati, aes_string(x=thiscol, color=thisgroup, fill=thisgroup)) +
+  geom_density(alpha=0.5,kernel="gaussian") +
+  annotate(geom="text", x=-6, y=.3, label=mylab,hjust=0,size=4)+
+  #scale_fill_viridis(discrete=TRUE) +
+  #scale_color_viridis(discrete=TRUE) +
+  xlim(-6,8)+
+    ylim(0,.36)+
+  geom_vline(xintercept = 0,linetype="dotted")+
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),legend.position="none")
+  return(myplot)
+}
+```
 <!--- GENERIC FUNCTIONS END -->
 
-# Results
+## Participants
 
-## Descriptives  
+ 
 ```{r readcombined,echo=F}
 mydir <- "~/Dropbox/COLA_RR_Analysis"
 readfile<-paste0(mydir,"/02-data/combined_data.csv")
@@ -612,33 +521,10 @@ myftcd <- filter(ftcd.dat,excluded==0) #we'll do analysis on myftcd
 ```
 
 _Departures from pre-registration plan_  
-Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing. Because of disruption to in-person testing caused by pandemic restrictions, we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. However, `r langtab[1,2,1]+langtab[1,3,1]+langtab[1,4,1]` left-handers and `r langtab[2,2,1]+langtab[2,3,1]+langtab[2,4,1]` right-handers tested with fTCD were non-native English speakers who met our criteria for excluding participants on the basis of either the lexTALE or Games with Words measures of English language competence, giving final samples of `r langtab[1,1,1]+langtab[1,1,2]+langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,1,1]+langtab[2,1,2]+langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers. An unexpected issue was that a few native English speakers failed the language screen (`r langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers): however, the purpose of these tests had been to exclude non-native speakers with inadequate language skills, so we retained all native English participants in the study.
+Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing. Because of disruption to in-person testing caused by pandemic restrictions, we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. However, `r langtab[1,2,1]+langtab[1,3,1]+langtab[1,4,1]` left-handers and `r langtab[2,2,1]+langtab[2,3,1]+langtab[2,4,1]` right-handers tested with fTCD were non-native English speakers who met our criteria for excluding participants on the basis of either the lexTALE or Games with Words measures of English language competence (see below), giving final samples of `r langtab[1,1,1]+langtab[1,1,2]+langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,1,1]+langtab[2,1,2]+langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers. An unexpected issue was that a few native English speakers failed the language screen (`r langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers): however, the purpose of these tests had been to exclude non-native speakers with inadequate language skills, so we retained all native English participants in the study.
 
 
 
-### Subsample for test-retest study
-```{r test-retest, echo=F}
-#need to read in sess1 and sess3 for the test-retest data
-
-sess1 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess1.csv'))
-sess3 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess3.csv'))
-mtab<-table(sess3$male,sess3$Rhanded)
-
-# Calculate delay between session 1 and session 3 for retest participants
-for (i in 1:length(sess3$ID)){
-  sess3$date_S1 <- sess1$date[which(sess1$ID == sess3$ID)]
-}
-
-# Reformat dates
-sess3$date <- as.Date(sess3$date, format='%d/%m/%Y')
-sess3$date_S1 <- as.Date(sess3$date_S1, format='%d/%m/%Y')
-sess3$date_diff <- difftime(sess3$date, sess3$date_S1)
-
-date_diff_stats <- fivenum(sess3$date_diff)
-
-```
-
-A subsample of `r nrow(sess3)` participants was retested on part of the online battery within `r ceiling(as.numeric(date_diff_stats[5]) / 7)` weeks of the first session (median = `r date_diff_stats[3]` days, range = `r date_diff_stats[1]` to `r date_diff_stats[5]` days). There were `r mtab[1,1]` left-handed females, `r mtab[2,1]` left-handed males, `r mtab[1,2]` right-handed females, and `r mtab[2,2]` right-handed males. The retest session included the Rhyme Decision and Word Comprehension tasks, which were new, but not Dichotic Listening, for which we had adequate evidence of test-retest reliability from the previous study by Parker et al (2021). 
 
 ### Demographic data 
 
@@ -662,8 +548,34 @@ tabnumber<-tabnumber+1
 ```
 Table `r tabnumber` shows demographic data for the subset of individuals tested on the online battery only, and the subset who also completed the session with FTCD. It is evident from inspection that there are no systematic differences between the two subgroups. 
 
-### Lateralised responses on the online battery
+Subsample for test-retest study_
+```{r test-retest, echo=F}
+#need to read in sess1 and sess3 for the test-retest data
 
+sess1 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess1.csv'))
+sess3 <- read.csv(paste0(mydir,'/02-data/02.1_gorilla/sess3.csv'))
+mtab<-table(sess3$male,sess3$Rhanded)
+
+# Calculate delay between session 1 and session 3 for retest participants
+for (i in 1:length(sess3$ID)){
+  sess3$date_S1 <- sess1$date[which(sess1$ID == sess3$ID)]
+}
+
+# Reformat dates
+sess3$date <- as.Date(sess3$date, format='%d/%m/%Y')
+sess3$date_S1 <- as.Date(sess3$date_S1, format='%d/%m/%Y')
+sess3$date_diff <- difftime(sess3$date, sess3$date_S1)
+
+date_diff_stats <- fivenum(sess3$date_diff)
+
+```
+
+A subsample of `r nrow(sess3)` participants was retested on part of the online battery within `r ceiling(as.numeric(date_diff_stats[5]) / 7)` weeks of the first session (median = `r date_diff_stats[3]` days, range = `r date_diff_stats[1]` to `r date_diff_stats[5]` days). There were `r mtab[1,1]` left-handed females, `r mtab[2,1]` left-handed males, `r mtab[1,2]` right-handed females, and `r mtab[2,2]` right-handed males. The retest session included the Rhyme Decision and Word Comprehension tasks, which were new, but not Dichotic Listening, for which we had adequate evidence of test-retest reliability from the previous study by Parker et al (2021). 
+
+
+## Online behavioural battery  
+
+### Derivation of laterality indices  
 
 ```{r dichotic.plot,echo=F}
 
@@ -747,6 +659,12 @@ ggsave(paste0(mydir,"/03-graphic-outputs/allLRbeh.png"),width = 9, height = 3)
 ```
 Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural task in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e. there are more points above the black line than below it. 
 
+In our pre-registration we stated that we would compute a conventional laterality index, 100* (Left-Right)/(Left+Right), as well as a laterality z-score:
+(pL-.5)/sqrt(pL*pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).  
+
+
+As is evident from Supplementary figure `r suppfignumber`, the z-LI score is very highly correlated with the conventional LI, the principal difference being that the z-LI follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use z-LI, as this allows us to compare different tasks on a common scale. 
+
 In Rhyme Decision, the task was to judge which of two pictured items had a name that rhymed with a centrally-presented written word. The pictures were presented in the left or right periphery. This was an easy task, as the words used were common, and the participants were given a practice session where they were introduced to all the pictures and their names. We could therefore use accuracy as an index of engagement with the task, and we excluded `r length(intersect(which(combdat$excludeRDT==1),which(combdat$lang2exclude==0)))` participants with accuracy of less than 75% correct. 
 
 The dependent variable of interest was Response Time (RT), which was computed for correct responses in each half-field, after excluding outliers using a participant-specific algorithm. This involved taking the complete set of correct RTs for a participant, and applying the Hoaglin-Iglewicz (1987) criterion of outlier detection with cutoff set to 1.65 to remove unusually long RTs. In addition, any RTs less than 200 ms were excluded. A z-LI was then computed by computing a t-test for each participant, to compare the mean correct RT to left- and right-sided stimuli. Absolute values of z-LI greater than 1.96 can be regarded as evidence that an individual is significantly faster to one side than the other. Because RT is scaled so that high values correspond to poor performance, the z-LI was computed so that it was positive when left-sided RT was greater than right-sided RT. Thus those with a left-hemisphere advantage should cluster below the black line.
@@ -785,51 +703,14 @@ suppfignumber<- suppfignumber+1
 ```
 
 
-### Laterality indices
-
-__1. Dichotic Listening__  
-In our pre-registration we stated that we would compute a conventional laterality index, 100* (Left-Right)/(Left+Right), as well as a laterality z-score:
-(pL-.5)/sqrt(pL*pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).
-
-
-As is evident from Supplementary figure `r suppfignumber`, the z-LI score is very highly correlated with the conventional LI, the principal difference being that the z-LI follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use z-LI, as this allows us to compare different tasks on a common scale.  
-
-__2-3. Rhyme Decision and Word Comprehension__  
-`r suppfignumber<- suppfignumber+1`Density plots and scattergrams for these two tasks are shown together in Supplementary Figure `r suppfignumber`, as both have z-LIs computed on the basis of correct RTs to visual stimuli presented to the left and right.  
 
 
 
-```{r RD-WC-densities,echo=F,include=F}
-#We will plot RD and WC together as they both involve z-LI from RTs
-
-RDWCdat<-filter(mycomb,excludeRDT==0,excludeWC==0)
-
-myx<-RDWCdat$RDT.zlat.ex
-myy<-RDWCdat$WC.zlat.ex
-
-mygroup <- RDWCdat$Rhanded
-mydat<-as.data.frame(cbind(myx,myy,mygroup))
-mydat$mygroup<-as.factor(mydat$mygroup)
-namex<-'Rhyme Decision zLI'
-namey<-"Word Comprehension zLI"
-namegroup <- "Handedness"
-grouplabels<- c("Left","Right")
-mylines<-1 #diagonal line showing point of equality
-mytitle <- 'Rhyme Decision vs Word Comprehension'
-mycompositeplot <- dodensity(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle)
-
-mycompositeplot
-ggsave(paste0(mydir,"/03-graphic-outputs/AFig5_RDWCdens.png"),width = 5, height = 4)
 
 
-```
-
-Supplementary Figure `r suppfignumber` shows a suggestive trend for a bias to positive LI for the Rhyme Decision task, but for Word Comprehension, there is a more obvious bias in the opposite direction, with faster responses to stimuli presented in the left than the right visual half-field, i.e. points cluster below the line, indicating a right hemisphere advantage.  
-
-### Preliminary analyses on online laterality measures  
+## Online battery: Distribution of Laterality indices  
 
 Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on z-LI values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
-
 
 
 ```{r DL-ttests,echo=F, message=F, warning=F}
@@ -859,11 +740,11 @@ writecolnum <- 4 #column of online summary to write to for this task
 onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 onlinesummary[12,4]<-round(cor(sess1$WC.zlat,sess3$WC.zlat,use='complete.obs'),3)
 
-tabnumber <- tabnumber+1
+
 ft<-flextable(onlinesummary)
 ft<-autofit(ft)
 ft
-
+tabnumber <- tabnumber+1
 ```
 
 ```{r behpirates, echo=FALSE, warning=FALSE,message=F}
@@ -888,20 +769,76 @@ abline(h=0)
 
 title(main=paste0('Distributions of z-LI \non behavioural tasks; N = ',length(bLIdat$ID)))
 
-
+fignumber<-fignumber+1
 
 ```
 
 
-As shown in Table `r tabnumber`, distributions of z-LI on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. In addition, there was a small but statistically reliable difference between handedness groups, with stronger laterality in the R handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study with this task and found it to be high. Here we confirm excellent split-half reliability for this task. 
+![Pirate plot distributions of z-LI scores on online tasks](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/beh_pirates.jpg)  
 
-The Rhyme Decision task was far less reliable, with split half reliability of .432 and test-retest reliability of .539.  These figures indicate that laterality on this test is far from being at chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised. Furthermore, there was no effect of handedness on laterality on this task.
+
+
+As shown in Figure `r fignumber` and Table `r tabnumber`, distributions of z-LI on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. In addition, there was a small but statistically reliable difference between handedness groups, with stronger laterality in the R handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study with this task and found it to be high. Here we confirm excellent split-half reliability for this task. 
+
+
+
+The Rhyme Decision task was far less reliable, with split half reliability of .432 and test-retest reliability of .539.  These figures indicate that laterality on this test is far from being at chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised. Furthermore, there was no effect of handedness on laterality on this task.  
 
 The Word Comprehension task did rather better in terms of reliability, with split half reliability of .664, though test-retest reliability was lower at .555. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks, with faster responses to pictures viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  
 
 
+## Testing a two-factor model using behavioural data
 
-## Functional Transcranial Doppler measures
+Prediction 1 stated: __The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and OVP task), which is not accountable for in terms of low reliability of measures.__ 
+
+We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section x below).  
+
+
+
+
+```{r behavcorrs,echo=F,warning=F,include=F}
+
+
+bivdat <- filter(mycomb,excludeRDT==0,excludeDL==0,excludeWC==0)
+#Assign Group at random
+set.seed(50) #make reproducible
+bivdat$Group<-1+rbinom(nrow(bivdat),1,.5)
+#Check handedness distribution
+handgrouptab <- table(bivdat$Handed,bivdat$Group) #This is just to confirm roughly equal distribution of L and R handers in the 2 random groups.
+
+
+#tempx and tempy are reassigned to variables of interest before calling generic function that will base plot on these two variables
+bivdat$tempx <- bivdat$DL.zlat
+bivdat$tempy <- bivdat$RDT.zlat
+name1 <-"Dichotic Listening z-lat"
+name2 <- "Rhyme decision z-lat"
+DL_RD_plot <- bivplot2(bivdat,name1,name2) #this is our specially created function
+#I've commented out saving the individual plots, just because I've used ggarange to make a composite plot with all 3 pairings
+#ggsave(paste0(mydir,"/03-graphic-outputs/DL-RDT.png"),width = 6, height = 4)
+
+bivdat$tempy <- bivdat$WC.zlat
+name2 <- "Word Comprehension z-lat"
+DL_WC_plot <- bivplot2(bivdat,name1,name2)
+#ggsave(paste0(mydir,"/03-graphic-outputs/DL-WC.png"),width = 6, height = 4)
+
+bivdat$tempx <- bivdat$RDT.zlat
+name1 <- "Rhyme Decision z-lat"
+RD_WC_plot <- bivplot2(bivdat,name1,name2)
+#ggsave(paste0(mydir,"/03-graphic-outputs/RD-WC.png"),width = 6, height = 4)
+
+#For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
+allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 3, nrow = 1,common.legend=TRUE)
+ggsave(paste0(mydir,"/03-graphic-outputs/allbiv.png"),width = 9, height = 3)
+fignumber<-fignumber+1
+```
+![Bivariate distributions of LIs on behavioural tasks](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/allbiv.png) 
+
+Figure `r fignumber` shows scatterplots of the bivariate relationships between the three variables. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
+
+Note that correlations will be influenced by test reliability. Indeed, the correlation between Rhyme Decision and Word Comprehension is close in magnitude to the split half reliability of the two measures. An estimate of the association between these measures after adjusting for the split-half reliabilities can be obtained using the Spearman-Brown correction for attentuation, r.xy(corrected) = r.xy(observed)/sqrt(r.xx * r.yy), which gives a value of `r round(.44/sqrt(.436*.664),3)`.
+
+
+## Functional Transcranial Doppler (fTCD) measures
 
 ### Data Quality and Outliers for fTCD
 ``` {r dataqual, echo=FALSE, warning=FALSE}
@@ -987,9 +924,10 @@ for (i in 1:length(tasknames)){
 
 ```{r LIpirates, echo=FALSE, warning=FALSE,message=F}
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
+#NOW REORDERED IN TERMS OF BIAS TO LEFT HEMISPHERE
 
 #Make task names that will print on 2 lines for compactness
-tasknames2 <- c("Word\ngeneration","Sentence\ngeneration","Phonological\ndecision","Word\ncomprehension","Sentence\ncomprehension","Syntactic\ndecision")
+tasknames2 <- c("Sentence\ngeneration","Word\ngeneration","Phonological\ndecision","Sentence\ncomprehension","Syntactic\ndecision","Word\ncomprehension")
 #Now make text locations for these on pirate plot: we'll place A-C below plot and D-F above it
 horizpts<-rep(1,6)
 for (i in 1:6){
@@ -1003,24 +941,27 @@ vertpts[4:6]<-6
 jpeg(plotname, width = 800, height = 500)
 
 LIdata <- ddat %>% 
-  dplyr::select(ID, Rhanded, A_mean_LI, B_mean_LI, C_mean_LI, D_mean_LI, E_mean_LI, F_mean_LI)
-colnames(LIdata) <- c('ID','Handed','A','B','C','D','E','F')
+  dplyr::select(ID, Rhanded, B_mean_LI,A_mean_LI,  C_mean_LI, E_mean_LI, F_mean_LI, D_mean_LI)
+colnames(LIdata) <- c('ID','Handed','1B','2A','3C','4E','5F','6D')
 LIdata$Handed <- as.factor(LIdata$Handed)
 levels(LIdata$Handed)<-c("L","R")
 
 
 longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', values_to = 'LI')
+longdata.d$Task <- as.factor(longdata.d$Task)
+levels(longdata.d$Task)<-c('B','A','C','E','F','D')
 pirateplot(data = longdata.d, LI ~ Handed * Task,ylim=c(-6,8))
 abline(h=0)
 
 for (i in 1:6){
   text(horizpts[i], vertpts[i], tasknames2[i], #add label for task
-     cex = .8)
+     cex = 1)
 }
 #title(main=paste0('Distributions of LI Data \nN = ',length(LIdata$ID)))
 
 dev.off()
 fignumber<-fignumber+1
+piratenumber <- fignumber
 ```
 ![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers ](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_pirates.jpg)
 
@@ -1054,124 +995,41 @@ ft<-autofit(ft)
 ft
 tabnumber<-tabnumber+1
 ```
-<!---### Checking normality of fTCD data
-DB note: Can do this now in one step using the MVN function - this checks multivariate normality as well as normality of individual measures. I wrote some functions to fix measures that were not univariate normal; this involves the Box Cox function.  However, I then got concerned that fixing the non-normality might introduce undesirable other changes in the data- it did, for instance greatly increase the variance of just task E. I have analysed data with and without data normalisation, and it does not have much impact, so I think we could report main result without any changes, and just have alternative analysis available for those who want it. Importantly, the data don't seem wildly skewed or bimodal for any of the tasks (as can be seen from the density plots). But we could discuss this further - or perhaps just flag it up and see if reviewers want more on this.  Also, even after fixing univariate normality, we don't achieve multivariate normality. I think just describing these issues may be best way forward, rather than trying to fix everything and getting further and further from original data. __--->
 
 Table `r tabnumber` shows basic statistics for the fTCD laterality indices, in the same format as for the online tasks. Right-handers showed significant left-lateralisation on Word Generation, Sentence Generation, Phonological Decision, and Sentence Comprehension, but were not lateralised for Word Comprehension or Syntactic Decision.  Left-handers were significantly left-lateralised for Word Generation, Sentence Generation and Phonological Decision, were not lateralised for Sentence Comprehension or Syntactic Decision, and were significantly right-lateralised for Word Comprehension.  The direct comparison between left- and right-handers showed significantly greater left-lateralisation on all tasks except Word Comprehension, which showed only a trend in that direction.
 
 All tasks had split half reliability coefficients of .73 or above, except for Word Comprehension, where the coefficient was only .58.
 
-Shapiro Wilk tests revealed significant non-normality for Sentence Generation, Phonological Decision and Sentence Comprehension. However, values of skewness and kurtosis were generally not extreme, and so for our initial data analysis we used untransformed data. We subsequently explored the impact of transforming LIs to normalise distributions, as described below. 
+Shapiro Wilk tests revealed significant non-normality for Sentence Generation, Phonological Decision and Sentence Comprehension, though values of skewness and kurtosis were generally not extreme.
 
 As noted above, there were a few participants with missing data on a single measure. Before running the SEM analysis, the _mice_ package @vanbuuren2011 was run in R to impute these missing values. 
 
-```{r checkMVN, echo=FALSE, include=F,warning=FALSE,message=F}
-#https://www.statisticssolutions.com/testing-normality-in-structural-equation-modeling/
-#"In SEM, where your sample size is expected to be very large, this means that Mardia’s coefficient is almost always guaranteed to be significant. Thus, the significance test on its own does not provide very useful information. In light of this, it is recommended that the significance tests be used in conjunction with descriptive statistics, namely the kurtosis values for individual variables (Stevens, 2009). Kurtosis values greater than 3.00 in magnitude may indicate that a variable is not normally distributed (Westfall & Henning, 2013)."
-#https://centerstat.org/can-i-estimate-an-sem-if-the-sample-data-are-not-normally-distributed/
-#First, the assumption of normality is a characteristic of the estimator and not the model itself. So “the SEM” doesn’t assume normality, but the widely-used normal-theory maximum likelihood (ML) estimator does. Second, the assumption of normality applies to the residuals and is thus only relevant for dependent variables as defined in a given model; in contrast, the independent variables can take any distributional form at all (e.g., binary, count, bi-modal, long tail, etc.). Third, there are no well-defined numerical cut-offs for skew or kurtosis to determine whether a sample distribution is sufficiently non-normal to introduce problems in estimation, and tests of multivariate skew and kurtosis tend to be over-powered (significant even when the departure from normality is too slight to matter). Similarly, because the assumption of normality is on the residuals, the overall distributions of the observed variables are only indirectly indicative of the residual distributions. Nevertheless, in practice, we tend to examine histograms and scatter plots of the dependent variables to make a (somewhat subjective) determination of whether univariate and bivariate normality appear to be approximately satisfied.  NB recommends robust maximum likelihood methods.
-
-#check multivariate normality
-thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','F_mean_LI')]
-pcut <- .01 #found normalisation by BoxCox created abnormally large variance for variable E - better work with non-normalised. Achieve that by just setting pcut very extreme, so no variable meets criterion for nonnormality
-normed.dat<-normalisedf(thisdat,pcut)
-#now select variables to be used in SEM analysis - will use the _bc versions if they exist. The collist in normed.dat gives the col numbers in correct order
-
-
-thisdat <- normed.dat[[1]]
-nunames<- c('A_P1','B_P2','C_P3','D_R1','E_R2','F_R3') #cols for SEM; will use _bc if it exists
-thisdat[,nunames]<-thisdat[,normed.dat[[2]]]
-
-#some checks on how the normalisation has worked.
-normcheck <- 0 #Can set to 1 to see plots of data pre- vs post-normalisation
-if(normcheck==1){
-nc <- ncol(thisdat)
-for (i in 1:6){
-  plot(thisdat[,i],thisdat[,(nc-6+i)],xlab=colnames(thisdat)[i],ylab=colnames(thisdat)[(nc-6+i)])
-  m1<-round(mean(thisdat[,i],na.rm=T),2)
-  m2<-round(mean(thisdat[,(nc-6+i)],na.rm=T),2)
-  text(-2,4,paste0(m1,': ',m2))
-  abline(0,1,lty=2)
-}
-}
-
-```
-
-
 
 ```{r imputemissing,echo=F, include=F}
+nunames<- c('A_P1','B_P2','C_P3','D_R1','E_R2','F_R3') #cols for SEM; short names useful here. These cols with have imputed values
+
+thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','F_mean_LI')]
+
 #Interpolate missing values using mice package
-thisdat.i <- mice(thisdat[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
+thisdat.i <- mice(thisdat, m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
 ddati <-cbind(ddat[,c('ID','male','Handed')],complete(thisdat.i,1))
-
+colnames(ddati)<-c('ID','male','Handed',nunames)
 
 ```
 
 
 
 
-
-## Hypothesis 1: Testing a two-factor model using behavioural data
-
-__The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and OVP task), which is not accountable for in terms of low reliability of measures.__ 
-
-We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section x below).  
-
-
-
-
-```{r behavcorrs,echo=F,warning=F,include=F}
-
-
-bivdat <- filter(mycomb,excludeRDT==0,excludeDL==0,excludeWC==0)
-#Assign Group at random
-set.seed(50) #make reproducible
-bivdat$Group<-1+rbinom(nrow(bivdat),1,.5)
-#Check handedness distribution
-handgrouptab <- table(bivdat$Handed,bivdat$Group) #This is just to confirm roughly equal distribution of L and R handers in the 2 random groups.
-
-
-#tempx and tempy are reassigned to variables of interest before calling generic function that will base plot on these two variables
-bivdat$tempx <- bivdat$DL.zlat
-bivdat$tempy <- bivdat$RDT.zlat
-name1 <-"Dichotic Listening z-lat"
-name2 <- "Rhyme decision z-lat"
-DL_RD_plot <- bivplot2(bivdat,name1,name2) #this is our specially created function
-#I've commented out saving the individual plots, just because I've used ggarange to make a composite plot with all 3 pairings
-#ggsave(paste0(mydir,"/03-graphic-outputs/DL-RDT.png"),width = 6, height = 4)
-
-bivdat$tempy <- bivdat$WC.zlat
-name2 <- "Word Comprehension z-lat"
-DL_WC_plot <- bivplot2(bivdat,name1,name2)
-#ggsave(paste0(mydir,"/03-graphic-outputs/DL-WC.png"),width = 6, height = 4)
-
-bivdat$tempx <- bivdat$RDT.zlat
-name1 <- "Rhyme Decision z-lat"
-RD_WC_plot <- bivplot2(bivdat,name1,name2)
-#ggsave(paste0(mydir,"/03-graphic-outputs/RD-WC.png"),width = 6, height = 4)
-
-#For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
-allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 3, nrow = 1,common.legend=TRUE)
-ggsave(paste0(mydir,"/03-graphic-outputs/allbiv.png"),width = 9, height = 3)
-fignumber<-fignumber+1
-```
-![Bivariate distributions of LIs on behavioural tasks](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/allbiv.png) 
-
-Figure `r fignumber` shows scatterplots of the bivariate relationships between the three variables. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
-
-Note that correlations will be influenced by test reliability. Indeed, the correlation between Rhyme Decision and Word Comprehension is close in magnitude to the split half reliability of the two measures. An estimate of the association between these measures after adjusting for the split-half reliabilities can be obtained using the Spearman-Brown correction for attentuation, r.xy(corrected) = r.xy(observed)/sqrt(r.xx * r.yy), which gives a value of `r round(.44/sqrt(.436*.664),3)`.
 
 
 ## Hypothesis 2: Testing a two-factor model using fTCD data
 
-Our second preregistered prediction was: __The data will fit a model where 'language generation' tasks cluster together on one factor, and 'receptive language’ tasks on a second factor.__  
-
-It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
+Our second preregistered prediction was: __The data will fit a model where 'language generation' tasks cluster together on one factor, and 'receptive language’ tasks on a second factor.__   It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
  
 The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because there were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task B (Sentence generation) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
-_ZW: should this text say task C (Phonological Decision) and task E (sentence comprehension), R=.665?_
+`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task C (Phonological Decision) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+
 
 ```{r modelfit,echo=F,include=F}
 
@@ -1214,9 +1072,9 @@ Other indices have been developed that penalise models with a large number of pa
 
 ```{r initialisebigsummary,echo=F}
 #Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
-bigsummary <- data.frame(matrix(NA,nrow=19,ncol=8))
-colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model2Fn.1','Model2Fn.2','Model2Fn','Model2Fn.L','Model2Fn.R')
-bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2','F -> Fac2','Fac1~~Fac2','CFI','rmsea','chisq','DF','p vs Model.1F')
+bigsummary <- data.frame(matrix(NA,nrow=18,ncol=4))
+colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
+bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2','F -> Fac2','Fac1~~Fac2','CFI','rmsea','chisq','DF')
 ```
 
 
@@ -1274,51 +1132,9 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8
 
 ```
 
-```{r trysemproducible,echo=F}
-# semproducible is intended to give you output in a format suitable for adding to journal.
-# Currently not used. 
-# Reproduce lavaan model.
-#code <- semproducible(fit1, ,model.1F)
- #cat(code)
-
-```
-
-We used the lavaan() package to perform the pre-registered model comparison. To take into account non-normality of some variables, the WLSMV estimator was specified; this uses weighted least squares with robust standard errors and a mean- and variance adjusted test statistic, and makes no distributional assumptions about the observed variables. Table z summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
-
-Therefore, as planned we divided the sample into two random subsamples, 1 and 2. The first subsample is used in an exploratory analysis. We start with tasks A-E linked to Factor 1 and tasks B-F linked to Factor 2, and then drop non-significant paths. This gives a revised model with considerably improved fit, as shown in Figure x, where tasks A, B, C, and E load on Factor 1, and tasks C, D, E and F load on Factor 2. 
-
-This model is then run using data from subsample 2. Table x shows that the fit is actually better for subsample 2 than subsample 1, but it also indicates how model fit can vary with samples of this size. Table x also shows the fit of the revised 2-factor model for the full sample. The model fit falls short of meeting criteria for a good fit, though it is much better than for the previous model. Given the limitations of the dataset, we concluded this is likely to be the optimal model that can be achieved, and so we proceeded to test whether the same model was appropriate for left- and right-handers.  
-
-
-
 
 ```{r newmodel,echo=F,include=F}
-#We explore for best model using just half the data (randgroup = 1)
-mygroup <-1
-mydat<- ddati[ddati$randgroup==mygroup,]
-model.2Fall <- '
-f1 =~  A_P1 + B_P2+C_P3+D_R1+ E_R2
-f2 =~  F_R3 + B_P2+ C_P3 +D_R1+ E_R2 
-'
-fit.2Fall.1 <- cfa(model.2Fall,estimator="WLSMV", data=mydat)
-tab.2Fall <- makeSEMtab(fit.2Fall.1)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2Fall.1,wantfits)
 
-#This gives impossible values with negative variance estimate
-
-#Model that is based on Woodhead et al
-model.2FZW <- '
-f1 =~  B_P2+A_P1 +C_P3+D_R1+ E_R2+F_R3
-f2 =~  NA*C_P3 +D_R1+ E_R2 +F_R3+A_P1
-f1~~1*f1
-'
-
-fit.2FZW.1 <- cfa(model.2FZW,estimator="WLSMV", data=mydat)
-tab.2FZW <- makeSEMtab(fit.2FZW.1)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2FZW.1,wantfits)
-#This gives nonfunctional model: cannot invert matrix plus negative variance estimates.
 
 #make oddeven file so can try same model as Woodhead et al
 wantcols <- c("ID","male","Rhanded","A_mean_odd","A_mean_even","B_mean_odd","B_mean_even","C_mean_odd","C_mean_even","D_mean_odd","D_mean_even","E_mean_odd","E_mean_even","F_mean_odd","F_mean_even","DopExclude")
@@ -1333,12 +1149,14 @@ ddat_OE <-cbind(ddat_OE[,1:3],complete(thisdat.j,1))
 colnames(ddat_OE)<-c("ID","male","Rhanded","A_o","A_e","B_o","B_e","C_o","C_e","D_o","D_e","E_o","E_e","F_o","F_e")
 set.seed(50)
 
+#We explore for best model using just half the data (randgroup = 1)
+
 ddat_OE$randgroup<-1+rbinom(nrow(ddat_OE),1,.5) #create random group 1 or 2 for later split
 mygroup <-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 
 #Model that is same as Woodhead et al
-model.2FZW2 <- '
+model.2FZW <- '
 f1 =~  1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
        a*A_o+a*A_e +
        c*C_o+c*C_e+
@@ -1366,15 +1184,14 @@ F_o~~fv*F_o
 F_e~~fv*F_e
 '
 
-fit.2FZW2.1 <- cfa(model.2FZW2,estimator="WLSMV", data=mydat)
-tab.2FZW2 <- makeSEMtab(fit.2FZW2.1)
+fit.2FZW.1 <- cfa(model.2FZW,estimator="WLSMV", data=mydat)
 wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2FZW2.1,wantfits)
+fitmeasures(fit.2FZW.1,wantfits)
 #This gives matrix not positive definite
 
 #Paths suggest dropping nonsig paths from f1 to D and F 
 # and A from F2 (B is already missing as was excluded from model)
-model.2FZW2a <- '
+model.2FZWa <- '
 f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
        a*A_o+a*A_e +
        c*C_o+c*C_e+
@@ -1399,44 +1216,42 @@ F_o~~fv*F_o
 F_e~~fv*F_e
 '
 
-fit.2FZW2a.1 <- cfa(model.2FZW2a,estimator="WLSMV", data=mydat)
-tab.2FZW2a <- makeSEMtab(fit.2FZW2a.1)
+fit.2FZWa.1 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
+
 wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2FZW2a.1,wantfits)
+fitmeasures(fit.2FZWa.1,wantfits)
 #Converges nicely
 
-#More sense to make changes to model based on observation of heatmap for group 1.
-#Low correlations between D and F & Fac1 and path A and B & Fac2 (v similar to heatmap for whole sample). We can drop these
 
-#After checking model from group 1, now try running with 2nd group and with full sample
-mydat<- ddati[ddati$randgroup==mygroup,] #back to full LI scores
+#Now test model with hold-out group 2
+mygroup <-2
+mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
+fit.2FZWa.2 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
+
+wantfits <- c('CFI','rmsea','chisq','df')
+fitmeasures(fit.2FZWa.2,wantfits)
+```
+
+
+```{r new2factor-with-all,echo=F}
+
+
+mydat<- ddati #back to full LI scores and full group
 model.2Fn <- '
-f1 =~  A_P1 + B_P2+C_P3+ E_R2
-f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
+f1 =~  B_P2+A_P1 +C_P3+ E_R2
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model:
+
+f2~~1*f2
 '
 
-fit.1F.1 <-cfa(model.1F, estimator="WLSMV",data=mydat)
-fit.2Fn.1 <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
-tab.2Fn.1 <- makeSEMtab(fit.2Fn.1)
-fitmeasures(fit.2Fn.1,wantfits)
+fit.2F<-cfa(model.2F, estimator="WLSMV",data=mydat)
+fit.2Fn <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
+tab.2Fn <- makeSEMtab(fit.2Fn)
+fitmeasures(fit.2Fn,wantfits)
 
-bigsummary<- addmodel(bigsummary,fit.2Fn.1,fit.1F.1 ,'Model.2Fn.1',writecol=4) #summary from this model written to col 4 of bigsummary - becauase different subsample, can't compare with prior model in bigsummary
+bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summary from this model written to col 4 of bigsummary 
+anova(fit.2Fn,fit.2F)
 
-
-#model.2Fn is best-fitting model from exploration with group 1.
-
-
-#After checking model from group 1, now try running with 2nd group and with full sample
-#It's less good with group 2 but not disastrous, but it does give negative variance estimates for B for group 2, which I can't get to the bottom of.
-
-mydat<- ddati[ddati$randgroup==2,] #explore model just with group 1
-fit.2Fn.2 <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
-fit.1F.2 <- cfa(model.1F,estimator="WLSMV", data=mydat)
-bigsummary<- addmodel(bigsummary,fit.2Fn.2,fit.1F.2 ,'Model.2Fn.2',writecol=5)
-
-mydat<-ddati #full sample
-fit.2Fn <- cfa(model.2Fn, data=mydat)
-bigsummary<- addmodel(bigsummary,fit.2Fn,fit1,'Model.2Fn',writecol=6) #summary from this m
 
 
 pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_revised")
@@ -1446,23 +1261,23 @@ semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan 
 #look at residuals for diagnostics
 res<-resid(fit.2Fn, type = "cor") #large abs values (> .1) indicate relationships not well accounted for
 
-#Now with L and R hander
-mydat<- ddati[ddati$Handed=='Left',] #explore model just with group 1
-fit.2Fn.L <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
-fit.1F.L <- cfa(model.1F, estimator="WLSMV",data=mydat)
-bigsummary<- addmodel(bigsummary,fit.2Fn.L,fit.1F.L,'Model.2Fn.L',writecol=7) #summary from this m
-
-mydat<- ddati[ddati$Handed=='Right',] #explore model just with group 1
-fit.2Fn.R <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
-fit.1F.R <- cfa(model.1F, estimator="WLSMV",data=mydat)
-bigsummary<- addmodel(bigsummary,fit.2Fn.R,fit.1F.R,'Model.2Fn.R',writecol=8) #summary from this m
-
 
 #Can't get 2nd col to reformat - need to convert to character - then OK
-bigsummary[,2]<-as.character(bigsummary[,2])
+#bigsummary[,2]<-as.character(bigsummary[,2])
 flextable(bigsummary)
+tabnumber<-tabnumber+1
+fignumber<-fignumber+1
+
 
 ```
+
+
+
+We used the lavaan() package to perform the pre-registered model comparison. To take into account non-normality of some variables, the WLSMV estimator was specified; this uses weighted least squares with robust standard errors and a mean- and variance adjusted test statistic, and makes no distributional assumptions about the observed variables. Table `r tabnumber` summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
+
+Therefore, as planned we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021). Fuller details of the analysis are given in Supplementary material.  Because we had data from a single session, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Comprehension and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was excellent. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignumber` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
+
+![Factor structure of best-fitting model.](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/pathfigF2_revised.jpg)
 
 ```{r makefacscatter,echo=F}
 myscatter <- function(myx,myy,xlabel,ylabel,thisdat){
@@ -1482,11 +1297,6 @@ thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) +
 ```
 
 
-
-
- 
-
-
 ```{r plotfacs, echo=F}
 #Creates a plot and saves it; also adds factor scores to ddati
 ddati <- makefactorplot(cfa(model.2Fn, estimator="WLSMV",data=ddati),'fit.2Fn',ddati)
@@ -1498,6 +1308,9 @@ ddati <- makefactorplot(cfa(model.2Fn, estimator="WLSMV",data=ddati),'fit.2Fn',d
 
 
 ## Model equivalency for left- and right-handers  
+Our third prediction was: _better model fit will be obtained when different parameters are estimated for left- vs right handers, compared with when all parameters are equated for the two handedness groups._ 
+
+
 <!---Level of measurement equivalency are assessed through model fit of a series of nested multiple group models.  
 Substantial decrease in goodness of fit indicates non-invariance
 Xu: It is a good practice to look at several model fit indices rather than relying on a single one
@@ -1549,7 +1362,7 @@ f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
 '
 
 
-measurementInvariance(model=model.2Fn,estimator="WLSMV",data=ddati,group="Handed")
+#measurementInvariance(model=model.2Fn,estimator="WLSMV",data=ddati,group="Handed")
 #This gives message to say command is deprecated.
 #It gives substantial change to model fit for the final fit.means model.
 
@@ -1581,7 +1394,7 @@ tabM3 <- makeSEMtab2(fitM3,c('_L','_R'))
 fitM3a <- cfa(model.2Fn, ddati,estimator="WLSMV",meanstructure=T, group = "Handed",
             group.equal = c("intercepts","loadings","lv.covariances"))
 tabM3a <- makeSEMtab2(fitM3a,c('_L','_R'))
-# This is not included in usual hierarchy of models but seems crucial for our hypothesis, which assumes the two factors have equivalent correlation in L and R handers. NB including this at step 2 gives error re standardized measures
+# This is not included in usual hierarchy of models but seems relevant for our hypothesis, which assumes the two factors have equivalent correlation in L and R handers?. but including this at step 2 gives error re standardized measures
 
 fitM4 <- cfa(model.2Fn, ddati, estimator="WLSMV",meanstructure=T,group = "Handed",
  group.equal = c("loadings","intercepts","means","lv.covariances"))
@@ -1590,23 +1403,24 @@ tabM4 <- makeSEMtab2(fitM4,c('_L','_R'))
 
 # model comparison tests
 mylavtest<-lavTestLRT(fitM1, fitM2, fitM3,fitM3a, fitM4)
-
+ft<-flextable(mylavtest)
+ft
 #see https://users.ugent.be/~yrosseel/lavaan/multiplegroup6Dec2012.pdf
+tabnumber<-tabnumber+1
 
 ```
+ 
 
-Table x shows the fit of the revised 2-factor model in each handedness group separately. It can be seen that the model fit is good in both groups, but the size of the estimates shows moderate variability. Our next preplanned analysis was designed to test whether such variability in model parameters, or whether it could be explained by sampling error. 
+The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary. Initially, a model is fit in which all the paths, covariances, and intercepts are free to differ between left- and right-handers. This model is tested against a model of 'metric invariance', which sets the loadings from each observed variable to the factors to be the same for the two groups. If the fit of the model does not worsen, we can assume the basic model structure is equivalent for the two groups. This test of equivalence was passed (see Table `r tabnumber`).
 
-The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary. Initially, a model is fit in which all the paths, covariances, and intercepts are free to differ between left- and right-handers (as shown in the last two columns of Table x, where data from the two groups were fitted separately). This model is tested against a model of 'metric invariance', which sets the loadings from each observed variable to the factors to be the same for the two groups. If the fit of the model does not worsen, we can assume the basic model structure is equivalent for the two groups. This test of equivalence was passed (see Table x2).
+At the next step, (scalar invariance), the item intercepts are set to be the same across groups. Once again, the model fit did not worsen (see Table `r tabnumber`).
 
-At the next step, (scalar invariance), the item intercepts are set to be the same across groups. Once again, the model fit did not worsen (see Table x3).
-
-In a final step (strict invariance), we constrain item residual variances as well as factor loadings and intercepts to be equal across groups. Here we obtained a substantial worsening of model fit, indicating that the mean difference between groups on the latent factors is not the same. This is as we would expect, given the substantial differences seen in mean factor scores of left- and right-handers (Figure x).
+In a final step (strict invariance), we constrain item residual variances as well as factor loadings and intercepts to be equal across groups. Here we obtained a substantial worsening of model fit, indicating that the mean difference between groups on the latent factors is not the same. 
 
 In sum, results from the measurement invariance test show that the same underlying structural model can be assumed to apply for both left- and right-handedness, with the differences between handedness groups being explained solely in terms of differences in means, rather than in covariances between the six LIs. 
 
-# Prediction 4
-__On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised.__
+## Categorical analysis of LIs
+Prediction 4 was: _On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised._
 
 The analysis so far has treated laterality as a continuum, but this continuum does have a zero-point, and negative scores indicate right-lateralisation and positive scores left-lateralisation. There are theoretical reasons to suppose that brain function might be influenced more by consistency in direction of lateralisation, than by degree. Thus, regardless of how strong or weak a laterality index is, brain functioning might be more efficient if all language functions are represented in the same hemisphere. 
 
@@ -1648,6 +1462,7 @@ for (i in 1:6){
   autofit(ft)
   
   chidf$diffp<-chidf$pL_Rhander-chidf$pL_Lhander
+  tabnumber<-tabnumber+1
 ```
 Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at 16% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from 11% for Syntactic Decision to 24% for Syntactic Comprehension, but met our prespecified significance criterion only for Syntactic Comprehension.
 
@@ -1701,9 +1516,12 @@ It is evident from Table `r tabnumber` that a minority of individuals are consis
 
 It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. The implications of this observation will be considered further in the Discussion.
 
-# Are online behavioural measures comparable to direct measures of cerebral blood flow in indexing language laterality?
+## Relationship between fTCD and behavioural laterality indices
 
-A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationsihp between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (tasks D and C respectively).
+Our fifth prediction was: _the laterality profile obtained with the online language battery will be significantly associated with the profile seen with the direct measurement of cerebral blood flow using fTCD, with laterality on dichotic listening and word comprehension relating more strongly to receptive language tasks, and rhyme decision to language generation tasks._
+
+
+A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationship between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (tasks D and C respectively).
 
 
 ```{r preparedata,echo=F}
@@ -1732,7 +1550,6 @@ bigheatmap <- makeheatmap(ddati,mycolsb)
 bigheatmap
 
 ```
-__Need to double check that all appropriate exclusions have been made here__.
 
 We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
 
@@ -1802,12 +1619,14 @@ semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan
 
 #Looking at residuals : dichotic has high variability and big residuals - may be worth trying to scale it - or possibly just censor at a less extreme value
 ```
- In practice, the model including a link from Rhyme Decision to Factor 1, and Dichotic Listening to Factor 2 gave a better fit than a model with both paths set to zero. Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This also gave excellent fit, with significant paths from both of these measures, as shown in Figure x. 
+In practice, a model including a link from Rhyme Decision to Factor 1, and Dichotic Listening to Factor 2 gave a better fit than a model with both paths set to zero, but this is a very weak test of our prediction, because it will be passed if there is any correlation between behavioural and fTCD laterality indices, however weak.  Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This also gave excellent fit, with significant paths from both of these measures. 
+
+Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on accuracy or speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks. 
 
 
 # Discussion
 
-To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers?
+To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers? In addition we consider specific issues arising in this dataset, namely the finding of right hemisphere lateralisation on Word Comprehension, and the lack of agreement between behavioural and fTCD laterality indices. Finally, we consider how the particular factor structure seen in the fTCD analysis might be accounted for. 
 
 ## Evidence for a single laterality dimension  
 
@@ -1826,6 +1645,10 @@ For both online and fTCD LIs, with just one exception, there was a consistent tr
 
 The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures, we had concluded that there may be more dissociation between factors in left-handers, but the sample size was small for this kind of analysis.  Even with the current sample size, power to detect model invariance is limited. Having noted those limitations, our analysis suggested that there was no reason to postulate different models for left- vs right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means.  As an analogy, we could say this would be like showing that the relationship between height and weight is similar in males and females, even though females are on average shorter and lighter. 
 
+## Right hemisphere lateralisation for Word Comprehension
+
+## Differences between behavioural and fTCD measures of laterality
+
 ## Interpreting the two-factor structure    
 ```{r taskanalysis,echo=F}
 tasks <- read.csv(paste0(mydir,"/05-writeup/task details.csv"))
@@ -1833,10 +1656,52 @@ ftasks <- flextable(tasks[,1:7])
 ftasks
 tabnumber <- tabnumber+1
 ```
-Table `tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Comprehension on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
+Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Comprehension on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
 
 Sentence Comprehension also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have covertly repeated sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we had dropped from the current study a List Generation task used by Woodhead, Rutherford and Bishop (2020) that simply involved repeating overlearned sequences such as days of the week, as it had been only weakly lateralised. The Sentence Comprehension task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
 
+```{r densplotexplore}
+
+#This uses a function defined above which makes individual density plots by handedness.  Here they are assembled into a column so one can visualise the change in overall laterality.
+latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
+latnames<-c("Word Generation","Sentence Generation","Phonological Decision","Word Comprehension","Sentence Comprehension","Syntactic Decision")
+w<-which(colnames(ddati) %in% latcols)
+means<-colMeans(ddati[,w])
+nuorder <- order(means,decreasing=T)
+nucols<-min(w)+nuorder-1
+plotlist<-NULL
+for (i in 1:6){
+  filename<-paste0(mydir,'/03-graphic-outputs/densplot_',i,'.png')
+  thiscol<-colnames(ddati)[nucols[i]]
+  thisgroup<-'Handed'
+  mylab<-latnames[nuorder[i]]
+  thisplot <- densplots(ddati,thiscol,thisgroup,mylab)
+  ggsave(filename,width = 6, height = 3)
+  #There should be a way to avoid the next bit of clunky code!
+  d6<-thisplot
+  if(i==1){d1<-thisplot}
+  if(i==2){d2<-thisplot}
+  if(i==3){d3<-thisplot}
+  if(i==4){d4<-thisplot}
+  if(i==5){d5<-thisplot}
+
+}
+alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 1, nrow = 6,common.legend=TRUE)
+ggsave(paste0(mydir,"/03-graphic-outputs/alldens.png"),width = 3, height = 7)
+
+```
+
+<!---![Density plots showing z-LI scores for six fTCD tasks ordered by overall left-hemisphere bias.](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.png)
+Nice density plots but they really just show same information as the pirate plots, so not so sure we need them here?-->
+In Figure `r piratenumber` the six fTCD tasks are ordered according to the population bias to left-hemisphere processing, and it can be seen that the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
+
+In interpreting this finding, we should first rule out two trivial explanations for the factor structure uncovered in SEM. First, this structure cannot be regarded as an artefact of including tasks differing in degree of laterality. This is because factor structure in SEM is computed solely on the basis of covariances between measures, and means do not affect it. Thus, we could add a constant to the means for tasks D and E to make them lateralised, and the factor solution would remain the same. 
+
+Second, we can rule out an explanation that treats the  non-lateralised tasks as not relevant for studying individual differences in laterality. Such an explanation would be justified if tasks such as Word Comprehension, Sentence Comprehension and Syntactic Decision were simply unreliable. Low reliability would be expected if these tasks were not lateralised in individuals, because people used both hemispheres jointly, or switched from one to the other at random. The new task, Word Comprehension, was the least reliable in the battery, but nevertheless, the split-half reliability indicated was moderate. The other two receptive tasks had good test-retest reliability in our previous study (Woodhead et al, 2021) and good split-half reliability in the current study. Thus, even though there is weak or absent lateralisation at the population level on these tasks, the degree and direction of lateralisation is reasonably consistent within individuals. And indeed, if that were not the case, we would not expect the tasks to show moderate intercorrelations with one another. 
+
+To account for the observed pattern of results, we postulate two language centres, one lateralised at the population level (centre L), and the other centred on zero (centre Z). An individual's observed fTCD laterality on a task will depend on the extent to which these two centres are implicated in task performance, with Word Generation and Sentence Generation being largely dominated by centre L, Syntactic Decision and Word Comprehension by centre Z, and Phonological Decision and Sentence Comprehension implicating both centres. 
+
+To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same Factor than for those loading on different Factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
 
 
 ## Supplementary materials  
@@ -1887,50 +1752,5 @@ ggsave(paste0(mydir,"/03-graphic-outputs/standfactors.png"),width = 5, height = 
 ```
 
 
-```{r densplotsfunction,echo=F}
-#overlapping density plots
-densplots<-function(mydat,thiscol,thisgroup,mylab){
-  myplot <- ggplot(data=ddati, aes_string(x=thiscol, color=thisgroup, fill=thisgroup)) +
-  geom_density(alpha=0.5) +
-  annotate(geom="text", x=-6, y=.3, label=mylab,hjust=0,size=4)+
-  #scale_fill_viridis(discrete=TRUE) +
-  #scale_color_viridis(discrete=TRUE) +
-  xlim(-6,8)+
-    ylim(0,.36)+
-  geom_vline(xintercept = 0,linetype="dotted")+
-  theme(axis.title.x=element_blank(),
-        axis.title.y=element_blank(),legend.position="none")
-  return(myplot)
-}
-```
-
-```{r plotexplore}
 
 
-latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
-latnames<-c("Word Generation","Sentence Generation","Phonological Decision","Word Comprehension","Sentence Comprehension","Syntactic Decision")
-w<-which(colnames(ddati) %in% latcols)
-means<-colMeans(ddati[,w])
-nuorder <- order(means,decreasing=T)
-nucols<-min(w)+nuorder-1
-plotlist<-NULL
-for (i in 1:6){
-  filename<-paste0(mydir,'/03-graphic-outputs/densplot_',i,'.png')
-  thiscol<-colnames(ddati)[nucols[i]]
-  thisgroup<-'Handed'
-  mylab<-latnames[nuorder[i]]
-  thisplot <- densplots(ddati,thiscol,thisgroup,mylab)
-  ggsave(filename,width = 6, height = 3)
-  #There should be a way to avoid the next bit of clunky code!
-  d6<-thisplot
-  if(i==1){d1<-thisplot}
-  if(i==2){d2<-thisplot}
-  if(i==3){d3<-thisplot}
-  if(i==4){d4<-thisplot}
-  if(i==5){d5<-thisplot}
-
-}
-alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 1, nrow = 6,common.legend=TRUE)
-ggsave(paste0(mydir,"/03-graphic-outputs/alldens.png"),width = 3, height = 9)
-
-```
