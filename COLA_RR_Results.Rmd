@@ -789,7 +789,7 @@ The Word Comprehension task did rather better in terms of reliability, with spli
 
 ## Testing a two-factor model using behavioural data
 
-Prediction 1 stated: __The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and OVP task), which is not accountable for in terms of low reliability of measures.__ 
+Prediction 1 stated: _The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and word comprehension task), which is not accountable for in terms of low reliability of measures._  
 
 We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section x below).  
 
@@ -1024,7 +1024,7 @@ colnames(ddati)<-c('ID','male','Handed',nunames)
 
 ## Hypothesis 2: Testing a two-factor model using fTCD data
 
-Our second preregistered prediction was: __The data will fit a model where 'language generation' tasks cluster together on one factor, and 'receptive language’ tasks on a second factor.__   It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
+Our second preregistered prediction was: _The data will fit a model where 'language generation' tasks cluster together on one factor, and 'receptive language’ tasks on a second factor._   It was further predicted that factors will be correlated, but the fit of a 2-factor model will be superior to a single-factor model where all LIs load on a common factor.
  
 The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because there were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
@@ -1050,7 +1050,7 @@ ggsave(paste0(mydir,"/03-graphic-outputs/ftcd-heatmap.png"),width = 6, height = 
 ```
 ![Heatmap showing correlations between laterality indices from six fTCD tasks](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd-heatmap.png) 
 
-__Note from DB: I am planning on putting in quite a detailed explanation of SEM as it not widely used in this field. This is a bit of a placeholder for now.__
+__Note from DB: I am planning on putting in quite a detailed explanation of SEM as it not widely used in this field. This is a bit of a placeholder for now. Difficult to keep it brief but have information information__
 
 ### Summary of the Structural equation modeling approach  
 Because Structural equation modeling (SEM) is not widely used in laterality research, we provide here a brief explanation, to aid interpretation of the subsequent analysis.  
@@ -1070,7 +1070,7 @@ Other indices have been developed that penalise models with a large number of pa
  
 
 
-```{r initialisebigsummary,echo=F}
+```{r initialisebigsummary,echo=F,include=F}
 #Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
 bigsummary <- data.frame(matrix(NA,nrow=18,ncol=4))
 colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
@@ -1233,7 +1233,7 @@ fitmeasures(fit.2FZWa.2,wantfits)
 ```
 
 
-```{r new2factor-with-all,echo=F}
+```{r new2factor-with-all,echo=F,include=F}
 
 
 mydat<- ddati #back to full LI scores and full group
@@ -1279,7 +1279,7 @@ Therefore, as planned we divided the sample into two random subsamples, 1 and 2.
 
 ![Factor structure of best-fitting model.](~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/pathfigF2_revised.jpg)
 
-```{r makefacscatter,echo=F}
+```{r makefacscatter,echo=F,include=F}
 myscatter <- function(myx,myy,xlabel,ylabel,thisdat){
 thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) + 
   geom_point(shape = 4,  size = 1)+
@@ -1297,7 +1297,7 @@ thisscatter<-ggplot(thisdat, aes(x = myx, y = myy,color=Handed)) +
 ```
 
 
-```{r plotfacs, echo=F}
+```{r plotfacs, echo=F,include=F}
 #Creates a plot and saves it; also adds factor scores to ddati
 ddati <- makefactorplot(cfa(model.2Fn, estimator="WLSMV",data=ddati),'fit.2Fn',ddati)
 
@@ -1466,9 +1466,9 @@ for (i in 1:6){
 ```
 Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at 16% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from 11% for Syntactic Decision to 24% for Syntactic Comprehension, but met our prespecified significance criterion only for Syntactic Comprehension.
 
-After testing associations for individual measures, we categorised individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests. The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests is shown in table `tabnumber`. 
+After testing associations for individual measures, we categorised individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests. The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests is shown in table `r tabnumber`. 
 
-__Table `tabnumber`: Proportions of left- and right-handers with between 0 and 6 tasks left-lateralised on fTCD.__    
+__Table `r tabnumber`: Proportions of left- and right-handers with between 0 and 6 tasks left-lateralised on fTCD.__    
 
 
 
@@ -1660,7 +1660,7 @@ Table `r tabnumber` summarises the characteristics of the six fTCD tasks, groupe
 
 Sentence Comprehension also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have covertly repeated sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we had dropped from the current study a List Generation task used by Woodhead, Rutherford and Bishop (2020) that simply involved repeating overlearned sequences such as days of the week, as it had been only weakly lateralised. The Sentence Comprehension task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
 
-```{r densplotexplore}
+```{r densplotexplore,echo=F,include=F}
 
 #This uses a function defined above which makes individual density plots by handedness.  Here they are assembled into a column so one can visualise the change in overall laterality.
 latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
@@ -1734,7 +1734,7 @@ ddati$f2<-wts2[1]*ddati$F_R3+
 
 myx<-ddati$f1
 myy<-ddati$f2
-mygroup< ddati$Handed
+mygroup<- ddati$Handed
 mydat<-as.data.frame(cbind(myx,myy,mygroup))
 mydat$mygroup<-as.factor(mydat$mygroup)
 namex<-'Factor 1'
