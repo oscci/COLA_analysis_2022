@@ -490,7 +490,6 @@ densplots<-function(mydat,thiscol,thisgroup,mylab){
 <!--- GENERIC FUNCTIONS END -->
 
 
-## Participants
 
  
 ```{r readcombined,echo=F}
@@ -546,7 +545,8 @@ Doppler ultrasound; LIz score, laterality index expressed as individualised z-sc
 
 __ORIGINAL STAGE 1 RR INSERTED HERE__
 
-# Results  
+## Participants
+  
 
 _Departures from pre-registration plan_  
 Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing. Because of disruption to in-person testing caused by pandemic restrictions, we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. However, `r langtab[1,2,1]+langtab[1,3,1]+langtab[1,4,1]` left-handers and `r langtab[2,2,1]+langtab[2,3,1]+langtab[2,4,1]` right-handers tested with fTCD were non-native English speakers who met our criteria for excluding participants on the basis of either the lexTALE or Games with Words measures of English language competence (see below), giving final samples of `r langtab[1,1,1]+langtab[1,1,2]+langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,1,1]+langtab[2,1,2]+langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers. An unexpected issue was that a few native English speakers failed the language screen (`r langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers): however, the purpose of these tests had been to exclude non-native speakers with inadequate language skills, so we retained all native English participants in the study.
@@ -571,15 +571,17 @@ mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FT
 
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
 ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
-ftab <- fontsize(ftab,size=9)
-autofit(ftab)
+ftab <- fontsize(ftab,size=10)
+ftab<- fit_to_width(ftab,8)
+ftab
 tabnumber<-tabnumber+1
 ```
 Table `r tabnumber`: _Demographic characteristics of sample_
 
 Table `r tabnumber` shows demographic data for the subset of individuals tested on the online battery only, and the subset who also completed the session with FTCD. It is evident from inspection that there are no systematic differences between the two subgroups. 
 
-Subsample for test-retest study_
+## Subsample for test-retest study_  
+
 ```{r test-retest, echo=F}
 #need to read in sess1 and sess3 for the test-retest data
 
@@ -701,14 +703,14 @@ In our pre-registration we stated that we would compute a conventional lateralit
 (pL-.5)/sqrt(pL*pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).  
 
 
-As is evident from Supplementary figure `r suppfignumber`, the z-LI score is very highly correlated with the conventional LI, the principal difference being that the z-LI follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use z-LI, as this allows us to compare different tasks on a common scale. 
+As is evident from Supplementary figure `r suppfignumber+1`, the LIz score is very highly correlated with the conventional LI, the principal difference being that the LIz follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use LIz, as this allows us to compare different tasks on a common scale. 
 
 In Rhyme Decision, the task was to judge which of two pictured items had a name that rhymed with a centrally-presented written word. The pictures were presented in the left or right periphery. This was an easy task, as the words used were common, and the participants were given a practice session where they were introduced to all the pictures and their names. We could therefore use accuracy as an index of engagement with the task, and we excluded `r length(intersect(which(combdat$excludeRDT==1),which(combdat$lang2exclude==0)))` participants with accuracy of less than 75% correct. 
 
-The dependent variable of interest was Response Time (RT), which was computed for correct responses in each half-field, after excluding outliers using a participant-specific algorithm. This involved taking the complete set of correct RTs for a participant, and applying the Hoaglin-Iglewicz (1987) criterion of outlier detection with cutoff set to 1.65 to remove unusually long RTs. In addition, any RTs less than 200 ms were excluded. A z-LI was then computed by computing a t-test for each participant, to compare the mean correct RT to left- and right-sided stimuli. Absolute values of z-LI greater than 1.96 can be regarded as evidence that an individual is significantly faster to one side than the other. Because RT is scaled so that high values correspond to poor performance, the z-LI was computed so that it was positive when left-sided RT was greater than right-sided RT. Thus those with a left-hemisphere advantage should cluster below the black line.
+The dependent variable of interest was Response Time (RT), which was computed for correct responses in each half-field, after excluding outliers using a participant-specific algorithm. This involved taking the complete set of correct RTs for a participant, and applying the Hoaglin-Iglewicz (1987) criterion of outlier detection with cutoff set to 1.65 to remove unusually long RTs. In addition, any RTs less than 200 ms were excluded. A LIz was then computed by computing a t-test for each participant, to compare the mean correct RT to left- and right-sided stimuli. Absolute values of LIz greater than 1.96 can be regarded as evidence that an individual is significantly faster to one side than the other. Because RT is scaled so that high values correspond to poor performance, the LIz was computed so that it was positive when left-sided RT was greater than right-sided RT. Thus those with a left-hemisphere advantage should cluster below the black line.
 
 
-As with Rhyme Decision, Word Comprehension involved responding to laterally presented visual stimuli. The stimuli are pictures of semantically-related words, and the task is simply to respond to the picture whose name is spoken. Again, this is an easy task, where the focus is on RT of correct responses. Participants who made more than 75% errors on the task (N = `r length(intersect(which(combdat$excludeWC==1),which(combdat$lang2exclude==0)))`) were excluded from analysis.  The same method as for Rhyme Decision was used to remove outlier RTs participant by participant before computing a z-LI based on comparison of mean RT to left and right sides, where a positive value indicated faster RTs to stimuli presented in the right visual field.  
+As with Rhyme Decision, Word Comprehension involved responding to laterally presented visual stimuli. The stimuli are pictures of semantically-related words, and the task is simply to respond to the picture whose name is spoken. Again, this is an easy task, where the focus is on RT of correct responses. Participants who made more than 75% errors on the task (N = `r length(intersect(which(combdat$excludeWC==1),which(combdat$lang2exclude==0)))`) were excluded from analysis.  The same method as for Rhyme Decision was used to remove outlier RTs participant by participant before computing a LIz based on comparison of mean RT to left and right sides, where a positive value indicated faster RTs to stimuli presented in the right visual field.  
 
 
 ```{r DLdensities,echo=F,include=F}
@@ -750,7 +752,7 @@ suppfignumber<- suppfignumber+1
 
 ## Online battery: Distribution of Laterality indices  
 
-Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on z-LI values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
+Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
 
 
 ```{r DL-ttests,echo=F, message=F, warning=F}
@@ -811,18 +813,18 @@ longdata.b$Task <- factor(longdata.b$Task, levels = c('Dichotic', 'Rhyme', 'Comp
 pirateplot(data = longdata.b, LI ~ Handed * Task)
 abline(h=0)
 
-title(main=paste0('Distributions of z-LI \non behavioural tasks; N = ',length(bLIdat$ID)))
+title(main=paste0('Distributions of LIz \non behavioural tasks; N = ',length(bLIdat$ID)))
 
 fignumber<-fignumber+1
 
 ```
 
 
-![Pirate plot distributions of z-LI scores on online tasks](beh_pirates.jpg)  
+![Pirate plot distributions of LIz scores on online tasks](beh_pirates.jpg)  
 
 
 
-As shown in Figure `r fignumber` and Table `r tabnumber`, distributions of z-LI on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. In addition, there was a small but statistically reliable difference between handedness groups, with stronger laterality in the R handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study with this task and found it to be high. Here we confirm excellent split-half reliability for this task. 
+As shown in Figure `r fignumber` and Table `r tabnumber`, distributions of LIz on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. In addition, there was a small but statistically reliable difference between handedness groups, with stronger laterality in the R handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study with this task and found it to be high. Here we confirm excellent split-half reliability for this task. 
 
 
 
@@ -968,7 +970,7 @@ for (i in 1:length(tasknames)){
 #THESE PLOTS NOT CURRENTLY USED
 ```
 
-
+## LI Summary Statistics
 
 ```{r LIpirates, echo=FALSE, warning=FALSE,message=F}
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
@@ -1013,7 +1015,7 @@ piratenumber <- fignumber
 ```
 ![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers ](ftcd_pirates.jpg)
 
-## LI Summary Statistics
+
 
 The pirate plot in Figure `r fignumber` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) for left and right handed participants. One sample t-tests were computed to test whether the group LI values differed significantly from zero, i.e. showed significant lateralisation. In left handers, tasks A, B and C were left lateralised; task D was right lateralised; and tasks E and F were not significantly lateralised. In right handers, tasks A, B, C and E were significantly left-lateralised.  Between-group t-tests were also computed to test whether lateralisation differed between left and right handers, using a one-tailed test as we had a directional prediction that R-handers would be more left-lateralised than L-handers. LI values were significantly stronger in the right handers than the left handers for all tasks except Word Comprehension.
 
@@ -1039,7 +1041,7 @@ ftcdsummary <- populate(ddat,mytask,ftcdsummary,writecolnum,'ftcd')
 }
 ft<-flextable(ftcdsummary)
 ft <- fontsize(ft, size = 10)
-ft<-autofit(ft)
+ft<-fit_to_width(ft,8,inc=1L)
 ft
 tabnumber<-tabnumber+1
 ```
@@ -1472,7 +1474,7 @@ tabM4 <- makeSEMtab2(fitM4,c('_L','_R'))
 mylavtest<-lavTestLRT(fitM1, fitM2, fitM3,fitM3a, fitM4)
 ```
 
-```{r showlavtest,echo=F}
+```{r showlavtest,echo=F,warning=F,message=F}
 
 mylavtest<-add_rownames(mylavtest)
 mylavtest<-mylavtest[,-c(3,4)]
@@ -1554,7 +1556,7 @@ Results are shown in Table `r tabnumber`.  The trend is similar for all six task
 
 After testing associations for individual measures, we categorised individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests. The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests is shown in table `r tabnumber`. 
 
-__Table `r tabnumber`: Proportions of left- and right-handers with between 0 and 6 tasks left-lateralised on fTCD.__    
+Table `r tabnumber+1`: _Proportions of left- and right-handers with between 0 and 6 tasks left-lateralised on fTCD._    
 
 
 
@@ -1600,7 +1602,7 @@ ntestL_F1_LHs<-round(prop.table(tabN4a,2),3)
 ```
 It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. Although the trend is for more right-handers to show this pattern than left-handers, the difference is not significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
-It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. The implications of this observation will be considered further in the Discussion.
+It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. 
 
 ## Relationship between fTCD and behavioural laterality indices
 
@@ -1641,59 +1643,61 @@ fignumber<-fignumber+1
 ![Heatmap with online and fTCD measures](bigheatmap.png)
 We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
 
-The online Word Comprehension measure failed both checks: split-half reliability was below .6, and the correlation with the fTCD Word Comprehension laterality index was close to zero.  Rhyme Decision narrowly passed both checks: split-half reliability was `r onlinesummary[7,4]` (though test-retest reliability was only`r onlinesummary[8,4]`).  The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`. Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery) and Rhyme Decision.
+The online Word Comprehension measure failed both the second check: the correlation with the fTCD Word Comprehension laterality index was close to zero. The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`, narrowly meeting our criterion, but split-half reliability was only `r onlinesummary[11,3]`.  Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery).
 
 We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, the strongest association is with production tasks. 
 
 
 
 ```{r newmodelx,echo=F,include=F}
+#Base model: dichotic included but with path set to zero
 
 model.2Fnbase <- '
-f1 =~  A_P1+B_P2+C_P3+E_R2+0*RDT_z
-f2 =~  F_R3+D_R1+E_R2+C_P3+0*+DL_z
+f1 =~  B_P2+A_P1 +C_P3+ E_R2
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 +0*DL_z  #2 factor model:
+
+f2~~1*f2
 '
+
 fit.2Fnbase <- cfa(model.2Fnbase,estimator="WLSMV", data=ddati)
 summary(fit.2Fnbase)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fn,wantfits)
 
 model.2Fnx <- '
-f1 =~  A_P1+B_P2+C_P3+E_R2+RDT_z
-f2 =~  F_R3+D_R1+E_R2+C_P3+DL_z
+f1 =~  B_P2+A_P1 +C_P3+ E_R2
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 +DL_z  #2 factor model, dichotic on Fac2:
+
+f2~~1*f2
 '
+
 fit.2Fnx <- cfa(model.2Fnx,estimator="WLSMV", data=ddati)
 summary(fit.2Fnx)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fnx,wantfits)
-measurementInvariance(model=model.2Fnx,estimator="WLSMV",meanstructure=T,data=ddati,group="Handed")
-anova(fit.2Fnbase,fit.2Fnx)
+
+
+
 
 model.2Fny <- '
-f1 =~  A_P1+B_P2+C_P3+E_R2+RDT_z+DL_z
-f2 =~  F_R3+D_R1+E_R2+C_P3
+f1 =~  B_P2+A_P1 +C_P3+ E_R2+DL_z
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model, dichotic on Fac1:
+
+f2~~1*f2
 '
+
 fit.2Fny <- cfa(model.2Fny,estimator="WLSMV", data=ddati)
 summary(fit.2Fny)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fny,wantfits)
-measurementInvariance(model=model.2Fny,estimator="WLSMV",data=ddati,meanstructure=T,group="Handed")
-anova(fit.2Fnbase,fit.2Fny)
+fitcompare<-anova(fit.2Fnbase,fit.2Fnx,fit.2Fny)
 
 tab.2Fnbase <- makeSEMtab(fit.2Fnbase)
 tab.2Fnx <- makeSEMtab(fit.2Fnx)
 tab.2Fny <- makeSEMtab(fit.2Fny)
 
-model.2Fnz <- '
-f1 =~  A_P1+B_P2+C_P3+E_R2+DL_z+0*RDT_z
-f2 =~  F_R3+D_R1+E_R2+C_P3
-'
-fit.2Fnz <- cfa(model.2Fnz,estimator="WLSMV", data=ddati)
-summary(fit.2Fnz)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2Fnz,wantfits)
-measurementInvariance(model=model.2Fnz,estimator="WLSMV",data=ddati,meanstructure=T,group="Handed")
-anova(fit.2Fnbase,fit.2Fnz)
+#measurementInvariance(model=model.2Fny,estimator="WLSMV",data=ddati,meanstructure=T,group="Handed")
+
 
 
 pathfigname<-paste0(mydir,"/03-graphic-outputs/pathfigF2_bigA")
@@ -1707,9 +1711,22 @@ semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan
 
 #Looking at residuals : dichotic has high variability and big residuals - may be worth trying to scale it - or possibly just censor at a less extreme value
 ```
-In practice, a model including a link from Rhyme Decision to Factor 1, and Dichotic Listening to Factor 2 gave a better fit than a model with both paths set to zero, but this is a very weak test of our prediction, because it will be passed if there is any correlation between behavioural and fTCD laterality indices, however weak.  Guided by the data, we ran an alternative model (not pre-registered) with both Rhyme Judgement and Dichotic Listening loading on Factor 1. This also gave excellent fit, with significant paths from both of these measures. 
 
-Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on accuracy or speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks. 
+```{r models-with-dichotic,echo=F}
+modelnames<-c('No dichotic path','Dichotic <- Factor 1','Dichotic <- Factor 2')
+dichmodels<-cbind(modelnames,fitcompare[c(3,1,2),])
+dichmodels <- dichmodels[,c(1,2,5)]
+fd<-flextable(dichmodels)
+fd<-autofit(fd)
+fd
+tabnumber<-tabnumber+1
+
+```
+Table `r tabnumber`: _Fit statistics for models including Dichotic Listening_  
+
+In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: chisquare difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not pre-registered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower chi square than the preregistered model. 
+
+Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, whereas Dichotic Listening appears to cluster more with measures of language generation than with receptive measures. 
 
 
 # Discussion
@@ -1726,25 +1743,31 @@ For the fTCD data, we again found good evidence for reliability of LIs on most t
 
 With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two subgroups to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
 
-In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  Models that included Dichotic Listening and Rhyme Decision gave better fit when non-zero paths were included from these measures, than when they were set to zero, but the best fit was seen for a model where both Dichotic Listening and Rhyme Judgement loaded on Factor 1 (with language production tasks), rather than when Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
+In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  A model that included Dichotic Listening gave better fit when a non-zero paths was included, than when it was set to zero, but the best fit was seen for a model where both Dichotic Listening loaded on Factor 1 (with language production tasks), rather than for our prespecified model where Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
 
 ## Left vs Right Handers  
 For both online and fTCD LIs, with just one exception, there was a consistent trend for stronger left-hemisphere bias in right-handers than in left-handers. This reached significance on all measures except fTCD Word Comprehension. The exception was online Rhyme Judgement, which was not left-lateralised and where means for left- and right-handers were very similar. 
 
-The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures, we had concluded that there may be more dissociation between factors in left-handers, but the sample size was small for this kind of analysis.  Even with the current sample size, power to detect model invariance is limited. Having noted those limitations, our analysis suggested that there was no reason to postulate different models for left- vs right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means.  As an analogy, we could say this would be like showing that the relationship between height and weight is similar in males and females, even though females are on average shorter and lighter. 
+The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures, we had concluded that there was more dissociation between factors in left-handers, but the sample size was small for this kind of analysis.  Even with the current sample size, power to detect model invariance is limited. Having noted those limitations, our analysis suggested that there was no reason to postulate different models for left- vs right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means.  As an analogy, we could say this would be like showing that the relationship between height and weight is similar in males and females, even though females are on average shorter and lighter. <!--- not sure that is helpful analogy!--->
 
 ## Right hemisphere lateralisation for Word Comprehension
+Discussion to be added?
 
 ## Differences between behavioural and fTCD measures of laterality
+Discussion to be added?
 
 ## Interpreting the two-factor structure    
 ```{r taskanalysis,echo=F}
 tasks <- read.csv(paste0(mydir,"/05-writeup/task details.csv"))
 ftasks <- flextable(tasks[,1:7])
+
+ftasks<-fit_to_width(ftasks,8,inc=1L)
+ftasks <- fontsize(ftasks,size=9)
 ftasks
 tabnumber <- tabnumber+1
 ```
-Table `r tabnumber`: _Characteristics of tasks__
+
+Table `r tabnumber`: _Characteristics of tasks_  
 
 Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Comprehension on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
 
@@ -1781,7 +1804,7 @@ ggsave(paste0(mydir,"/03-graphic-outputs/alldens.png"),width = 3, height = 7)
 
 ```
 
-<!---![Density plots showing z-LI scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.png)
+<!---![Density plots showing LIz scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.png)
 Nice density plots but they really just show same information as the pirate plots, so not so sure we need them here?-->
 In Figure `r piratenumber` the six fTCD tasks are ordered according to the population bias to left-hemisphere processing, and it can be seen that the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
 
@@ -1796,9 +1819,9 @@ To some extent, this is less of an explanation than a redescription of the data,
 
 ## Supplementary materials  
 
-### Supplementary Figure `r suppfignumber`
+### Supplementary Figure `r suppfignumber+1`
 
-![Density plots and scatterplot showing relationship between conventional laterality index and z-LI for dichotic listening.](Afig4_DLdens.png)
+![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.png)
 
 
 
@@ -1808,18 +1831,18 @@ To some extent, this is less of an explanation than a redescription of the data,
 mys<-standardizedSolution(fit.2Fn)
 wts1 <- mys$est.std[1:4]
 wts2 <-mys$est.std[5:8]
-ddati$f1<-wts1[1]*ddati$A_P1+
+ddati$fac1s<-wts1[1]*ddati$A_P1+
   wts1[2]*ddati$B_P2+
   wts1[3]*ddati$C_P3+
   wts1[4]*ddati$E_R2
 
-ddati$f2<-wts2[1]*ddati$F_R3+
+ddati$fac2s<-wts2[1]*ddati$F_R3+
   wts2[2]*ddati$C_P3+
   wts2[3]*ddati$D_R1+
   wts2[4]*ddati$E_R2
 
-myx<-ddati$f1
-myy<-ddati$f2
+myx<-ddati$fac1s
+myy<-ddati$fac2s
 mygroup<- ddati$Handed
 mydat<-as.data.frame(cbind(myx,myy,mygroup))
 mydat$mygroup<-as.factor(mydat$mygroup)
@@ -1837,6 +1860,6 @@ ggsave(paste0(mydir,"/03-graphic-outputs/standfactors.png"),width = 5, height = 
 
 ```
 
-
+Not sure whether to include plot showing factor scores as above
 
 
