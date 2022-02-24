@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium"
-date: "21 Feb 2022"
+date: "24 Feb 2022"
 output:
   word_document: default
   html_document:
@@ -1016,11 +1016,6 @@ piratenumber <- fignumber
 ![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers ](ftcd_pirates.jpg)
 
 
-
-The pirate plot in Figure `r fignumber` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) for left and right handed participants. One sample t-tests were computed to test whether the group LI values differed significantly from zero, i.e. showed significant lateralisation. In left handers, tasks A, B and C were left lateralised; task D was right lateralised; and tasks E and F were not significantly lateralised. In right handers, tasks A, B, C and E were significantly left-lateralised.  Between-group t-tests were also computed to test whether lateralisation differed between left and right handers, using a one-tailed test as we had a directional prediction that R-handers would be more left-lateralised than L-handers. LI values were significantly stronger in the right handers than the left handers for all tasks except Word Comprehension.
-
-Split-half reliability was computed for LI indices by computing the LI based just on odd or even trials, and taking the correlation between the two values. As can be seen in Table `r tabnumber`, values were generally between .73 and .83, except for Word Comprehension, where split-half reliability was only .58. 
-
 ```{r doppler-ttests,echo=F}
 #Make a table to show characteristics of different tests
 
@@ -1048,11 +1043,14 @@ tabnumber<-tabnumber+1
 
 Table `r tabnumber`: _Descriptive statistics for six fTCD laterality measures_  
 
-Table `r tabnumber` shows basic statistics for the fTCD laterality indices, in the same format as for the online tasks. Right-handers showed significant left-lateralisation on Word Generation, Sentence Generation, Phonological Decision, and Sentence Comprehension, but were not lateralised for Word Comprehension or Syntactic Decision.  Left-handers were significantly left-lateralised for Word Generation, Sentence Generation and Phonological Decision, were not lateralised for Sentence Comprehension or Syntactic Decision, and were significantly right-lateralised for Word Comprehension.  The direct comparison between left- and right-handers showed significantly greater left-lateralisation on all tasks except Word Comprehension, which showed only a trend in that direction.
 
-All tasks had split half reliability coefficients of .73 or above, except for Word Comprehension, where the coefficient was only .58.
+The pirate plot in Figure `r fignumber` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) for left and right handed participants. 
 
-Shapiro Wilk tests revealed significant non-normality for Sentence Generation, Phonological Decision and Sentence Comprehension, though values of skewness and kurtosis were generally not extreme.
+Table `r tabnumber` shows basic statistics for the fTCD laterality indices, in the same format as for the online tasks. Right-handers showed significant left-lateralisation on Word Generation, Sentence Generation, Phonological Decision, and Sentence Comprehension, but were not lateralised for Word Comprehension or Syntactic Decision.  Left-handers were significantly left-lateralised for Word Generation, Sentence Generation and Phonological Decision, were not lateralised for Sentence Comprehension or Syntactic Decision, and were significantly right-lateralised for Word Comprehension.  The direct comparison between left- and right-handers showed significantly greater left-lateralisation on all tasks except Word Comprehension and Syntactic Decision, which showed only a trend in that direction.
+
+All tasks had split half reliability coefficients of .74 or above, except for Word Comprehension, where the coefficient was only .61.
+
+Shapiro Wilk tests revealed significant non-normality for Sentence Generation, Phonological Decision, Word Comprehension and Sentence Comprehension, though values of skewness and kurtosis were generally not extreme.
 
 As noted above, there were a few participants with missing data on a single measure. Before running the SEM analysis, the _mice_ package @vanbuuren2011 was run in R to impute these missing values. 
 
@@ -1080,7 +1078,7 @@ Our second preregistered prediction was: _The data will fit a model where 'langu
  
 The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because there were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, some of the tasks were different, and we only had one measurement occasion for each of the six measures. Accordingly we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task C (Phonological Decision) and task E (Sentence comprehension), which is not predicted by the two-factor model. 
+`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task C (Phonological Decision) and task E (Sentence Comprehension), which is not predicted by the two-factor model. 
 
 
 ```{r modelfit,echo=F,include=F}
@@ -1543,16 +1541,19 @@ for (i in 1:6){
   chidf[i,5]<-pformat2(chitab$p.value)
 
 }
+  mydiff <- (chidf[ ,3] - chidf [ , 2]) *100
   chidf$Task<-c('Word Generation','Sentence Generation','Phonological Decision','Word Comprehension','Sentence Comprehension','Syntactic Decision')
   ft<-flextable(chidf)
   autofit(ft)
   
   chidf$diffp<-chidf$pL_Rhander-chidf$pL_Lhander
   tabnumber<-tabnumber+1
+  
+  
 ```
 Table `r tabnumber`: _Proportions showing left lateralisation on fTCD tasks_
 
-Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at 16% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from 11% for Syntactic Decision to 24% for Syntactic Comprehension, but met our prespecified significance criterion only for Syntactic Comprehension.
+Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at `r round(mean(mydiff), 0)`% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from `r round(min(mydiff), 0)`% for Syntactic Decision to `r round(max(mydiff), 0)`% for Sentence Comprehension, but met our prespecified significance criterion only for Sentence Comprehension.
 
 After testing associations for individual measures, we categorised individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests. The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests is shown in table `r tabnumber`. 
 
@@ -1597,12 +1598,14 @@ ddat$hand3cat[ddat$EHI.LI<(-90)]<--1
 tabN4a <- table(ddat$NleftABCE,ddat$hand3cat)
 ntestL_F1_LHs<-round(prop.table(tabN4a,2),3)
 
-
+# How many right/left handers are left lateralised for SG?
+SG_left_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==0)])/length(ddat$B_catlatL[which(ddat$Rhanded==0)])
+SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catlatL[which(ddat$Rhanded==1)])
 
 ```
-It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. Although the trend is for more right-handers to show this pattern than left-handers, the difference is not significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
+It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, and this difference is significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
-It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where 91% of right-handers vs 77% of left-handers were left-lateralised. 
+It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised. 
 
 ## Relationship between fTCD and behavioural laterality indices
 
@@ -1643,7 +1646,7 @@ fignumber<-fignumber+1
 ![Heatmap with online and fTCD measures](bigheatmap.png)
 We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
 
-The online Word Comprehension measure failed both the second check: the correlation with the fTCD Word Comprehension laterality index was close to zero. The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`, narrowly meeting our criterion, but split-half reliability was only `r onlinesummary[11,3]`.  Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery).
+The online Word Comprehension measure failed both the second check: the correlation with the fTCD Word Comprehension laterality index was close to zero. The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`, meeting our criterion, but split-half reliability was only `r onlinesummary[11,3]`.  Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery).
 
 We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, the strongest association is with production tasks. 
 
@@ -1726,7 +1729,7 @@ Table `r tabnumber`: _Fit statistics for models including Dichotic Listening_
 
 In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: chisquare difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not pre-registered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower chi square than the preregistered model. 
 
-Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, whereas Dichotic Listening appears to cluster more with measures of language generation than with receptive measures. 
+Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks. 
 
 
 # Discussion
