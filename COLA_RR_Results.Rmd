@@ -887,6 +887,10 @@ Note that correlations will be influenced by test reliability. Indeed, the corre
 
 ## Functional Transcranial Doppler (fTCD) measures
 
+### Departure from pre-registration  
+The pre-registration document contained an error in describing the time period used as baseline in the fTCD tasks. We had intended to replicate the timings used by Woodhead et al (2021), but in error stated that the baseline would be -10 to 0 seconds. This interval is non-optimal because it includes activity from the previous trial, and for this reason Woodhead et al used a shorter interval of -5 to 2 seconds for baseline correction. For consistency, this baseline was also used here.  
+
+
 ### Data Quality and Outliers for fTCD
 ``` {r dataqual, echo=FALSE, warning=FALSE}
 #As pre-registered, we identify cases who have high values of SE for the LI, as this indicates the measurements are unusually variable from trial to trial
@@ -938,9 +942,14 @@ for (t in 1:6){
 
 We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with missing data on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
 
-## Time course of left and right cerebral blood flow volume for the fTCD tasks
+### Time course of left and right cerebral blood flow velocity for the fTCD tasks  
 
-TO BE ADDED - PLOTS FOR EACH TASK
+`r fignumber <- fignumber+1`
+![Timecourse of left and right blood flow velocity (left axis) and L-R difference + 100 (right axis) for six tasks in left- and right-handers)](alltimecourse.png)
+
+Figure `r fignumber` shows the mean time course of blood flow velocity on left and right channels for left- and right-handers. In addition, the difference between left and right channels is plotted in black, after adding 100 to the values so that they can be shown on the same plot (true scale is on right hand axis). The laterality index is computed as the mean difference score (shown in black) over the period of interest. For Word Generation and Sentence Generation tasks, the LI is computed during a period corresponding to silent generation; the waveform peaks again after this period, corresponding to the activity from the subsequent spoken response. For the other tasks, a series of items is presented in each trial and no spoken response is required. The periodic fluctuations in the response correspond to the individual items that are responded to.  
+
+Inspection of this figure indicates that we see a strong left hemisphere bias in both handedness groups for Word Generation, Sentence Generation and Phonological Decision, whereas the other tasks do not show this pattern.   
 
 
 <!--- Need to decide on colour scheme and stick to it-->
@@ -1494,13 +1503,13 @@ tabnumber<-tabnumber+1
  
 Table `r tabnumber`: _Nested tests of model equivalence for left and right handers_  
 
-The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary. Initially, a model is fit in which all the paths, covariances, and intercepts are free to differ between left- and right-handers. This model is tested against a model of 'metric invariance', which sets the loadings from each observed variable to the factors to be the same for the two groups. If the fit of the model does not worsen, we can assume the basic model structure is equivalent for the two groups. This test of equivalence was passed (see Table `r tabnumber`).
+The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary for the two handedness groups. Initially, a model is fit in which all the paths, covariances, and intercepts are free to differ between left- and right-handers. This model is tested against a model of 'metric invariance', which sets the loadings from each observed variable to the factors to be the same for the two groups. If the fit of the model does not worsen, we can assume the basic model structure is equivalent for the two groups. This test of equivalence was passed (see Table `r tabnumber`).
 
 At the next step, (scalar invariance), the item intercepts are set to be the same across groups. Once again, the model fit did not worsen (see Table `r tabnumber`). We then added a further constraint, which was that the covariance between factors should be the same for the two groups. Again, model fit was not impaired.  
 
 In a final step (strict invariance), we constrain item residual variances as well as factor loadings and intercepts to be equal across groups. Here we obtained a substantial worsening of model fit, indicating that the mean difference between groups on the latent factors is not the same. 
 
-In sum, results from the measurement invariance test showed that, contrary to our prediciton, the same underlying structural model can be assumed to apply for both left- and right-handers, with the differences between handedness groups being explained solely in terms of differences in means, rather than in the pattern of covariances between the six LIs. 
+In sum, results from the measurement invariance test showed that, contrary to our prediction, the same underlying structural model can be assumed to apply for both left- and right-handers, with the differences between handedness groups being explained solely in terms of differences in means, rather than in the pattern of covariances between the six LIs. 
 
 ## Categorical analysis of LIs  
 Prediction 4 was: _On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised._
@@ -1603,7 +1612,7 @@ SG_left_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==0)])/length(ddat$B_catla
 SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catlatL[which(ddat$Rhanded==1)])
 
 ```
-It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, and this difference is significant on chi square test, chisquare = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
+It is evident from Table `r tabnumber` that a minority of individuals are consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, and this difference is significant on chi square test, chi square = `r round(mychi$statistic,2)`, `r pformat(mychi$p.value)`.  However, two of the tests included in this analysis, Word Comprehension and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
 It is noteworthy that this more categorical analysis finds rates of "atypical", i.e. non-left, lateralisation on language tasks that are on the one hand task-dependent, but on the other hand lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised. 
 
@@ -1643,12 +1652,13 @@ fignumber<-fignumber+1
 
 ```
 
-![Heatmap with online and fTCD measures](bigheatmap.png)
+![Heatmap with online and fTCD measures](bigheatmap.png)  
+
 We had pre-registered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (word comprehension and phonological decision respectively).
 
-The online Word Comprehension measure failed both the second check: the correlation with the fTCD Word Comprehension laterality index was close to zero. The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`, meeting our criterion, but split-half reliability was only `r onlinesummary[11,3]`.  Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery).
+The online Word Comprehension measure failed the second check: the correlation with the fTCD Word Comprehension laterality index was close to zero. The correlation between the online Rhyme Decision and fTCD Phonological Decision was `r round(cor(ddati$RDT_z,ddati$C_P3,use='complete.obs'),3)`, meeting our criterion, but split-half reliability was only `r onlinesummary[11,3]`.  Accordingly, we proceeded with the next step of analysis only with Dichotic Listening (which had good reliability, but no counterpart in the fTCD battery).
 
-We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, the strongest association is with production tasks. 
+We had predicted that Dichotic Listening, as a receptive task, should load on the same factor as the Word Comprehension, Sentence Comprehension and Syntactic Decision, but it is evident from the heatmap that, insofar as it correlates with the fTCD tasks, the strongest association is with Sentence Generation, a production task. 
 
 
 
@@ -1727,14 +1737,14 @@ tabnumber<-tabnumber+1
 ```
 Table `r tabnumber`: _Fit statistics for models including Dichotic Listening_  
 
-In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: chisquare difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not pre-registered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower chi square than the preregistered model. 
+In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: chi square difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not pre-registered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower chi square than the preregistered model. 
 
 Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks. 
 
 
 # Discussion
 
-To simplify the interpretation of this complex dataset, it helps to focus on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers? In addition we consider specific issues arising in this dataset, namely the finding of right hemisphere lateralisation on Word Comprehension, and the lack of agreement between behavioural and fTCD laterality indices. Finally, we consider how the particular factor structure seen in the fTCD analysis might be accounted for. 
+To simplify the interpretation of this complex dataset, we focus first on two overarching questions addressed by the study. The first question concerns correlations between laterality measures: in brief, is there evidence for a single laterality dimension on which people vary? The second question concerns handedness: does the answer to our first question differ in groups of left- and right-handers? In addition we consider specific issues arising in this dataset, namely the finding of right hemisphere lateralisation on Word Comprehension, and the lack of agreement between behavioural and fTCD laterality indices. Finally, we consider how the particular factor structure seen in the fTCD analysis might be explained. 
 
 ## Evidence for a single laterality dimension  
 
@@ -1742,7 +1752,7 @@ Previous attempts to consider the dimensionality of language lateralisation have
 
 Considering first the online behavioural data, the most noteworthy observation was that the correlations between laterality indices from the three tasks were generally weak. This could not be attributed solely to poor reliability: although reliabilities of the two new tasks, Rhyme Decision and Word Comprehension, were not impressive (ranging from .54-.55 for test-retest), they were higher than the intercorrelations between measures. Our data was not suitable for a more formal model comparison, but inspection of the pattern of correlations between measures made it clear that our proposed two-factor model, with Dichotic Listening and Word Comprehension being positively correlated and unrelated to Rhyme Decision could not be supported. Indeed, the strongest correlation was found between Word Comprehension and Rhyme Decision, consistent with the idea that task demands (speeded responding to visual pictures) might be a greater determinant of strength of lateralisation than whether receptive or expressive language was involved.  
 
-For the fTCD data, we again found good evidence for reliability of LIs on most tasks, even though some tasks were not left-lateralised. Consistent with Woodhead et al (2021), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, and others the right. The LI from the Word Comprehension task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. In addition, this task showed a trend for right-hemisphere bias, particularly in left-handers. 
+For the fTCD data, we again found good evidence for reliability of LIs on most tasks, even though some tasks were not left-lateralised. Consistent with Woodhead et al (2021), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that all individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, others the right, and others more equally balanced. The LI from the Word Comprehension task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. In addition, this task showed a trend for right-hemisphere bias, particularly in left-handers. 
 
 With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two subgroups to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
 
