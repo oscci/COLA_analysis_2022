@@ -1,12 +1,15 @@
 ---
 title: "Data Processing for Gorilla tasks"
-output: html_notebook
-date: started 2022-01-06
+output:
+  html_document:
+    df_print: paged
+date: "started 2022-01-06"
 ---
 
 Modified script based on Adam Parker's original.
 Updated 7/2/22 to just make name format of dichotic odd/even zlat files consistent with other tasks.
 Updated ZW 10/2/22 to add date, so can compute interval for sess1 vs sess3
+Updated DB 25/2/22 to ensure laterality index for Rhyme Decision and Word Comprehension is using log RT , as this was specified in prereg. 
 --------------------------------------------------------------------------------------------------------------------------------
 Script now reads raw Gorilla data from .Rdata files - these were created from the OSF .csv files. 
 Eventually we will save .Rdata files on OSF - they are much smaller than .csv so easier to work with.
@@ -925,19 +928,19 @@ RTprocess<-function(file.in,allsum,colprefix){
   #for RTs just use correct responses
   allcorr<-file.in[file.in$Correct==1,]
    
-  meanRT <- aggregate(data= allcorr, FUN=mean, na.rm=T,RT~ subject+Response)
-  sdRT <- aggregate(data= allcorr, FUN=sd, na.rm=T,RT~ subject+Response)
-  NRT <- aggregate(data= allcorr, FUN=length, RT~ subject+Response)
+  meanRT <- aggregate(data= allcorr, FUN=mean, na.rm=T,logRT~ subject+Response)
+  sdRT <- aggregate(data= allcorr, FUN=sd, na.rm=T,logRT~ subject+Response)
+  NRT <- aggregate(data= allcorr, FUN=length, logRT~ subject+Response)
 
   for (i in 1:nrow(allsum)){
     mysub <- allsum$subject[i]
      allsum$pcorr[i]<-accdata$Correct[accdata$subject==mysub]
-    allsum$Lmean[i]<-meanRT$RT[meanRT$Response=='left' & meanRT$subject==mysub]
-    allsum$Lsd[i]<-sdRT$RT[sdRT$Response=='left' & sdRT$subject==mysub]
-    allsum$LN[i]<-NRT$RT[NRT$Response=='left' & NRT$subject==mysub]
-    allsum$Rmean[i]<-meanRT$RT[meanRT$Response=='right' & meanRT$subject==mysub]
-    allsum$Rsd[i]<-sdRT$RT[sdRT$Response=='right' & sdRT$subject==mysub]
-    allsum$RN[i]<-NRT$RT[NRT$Response=='right' & NRT$subject==mysub]
+    allsum$Lmean[i]<-meanRT$logRT[meanRT$Response=='left' & meanRT$subject==mysub]
+    allsum$Lsd[i]<-sdRT$logRT[sdRT$Response=='left' & sdRT$subject==mysub]
+    allsum$LN[i]<-NRT$logRT[NRT$Response=='left' & NRT$subject==mysub]
+    allsum$Rmean[i]<-meanRT$logRT[meanRT$Response=='right' & meanRT$subject==mysub]
+    allsum$Rsd[i]<-sdRT$logRT[sdRT$Response=='right' & sdRT$subject==mysub]
+    allsum$RN[i]<-NRT$logRT[NRT$Response=='right' & NRT$subject==mysub]
   }
   
   
@@ -1221,7 +1224,7 @@ Now use generic function to remove outliers.
   
   
 ```{r processRT_RDT,echo=F}
-  
+  RDT_dat$logRT<-log(RDT_dat$RT) #new step to use logs as in prereg.
   allsum <- RTprocess(RDT_dat,allsum,'RDT')
   allsum$excludeRDT<-0
   allsum$excludeRDT[allsum$RDT.pcorr<.75]<-1 # Exclude people with less than 75% correct on this task
@@ -1335,6 +1338,7 @@ Now we summarise for LI computation.
 
 ```{r makelat_WC}
 # Process RT results
+WC_dat$logRT<-log(WC_dat$RT)
   allsum <- RTprocess(WC_dat,allsum,'WC')
 # Also compute odd and even results for split half reliability
   allsum <- RTprocess(WC_dat[seq(1,nrow(WC_dat),2),],allsum,'WC.odd')
