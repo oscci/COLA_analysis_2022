@@ -10,24 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 require(DiagrammeR)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-DiagrammeR::grViz("
-                  digraph rmarkdown{
-                  A -> B
-                  }
-                  ",height=200)
 
 
-DiagrammeR::mermaid("
-                    graph LR
-                    A --> B
-                    ",height=200)
+
+```{r makediag,echo=F}
+
 
 
 a=23
@@ -42,9 +29,9 @@ grViz(diagram = "digraph flowchart {
   tab1 -> tab2 -> tab3;
 }
   
-  [1]: paste0('Screening questions',':\\n','Aged 16-50')
-  [2]: paste0('Step 1: Online battery',':\\n','Demographic questionnaire'  )  
-  [3]: paste0('Step 2:   Functional TCD', ':\\n','At Oxford, Bangor, London, Lincoln, Lancaster, or UWA',':\\n','6 language tasks',':\\n','Planned N = 224',':\\n','Actual N = xxx')
+  [1]: paste0('Screening questions',':\\n', 'Aged 16-50; Hearing and vision;',':\\n','Native language; Neurological',':\\n', 'history; Developmental disorders;',':\\n', 'fMRI screening; Willingness to',':\\n','attend Session 2')
+  [2]: paste0('Step 1: Online battery',':\\n','Demographic questionnaire',':\\n','Language proficiency measures',':\\n','Handedness/footedness/eyedness',':\\n','4 lateralisation tasks',':\\n','Planned N = 450',':\\n','Actual N = xxxx'  )  
+  [3]: paste0('Step 2:   Functional TCD', ':\\n','At Oxford, Bangor, London',':\\n',' Lincoln, Lancaster, or UWA',':\\n','6 language tasks',':\\n','Planned N = 224',':\\n','Actual N = ',a+b)
   ")
 
 ```
