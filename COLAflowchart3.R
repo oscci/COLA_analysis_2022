@@ -4,12 +4,12 @@
 
 #have combdat loaded.
 
-usePackage("DiagrammeR") #for participant recruitment flowchart
-usePackage('DiagrammeRsvg')
-usePackage('magrittr')
-usePackage('rsvg')
+require(DiagrammeR) #for participant recruitment flowchart
+require(DiagrammeRsvg)
+require(magrittr)
+require(rsvg)
 
-
+combdat<-read.csv('combdat.csv')
 mydir <- "~/Dropbox/COLA_RR_Analysis"
 figdir <-"03-graphic-outputs" 
 
@@ -121,8 +121,8 @@ myflow<-grViz("digraph flowchart {
 
 makefile<-1
 if(makefile==1){
-  filename<-paste0(mydir,"/",figdir,"/","COLA_flow.png")
-myflow %>% export_svg %>% charToRaw %>% rsvg %>% png::writePNG(filename)
+  filename<-paste0(mydir,"/",figdir,"/","COLAflow.jpg")
+myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
 }
 
 
