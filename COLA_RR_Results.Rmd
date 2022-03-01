@@ -528,7 +528,7 @@ if(supplementary==1){
 
 #One subject was wrongly coded as ftcd=1: they came for testing but could not get signal and so we reset ftcd to zero for them.
 w<-which(combdat$ID==3495951)
-combdat$ftcd[w]<-0
+combdat$ftcd[w]<-9
 
 combdat$lang2exclude <- 0
 w<- which(combdat$gramerr12>1)
