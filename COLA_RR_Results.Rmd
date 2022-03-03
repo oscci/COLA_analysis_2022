@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "28 Feb 2022"
+date: "1 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -24,6 +24,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+
 # If the package is not installed, install it. If it is installed, load it.
 usePackage <- function(p) {
     if (!is.element(p, installed.packages()[,1]))
@@ -517,19 +519,23 @@ figdir <-"03-graphic-outputs"
 readfile<-paste0(alldir[1],"/02-data/combined_data.csv")
 combdat <- read.csv(readfile)
 
-supplementary <- 1 #set this to zero for the main paper. Here we change the selection criteria to look at implications of using original language exclusion cutoff
+w<-which(combdat$No_signal==1)
+combdat$ftcd[w]<-9 #cases marked 9 were seen but did not have a signal
+
+supplementary <- 0 #set this to zero for the main paper. With other values we can change the selection criteria to look at implications of using original language exclusion cutoff. When supplementary=1, we include only those shown in flowchart as group 1 (native and nonnative)
 
 if(supplementary==1){
   mydir <- alldir[2]
   figdir <- "05.1-graphic.outputs"
 }
 
-#We will create a code that reflects whether strict exclusion criteria are met for language. This is 1 for lextale < 80, 10 for gram12err >1, and 11 if both are met
+#We will create a code that divides people into 4 groups. 
+#1A are native English speakers (1)
+#1B are non-native speakers who pass the preregistered exclusion criterion (2)
+#2A are non-native speakers who failed the preregistered exclusion criterion, but passed the modified criterion (3)
+#2B are non-native speakers who failed the modified criterion. (4)
 
-#One subject was wrongly coded as ftcd=1: they came for testing but could not get signal and so we reset ftcd to zero for them.
-w<-which(combdat$ID==3495951)
-combdat$ftcd[w]<-9
-
+#We first create a code that reflects whether strict exclusion criteria are met for language. This is 1 for lextale < 80, 10 for gram12err >1, and 11 if both are met
 combdat$lang2exclude <- 0
 w<- which(combdat$gramerr12>1)
 combdat$lang2exclude[w]<-10
@@ -540,22 +546,91 @@ combdat$lang2exclude[w]<-10
 }
 w<- which(combdat$lexTALE<80)
 combdat$lang2exclude[w]<-combdat$lang2exclude[w]+1
-#For main paper, we set 'excluded' for any who were below 80 on LexTale or more than 1 error on short grammar AND are not native English speakers. I.e. all native English are included, regardless of language tests
-#We also do this when supplementary =1
+#We now use langgroup to determine specific exclusions, depending on setting of supplementary
+
+combdat$langpreregexclude<-0
+w<- which(combdat$gramerrs>3)
+combdat$langpreregexclude[w]<-1
+
+combdat$langgroup <-1
+w<-intersect(which(combdat$langpreregexclude==0),which(combdat$nativeEnglish==0))
+combdat$langgroup[w] <-2
+
+w<-intersect(which(combdat$langpreregexclude==1),which(combdat$nativeEnglish==0))
+combdat$langgroup[w] <-3
+
+w<-intersect(which(combdat$lang2exclude==1),which(combdat$nativeEnglish==0))
+combdat$langgroup[w] <-4
 
 
-combdat$excluded <- 0
-w<-intersect(which(combdat$lang2exclude>0),which(combdat$nativeEnglish==0))
-combdat$excluded[w] <-1
+if(supplementary==1){
+  w<-which(combdat$langgroup<3) #supplementary 1 includes only groups 1A and 1B
+  combdat<-combdat[w,]
+}
 
 testtab <- table(combdat$Rhanded,combdat$ftcd)
-colnames(testtab)<-c('-FTCD','+FTCD')
+colnames(testtab)<-c('-FTCD','+FTCD','no signal')
 rownames(testtab)<-c('Left-handed','Right-handed')
+
 ftcd.dat <- filter(combdat,ftcd==1) #has demog, behav and ftcd data for those who did ftcd
-langtab <- table(ftcd.dat$Rhanded, ftcd.dat$lang2exclude,ftcd.dat$nativeEnglish)
+langtab <- table(ftcd.dat$Rhanded, ftcd.dat$langgroup)
 #Langtab cells can be accessed with 3 indices corresponding to Rhanded,langexclude and native English status).
 
-myftcd <- filter(ftcd.dat,excluded==0) #we'll do analysis on myftcd
+myftcd <- filter(ftcd.dat) #we'll do analysis on myftcd
+#can add here criteria for exclusion
+
+
+```
+ 
+
+
+### Data Quality and Outliers for fTCD
+``` {r dataqual, echo=FALSE, warning=FALSE}
+#As pre-registered, we identify cases who have high values of SE for the LI, as this indicates the measurements are unusually variable from trial to trial
+#We compute Qlimit based on Hoaglan-Iglewicz formula and exclude cases that exceed this value.
+# Identify outliers
+for (t in 1:6){
+  SEcol <- which(colnames(combdat) == paste0(LETTERS[t], '_mean_se'))
+  Q3<-quantile(combdat[ , SEcol],.75,na.rm=TRUE)
+  Q1<-quantile(combdat[ , SEcol],.25,na.rm=TRUE)
+  Qlimit<-Q3+2.2*(Q3-Q1)
+  
+# If there are at least 10 trials, include the data
+  excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
+  trialscol = which(colnames(combdat) == paste0(LETTERS[t], '_N'))
+  combdat[,excludecol] <- NA #initialise with NA
+  combdat[which(combdat[ , trialscol] > 9), excludecol] <- 0
+  combdat[which(combdat[ , trialscol] < 10), excludecol] <- 1
+  
+  # If the SE is too high, exclude the datatrials
+  combdat[which(combdat[ , SEcol] > Qlimit) , excludecol] <- 1
+}
+
+# Count number of missing or excluded datapoints per task. 
+
+
+# First set to NA those who did not do ftcd
+n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
+for (t in 1:6){
+  excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
+  n_excludeLI[t] = length(which(combdat[ , excludecol] > 0)) 
+}
+
+# Should any participants be excluded? If a participant has more than one excluded task, the participant is excluded entirely
+combdat$DopExclude <- 0
+tmp <- combdat$A_exclude + combdat$B_exclude + combdat$C_exclude + combdat$D_exclude + combdat$E_exclude + combdat$F_exclude
+combdat$DopExclude[which(tmp > 1)] = 1
+n_excluded = length(which(combdat$DopExclude == 1))
+
+ddat<- filter(combdat,DopExclude==0,ftcd==1) #not really necessary to create this, but done for consistency with previous script : this has just those who did ftcd and who were not excluded on demographics or ftcd.
+
+# We now count how many included participants omitted a single task
+n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
+for (t in 1:6){
+  excludecol = which(colnames(ddat) == paste0(LETTERS[t], '_exclude'))
+  n_excludeLI[t] = length(which(ddat[ , excludecol] > 0)) 
+}
+
 ```
 
 
@@ -731,7 +806,7 @@ _Procedure_. To ensure adequate headphone use, participants were screened on two
 Participants completed three blocks of the dichotic listening task. This amounted to 96 trials when excluding homonyms. Our decision to use three blocks was based on the previous observation that there is not much improvement in reliability after 85 trials when using the dichotic listening task (Parker et al., 2020). Each trial began with a fixation cross, which was presented for 250 ms. Participants then heard the sound pairs and reported the syllable that they heard. If they heard two different syllables, participants were instructed to report the sound that they heard the most clearly. Responses were made by clicking a button which corresponded to one syllable. The response triggered the start of the next trial. The side of selected response and response times was recorded. Errors can occur on this task if the participant selects a syllable that was not presented to either ear: these were rare, but were recorded and were used to exclude those who perform poorly.  
 
 ### General Procedure  
-The study implemented a within subjects design where participants completed all online tasks. When completing the battery, participants were instructed to sit approximately 50 cm from the screen. Participants completed four blocks of the rhyme decision (A) and word comprehension tasks (B; 52 trials each). They completed three blocks of the dichotic listening (C; 36 trials each). Blocks of different tasks were interspersed in a quasi-random order (i.e. ABC, BAC, CAB). Other online tasks relating to different studies were interspersed to avoid boredom and maximise efficiency of data collection
+The study implemented a within subjects design where participants completed all online tasks. When completing the battery, participants were instructed to sit approximately 50 cm from the screen. Participants completed four blocks of the rhyme decision (A) and word comprehension tasks (B; 52 trials each). They completed three blocks of the dichotic listening (C; 36 trials each). Blocks of different tasks were interspersed in a quasi-random order (i.e. ABC, BAC, CAB). Other online tasks relating to different studies were interspersed to avoid boredom and maximise efficiency of data collection.
 
 ## Step 2: Functional Transcranial Doppler ultrasound (fTCD)  
 A subset of participants were given six tasks using fTCD that could be administered in a single session of about 90-120 mins. These participants were selected on the basis of handedness and willingness and ability to travel for in-person testing to one of the five test centres.  
@@ -778,51 +853,34 @@ The analysis starts with presentation of descriptive data, including distributio
 ## Participants
   
 `r fignumber<-fignumber+1`
-![Participant recruitment flowchart] 
+
+![Participant recruitment flowchart](COLAflow.png)
 
 _Departures from pre-registration plan_  
-Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing.  Because of the Covid situation, the time periods when it was possible to test in person were greatly restricted, testing had to be carried out under strict conditions to ensure safety (researchers wearing full personal protective equipment in a ventilated space, and cleaning of equipment between participants). Furthermore, researchers and participants could become unavailable for testing at short notice because of a positive Covid test or notification of a contact with an infected person, and some participants were understandably reluctant to come for in-person testing.
+Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing.  Because of the Covid situation, the time periods when it was possible to test in person were greatly restricted, and testing had to be carried out under strict conditions to ensure safety (researchers wearing full personal protective equipment in a ventilated space, and cleaning of equipment between participants). Furthermore, researchers and participants could become unavailable for testing at short notice because of a positive Covid test or notification of a contact with an infected person, and some participants were understandably reluctant to come for in-person testing.
 
-The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether language history and/or performance on the language screening measures had any impact on the results. Analyses that apply cutoffs to exclude participants on the basis of language test scores are provided in Supplementary materials. 
+The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. Analyses that apply cutoffs to exclude participants on the basis of language test scores are provided in Supplementary materials. Differences in means, variances and covariances for the full sample and the restricted sample are all very small and there are no meaningful differences to results from statistical tests or modeling. 
 
 
-Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. However, `r langtab[1,2,1]+langtab[1,3,1]+langtab[1,4,1]` left-handers and `r langtab[2,2,1]+langtab[2,3,1]+langtab[2,4,1]` right-handers tested with fTCD were non-native English speakers who met our criteria for excluding participants on the basis of either the lexTALE or Games with Words measures of English language competence (see below), giving final samples of `r langtab[1,1,1]+langtab[1,1,2]+langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,1,1]+langtab[2,1,2]+langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers. An unexpected issue was that a few native English speakers failed the language screen (`r langtab[1,2,2]+langtab[1,3,2]+langtab[1,4,2]` left-handers and `r langtab[2,2,2]+langtab[2,3,2]+langtab[2,4,2]` right-handers): however, the purpose of these tests had been to exclude non-native speakers with inadequate language skills, so we retained all native English participants in the study.
+Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. 
 
-![Figure `r fignumber`: Participant recruitment flowchart: preregistered (planned) and actual numbers](participant_flow.png)
+Figure `r fignumber` divides participants according to the language screen. Group 1 corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the pre-registered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group 2 is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). Here we report data on the whole sample with no exclusions based on the language screen, but in Supplementary material we compare our results with those obtained using the original, stringent language cutoff (excluding all Group 2), or a revised cutoff (excluding only Group 2b).
+
+
+![Participant recruitment flowchart: preregistered (planned) and actual numbers](COLAflow.jpg)
+
+<!--- can't get script to recognise COLAflow.Tried with both jpg and png, and in different directories--->
+
+
  
-```{r makeflowchart,echo=F}
-#DiagrammeR is difficult to knit into Word - only seems to work with html. So I am using a separate R script that will create the file in the Viewer from which it can be saved to png and then read in here. The file to create this is makeparticipantflow. It will only work if testtab has been populated by this script. Output currently needs to be saved manually.
-makeparticipant <-0
-if(makeparticipant==1){
 
-LH1 <- testtab[1,1]+testtab[1,2]
-RH1 <-testtab[2,1]+testtab[2,2]
-LH2<- testtab[1,2]
-RH2<- testtab[2,2]
-
-grViz(diagram = "digraph flowchart {
-  node [fontname = arial, shape = rectangle, color = grey, style = filled]
-  tab1 [label = '@@1']
-  tab2 [label='@@2']
-  tab3 [label='@@3']
-  tab1-> tab2 -> tab3
-}
-  
-  [1]: paste0('Screening questions','\\n', 'Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
-  [2]: paste0('Step 1: Online battery','\\n','Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','4 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed' )  
-  [3]: paste0('Step 2:   Functional TCD', '\\n','At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n','Planned: 112 L-handed + 112 R-handed','\\n','Actual: ', LH2,' L-handed + ',RH2,' R-handed')
-  ")
-}
-
-
-```
 
 ### Demographic data 
 
 ```{r demog.table,echo=F}
 #We'll use the table1 package to create a nice-looking summary table for demographics; this excludes those excluded on language tests, but otherwise includes everyone given the online testing.
 
-mycomb <- filter(combdat,excluded==0) #create a version of the main data file that excludes anyone excluded on Lextale or Grammar task
+mycomb <- combdat #this is a hangover from previuos - we now exclude by langgroup early on in the script, so combdat has correct people excluded on Lextale or Grammar task
 
 mycomb$Gender <- factor(mycomb$male,levels=c(0,1),labels=c("Female","Male"))
 label(mycomb$age) <- "Age (yr)"
@@ -843,7 +901,7 @@ Table `r tabnumber`: _Demographic characteristics of sample_
 
 Table `r tabnumber` shows demographic data for the subset of individuals tested on the online battery only, and the subset who also completed the session with FTCD. It is evident from inspection that there are no systematic differences between the two subgroups. 
 
-## Subsample for test-retest study_  
+## Subsample for test-retest study_ 
 
 ```{r test-retest, echo=F}
 #need to read in sess1 and sess3 for the test-retest data
@@ -966,7 +1024,7 @@ fignumber<-fignumber+1
 ![Responses to stimuli on left and right: online laterality tasks_](allLRbeh.png)
   
 
-Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural task in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e. there are more points above the black line than below it. 
+Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural tasks in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e. there are more points above the black line than below it. 
 
 In our pre-registration we stated that we would compute a conventional laterality index, 100* (Left-Right)/(Left+Right), as well as a laterality z-score:
 (pL-.5)/sqrt(pL*pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).  
@@ -1156,57 +1214,7 @@ Note that correlations will be influenced by test reliability. Indeed, the corre
 
 ## Functional Transcranial Doppler (fTCD) measures
 
- 
 
-
-### Data Quality and Outliers for fTCD
-``` {r dataqual, echo=FALSE, warning=FALSE}
-#As pre-registered, we identify cases who have high values of SE for the LI, as this indicates the measurements are unusually variable from trial to trial
-#We compute Qlimit based on Hoaglan-Iglewicz formula and exclude cases that exceed this value.
-# Identify outliers
-for (t in 1:6){
-  SEcol <- which(colnames(combdat) == paste0(LETTERS[t], '_mean_se'))
-  Q3<-quantile(combdat[ , SEcol],.75,na.rm=TRUE)
-  Q1<-quantile(combdat[ , SEcol],.25,na.rm=TRUE)
-  Qlimit<-Q3+2.2*(Q3-Q1)
-  
-# If there are at least 10 trials, include the data
-  excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
-  trialscol = which(colnames(combdat) == paste0(LETTERS[t], '_N'))
-  combdat[,excludecol] <- NA #initialise with NA
-  combdat[which(combdat[ , trialscol] > 9), excludecol] <- 0
-  combdat[which(combdat[ , trialscol] < 10), excludecol] <- 1
-  
-  # If the SE is too high, exclude the datatrials
-  combdat[which(combdat[ , SEcol] > Qlimit) , excludecol] <- 1
-}
-
-# Count number of missing or excluded datapoints per task. 
-
-
-# First set to NA those who did not do ftcd
-n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
-for (t in 1:6){
-  excludecol = which(colnames(combdat) == paste0(LETTERS[t], '_exclude'))
-  n_excludeLI[t] = length(which(combdat[ , excludecol] > 0)) 
-}
-
-# Should any participants be excluded? If a participant has more than one excluded task, the participant is excluded entirely
-combdat$DopExclude <- 0
-tmp <- combdat$A_exclude + combdat$B_exclude + combdat$C_exclude + combdat$D_exclude + combdat$E_exclude + combdat$F_exclude
-combdat$DopExclude[which(tmp > 1)] = 1
-n_excluded = length(which(combdat$DopExclude == 1))
-
-ddat<- filter(combdat,DopExclude==0,excluded==0,ftcd==1) #not really necessary to create this, but done for consistency with previous script : this has just those who did ftcd and who were not excluded on demographics or ftcd.
-
-# We now count how many included participants omitted a single task
-n_excludeLI = matrix(data=NA, nrow=1, ncol=6)
-for (t in 1:6){
-  excludecol = which(colnames(ddat) == paste0(LETTERS[t], '_exclude'))
-  n_excludeLI[t] = length(which(ddat[ , excludecol] > 0)) 
-}
-
-```
 
 We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with missing data on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Comprehension, E = Sentence Comprehension and F = Syntactic Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
 
