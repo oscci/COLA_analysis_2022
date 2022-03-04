@@ -109,7 +109,7 @@ myflow<-grViz("digraph flowchart {
 }
   
   [1]: paste0('Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
-  [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','4 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed' )  
+  [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','4 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 28 L-handed + 25 R-handed)' )  
   [3]: paste0('Group 1','\\n','Native speaker:','\\n', LH1a,' L-handed + ',RH1a,' R-handed','\\n','Non-native speaker, passed','\\n', LH1b,' L-handed + ',RH1b,' R-handed')
   [4]: paste0('Group 2','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH1c,' L-handed + ',RH1c,' R-handed','\\n','b) Failed new screen:','\\n', LH1d,' L-handed + ',RH1d,' R-handed','\\n')
   [5]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')

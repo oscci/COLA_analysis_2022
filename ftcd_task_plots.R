@@ -98,26 +98,30 @@ for (t in 1:ntasks){
   #So!
   for (i in 1:6){
     w<-which(taskmean_long$Condition==uniques[i])
-    taskmean_long$Condition[w]<-paste0(i,uniques[i]) #stick a number on the front
+    n<-c(1,2,3,4,5,6)
+    taskmean_long$Condition[w]<-paste0(n[i],uniques[i]) #stick a number on the front
   }
 
-  
+  #Total nightmare getting correct allocation of condition to linetype and colour!
   taskmean_long$Handed_Side <- as.factor(taskmean_long$Condition)
-  levels(taskmean_long$Handed_Side)<- c('L hander/L side', 'L hander/R side',
+  levels(taskmean_long$Handed_Side)<- c('L hander/L side', 'L hander/R side', 
                                         'R hander/L side','Rhander/R side',
                                         'L hander/L-R','R hander/L-R')
-  
+#Make a little file that allocates linetype/color to condition, but NB whether this works depends also on code below, as order of factors v important
   color_lty_cross = expand.grid(
-    ltypes = c(1,2) ,
+    ltypes = c(1,2),
     colors = c('red','blue','black'),
     stringsAsFactors = F)
-  
+  color_lty_cross$condition<-levels(taskmean_long$Handed_Side)
+#Change the order, as preferable to have solid for all R and dotted for all L
+  color_lty_cross$ltypes <- c(2,2,1,1,2,1)
+  color_lty_cross$colors <- c("red","blue","red","blue","black","black")
   
   thisplot<-ggplot(taskmean_long, aes(x=Time, y=Velocity, group=Handed_Side)) + 
-    geom_line(aes(colour=Handed_Side,linetype=Handed_Side)) +
+    geom_line(aes(linetype=Handed_Side,colour=Handed_Side,)) +
     ylim(94,108)+
     xlim(-5,25)+
-    scale_y_continuous(breaks = seq(94, 108, by=2),name = "L/R velocity", sec.axis = sec_axis(~.-100, name = "L-R"))+
+    scale_y_continuous(breaks = seq(94, 108, by=2),name = "Blood flow velocity", sec.axis = sec_axis(~.-100, name = "L-R"))+
     scale_x_continuous(breaks = seq(-5, 25, by=5),name = "Time (s)")+
     scale_color_manual(values = color_lty_cross$colors) +
     scale_linetype_manual(values = color_lty_cross$ltypes[1:6]) +
@@ -146,6 +150,7 @@ for (t in 1:ntasks){
 alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
 ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.png",width = 7, height = 7)
 
+ggsave("alltimecourse.png",width = 7, height = 7)
 
 
 
