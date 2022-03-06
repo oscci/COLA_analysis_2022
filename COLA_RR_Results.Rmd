@@ -9,7 +9,7 @@ output:
   pdf_document: default
 ---
 
-*Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Dorothy V. M. Bishop^1b^  
+*Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Dorothy V. M. Bishop^1b^  
 
 ^a^ Joint first author  
 ^b^ Corresponding author  
@@ -944,10 +944,12 @@ mycomb$RDTsig[w]<-1
 
 
 RDTdat <- mycomb[mycomb$excludeRDT==0,]
-RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=as.factor(RDTsig))) +
+RDTsides <- ggplot(RDTdat, aes(x=exp(RDT.Lmean), y=exp(RDT.Rmean), color=Handedness,shape=as.factor(RDTsig))) +
   xlab("Mean correct RT (ms) left VHF")+
    ylab("Mean correct RT (ms) right VHF")+
   geom_point()+
+  xlim(500,1600)+
+  ylim(500,1600)+
   ggtitle("Rhyme Decision") +
   scale_shape_manual(name="Significantly lateralised",
                      labels=c("No","Yes"),
@@ -970,10 +972,12 @@ mycomb$WCsig[w]<-1
 
 
 WCdat <- mycomb[mycomb$excludeWC==0,]
-WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.factor(WCsig))) +
+WCsides <- ggplot(WCdat, aes(x=exp(WC.Lmean), y=exp(WC.Rmean), color=Handedness,shape=as.factor(WCsig))) +
   xlab("Mean correct RT (ms) left VHF")+
    ylab("Mean correct RT (ms) right VHF")+
   geom_point()+
+    xlim(500,1600)+
+  ylim(500,1600)+
   ggtitle("Word Comprehension") +
   scale_shape_manual(name="Significantly lateralised",
                      labels=c("No","Yes"),
@@ -2148,6 +2152,78 @@ Second, we can rule out an explanation that treats the  non-lateralised tasks as
 To account for the observed pattern of results, we postulate two language centres, one lateralised at the population level (centre L), and the other centred on zero (centre Z). An individual's observed fTCD laterality on a task will depend on the extent to which these two centres are implicated in task performance, with Word Generation and Sentence Generation being largely dominated by centre L, Syntactic Decision and Word Comprehension by centre Z, and Phonological Decision and Sentence Comprehension implicating both centres. 
 
 To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same Factor than for those loading on different Factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
+
+
+## References  
+Anwyl-Irvine, A. L., Massonni , J., Flitton, A., Kirkham, N., & Evershed, J. K. (2020). Gorilla in our midst: An online behavioral experiment builder. Behavior Research Methods, 52, 388-407.  
+Balota, D. A., Yap, M. J., Hutchison, K. A., Cortese, M. J., Kessler, B., Loftis, B., ... & Treiman, R. (2007). The English lexicon project. Behavior Research Methods, 39(3), 445-459.  
+Bethmann, A., Tempelmann, C., De Bleser, R., Scheich, H., & Brechmann, A. (2007). Determining language laterality by fMRI and dichotic listening. Brain Research, 1133(1), 145-157.  
+Bishop, D. V. M. (1980). Measuring familial sinistrality. Cortex, 16, 311-313.  
+Bishop, D. V. M. (1990). On the futility of using familial sinistrality to subclassify handedness groups. Cortex, 26, 153-155.  
+Bishop, D. V. M. (2003). The Test for Reception of Grammar, version 2 (TROG-2). London: Pearson.  
+Bishop, D. V. M. (2013). Cerebral asymmetry and language development: Cause, correlate, or consequence? Science, 340(6138). doi:10.1126/science.1230531  
+Bless, J. J., Westerhausen, R., Arciuli, J., Kompus, K., Gudmundsen, M., & Hugdahl, K. (2013). “Right on all occasions?”–On the feasibility of laterality research using a smartphone dichotic listening application. Frontiers in Psychology, 4, 42.  
+Bradshaw, A. R., Bishop, D. V., & Woodhead, Z. V. (2017). Methodological considerations in assessment of language lateralisation with fMRI: a systematic review. PeerJ, 5, e3557. https://doi.org/10.7717/peerj.3557  
+Bryden, M. P. (1975). Speech lateralisation in families: A preliminary study using dichotic listening. Brain and Language, 2, 201-211.  
+Bryden, M.P. (1982). Laterality: Functional Asymmetry in the Intact Brain. New York: Academic Press.  
+Carey, D. P., & Johnstone, L. T. (2014). Quantifying cerebral asymmetries for language in dextrals and adextrals with random-effects meta analysis. Frontiers in Psychology, 5, 1128. doi:10.3389/fpsyg.2014.01128  
+Champely, S. (2018). pwr: Basic Functions for Power Analysis. R package version 1.2-2. Retrieved from https://CRAN.R-project.org/package=pwr  
+Corey, D., & Foundas, A. (2010). Measuring familial sinistrality: Problems with dichotomous classification. Laterality, 10(4), 321-335. doi:10.1080/13576500442000111  
+Duñabeitia JA, Crepaldi D, Meyer AS, et al., (2018). MultiPic: A standardized set of 750 drawings with norms for six European languages. Quarterly Journal of Experimental Psychology, 71(4):808-816. doi:10.1080/17470218.2017.1310261.  
+Fedorenko E, Hsieh P-J, Nieto-Casta on A, Whitfield-Gabrieli S, Kanwisher N. (2010). New method for fMRI investigations of language: defining ROIs functionally in individual subjects. Journal of Neurophysiology, 104:1177–1194. doi:10.1152/ jn.00032.2010  
+Fesl, G., Bruhns, P., Rau, S., Wiesmann, M., Ilmberger, J., Kegel, G., . . . 2010, P. M. (2010). Sensitivity and reliability of language laterality assessment with a free reversed association task-a fMRI study. European Radiology, 20(3), 683-695. doi:10.1007/s00330-009-1602-4  
+Fletcher, T. D. (2010). psychometric: Applied Psychometric Theory. R package version 2.2. Retrieved from https://CRAN.R-project.org/package=psychometric  
+Gerrits, R., Verhelst, H., & Vingerhoets, G. (2020). Mirrored brain organization: Statistical anomaly or reversal of hemispheric functional segregation bias? Proceedings of the National Academy of Sciences, 117, 14057-14065. doi:10.1073/pnas.2002981117  
+Hartshorne, J. K., Tenenbaum, J. B, & Pinker, S. (2018). A critical period for second language acquisition: Evidence from 2/3 million English speakers. Cognition, 177, 263-277. doi:https://doi.org/10.1016/j.cognition.2018.04.007  
+Hickok, G., & Poeppel, D. (2007). The cortical organization of speech processing. Nature Reviews Neuroscience, 8(5), 393-402.  
+Hoaglin, D. C., & Iglewicz, B. (1987). Fine-tuning some resistant rules for outlier labelling. Journal of the American Statistical Association, 82(400), 1147-1149. Hugdahl, K., & Andersson, L. (1986). The “forced-attention paradigm” in dichotic listening to CV-syllables: a comparison between adults and children. Cortex, 22(3), 417-432.  
+Hunter, Z. R., & Brysbaert, M. (2008). Visual half-field experiments are a good measure of cerebral language dominance if used properly: Evidence from fMRI. Neuropsychologia, 46(1), 316-325.  
+Johnstone, L. T., Karlsson, E. M., & Carey, D. P. (2020). The validity and reliability of quantifying hemispheric specialisation using fMRI: Evidence from left and right handers on three different cerebral asymmetries. Neuropsychologia, 138, 107331. doi:10.1016/j.neuropsychologia.2020.107331  
+Karlsson, E. M., Johnstone, L. T., & Carey, D. P. (2019). The depth and breadth of multiple perceptual asymmetries in right handers and non-right handers. Laterality, 24(6), 707-739. https://doi.org/10.1080/1357650X.2019.1652308  
+Knecht, S., Deppe, M., Ebner, A., Henningsen, H., Huber, T., Jokeit, H., & Ringelstein, E. B. (1998). Noninvasive determination of language lateralization by functional transcranial Doppler sonography A comparison with the Wada test. Stroke, 29(1), 82-86. http://dx.doi.org/ 10.1161/01.STR.29.1.82  
+Knecht, S., Deppe, M., Dr ger, B., Bobe, L., Lohmann, H., Ringelstein, E.-B., & Henningsen, H. (2000). Language lateralisation in healthy right handers. Brain, 123(1), 74-81.  
+Lee, D., Swanson, S., Sabsevitz, D., Hammeke, T., Scott, W., F, Possing, E., & Binder, J. (2008). Functional MRI and Wada studies in patients with interhemispheric dissociation of language functions. Epilepsy and Behavior, 13(2), 350-356.  
+Lemh fer, K., & Broersma, M. (2012). Introducing LexTALE: A quick and valid lexical test for advanced learners of English. Behavior Research Methods, 44(2), 325-343.  
+Mazoyer, B., Zago, L., Jobard, G., Crivello, F., Joloit, M., Perchey, G., . . . Tzourio-Mazoyer, N. (2014). Gaussian Mixture Modeling of hemispheric lateralization for language in a large sample of healthy individuals balanced for handedness. PLOS One, 9, e101165. doi:10.1371/journal.pone.0101165  
+McKeever, W. F., & Vandeventer, A. D. (1977). Visual and auditory language processing asymmetries: influences of handedness, familial sinistrality, and sex. Cortex, 13, 225-241.  
+Moshagen, M. (2020). semPower: Power Analyses for SEM. R package version 1.0.1. Retrieved from https://CRAN.R-project.org/package=semPower.  
+Moshagen, M., & Erdfelder, E. (2016). A new strategy for testing structural equation models. Structural Equation Modeling, 23, 54-60. doi:10.1080/10705511.2014.950896  
+Ocklenburg, S., Str ckens, F., Bless, J. J., Hugdahl, K., Westerhausen, R., & Manns, M. (2016). Investigating heritability of laterality and cognitive control in speech perception. Brain and Cognition, 109, 34-39.  
+Oldfield, R. C. (1971). The assessment and analysis of handedness: the Edinburgh inventory. Neuropsychologia, 9, 97-113.  
+Orsini, D. L., Satz, P., Soper, H. V., & Light, R. K. (1985). The role of familial sinistrality in cerebral organization. Neuropsychologia, 23, 223-232.  
+Parker, A. J., Woodhead, Z. V. J., Thompson, P. A., & Bishop, D. V. M. (2020, in press). Assessing the reliability of an online behavioural laterality battery: a pre-registered study. Laterality. (For prior version see PsyArXiv, August 7. doi: 10.31234/osf.io/sb824)  
+Porac, C., & Coren, S. (1976). The dominant eye. Psychological Bulletin, 83, 880-897.
+Pornprasertmanit, S., Miller, P., Schoemann, A., & Jorgensen, T. D. (2020). simsem: SIMulated Structural Equation Modeling. R package version 0.5-15. https://CRAN.R-project.org/package=simsem.  
+R Core Team. (2016). R: A language and environment for statistical computing. Vienna, Austria: R Foundation for Statistical Computing. Retrieved from https://www.R-project.org/  
+Ramsey, N. F., Sommer, I. E. C., Rutten, G. J., & Kahn, R. S. (2001). Combined analysis of language tasks in fMRI improves assessment of hemispheric dominance for language functions in individual subjects. Neuroimage, 13(4), 719-733. doi:10.1006/nimg.2000.0722  
+Rasmussen, T., & Milner, B. (1975). Clinical and surgical studies of the cerebral speech areas in man. In K. Zülch, O. Creutzfeldt, & G. Galbraith (Eds.), Cerebral Localisation (pp. 238-257). New York: Springer Verlag.  
+Rasmussen, T., & Milner, B. (1977). The role of early left‐brain injury in determining lateralization of cerebral speech functions. Annals of the New York Academy of Sciences, 299(1), 355-369. doi:10.1111/j.1749-6632.1977.tb41921.x  
+Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. Journal of Statistical Software, 48, 1-36.  
+Seghier, M. L. (2008). Laterality index in functional MRI: methodological issues. Magnetic Resonance Imaging, 26(5), 594-601; https://doi.org/10.1016/j.mri.2007.10.010  
+Sørensen, Ø., & Westerhausen, R. (2020). From observed laterality to latent hemispheric differences: Revisiting the inference problem. Laterality, 25(5), 560-582. doi:10.1080/1357650X.2020.1769124  
+Taylor, J.E., Beith, A. & Sereno, S.C. LexOPS: An R package and user interface for the controlled generation of word stimuli. Behavior Research Methods (2020). https://doi.org/10.3758/s13428-020-01389-1  
+Van der Haegen, L., & Brysbaert, M. (2018). The relationship between behavioral language laterality, face laterality and language performance in left-handers. PLoS One, 13(12), 1–22. https://doi.org/10.1371/journal.pone.0208696  
+Van Heuven, W. J. B., Mandera, P., Keuleers, E., & Brysbaert, M. (2014). SUBTLEX-UK: A new and improved word frequency database for British English. Quarterly Journal of Experimental Psychology, 67, 1176-1190. doi:10.1080/17470218.2013.850521  
+Vingerhoets, G. (2019). Phenotypes in hemispheric functional segregation? Perspectives and challenges. Physics of Life Reviews, 30, 1-18. doi:10.1016/j.plrev.2019.06.002
+Voyer, D. (1998). On the reliability and validity of noninvasive laterality measures. Brain and Cognition, 36, 209-236.  
+Wagenmakers, E. J., & Farrell, S. (2004). AIC model selection using Akaike weights. Psychonomic Bulletin and Review, 11(1), 192-196.  
+Wang, J.,& Wang, X. (2012). Structural Equation Modeling: Applications Using Mplus. Chichester, West Sussex, U.K: Wiley/Higher Education Press.  
+Wilke, M., & Lidzba, K. (2007). LI-tool: A new toolbox to assess lateralization in functional MR-data. Journal of Neuroscience Methods, 163(1), 128-136. doi:10.1016/j.jneumeth.2007.01.026  
+Woodhead, Z. V. J., Bradshaw, A. R., Wilson, A. C., Thompson, P. A., & Bishop, D. V. M. (2019). Testing the unitary theory of language lateralisation using functional transcranial Doppler sonography in adults. Royal Society Open Science, 6(3).  
+Woodhead, Z. V. J., Rutherford, H., & Bishop, D. V. M. (2018). Measurement of language laterality using functional transcranial Doppler ultrasound: a comparison of different tasks [version 2; peer review: 2 approved]. Wellcome Open Research, 3, 104. doi:https://doi.org/10.12688/wellcomeopenres.14720.2  
+Woodhead, Z. V. J., Thompson, P. A., Karlsson, E., & Bishop, D. V. M. (2020, September 9). Investigating multidimensionality of language lateralisation in left and right handed adults: an update on Woodhead et al. 2019. https://doi.org/10.31234/osf.io/mrkgf  
+Wolf, E. J., Harrington, K. M., Clark, S. L., & Miller, M. W. (2013). Sample size requirements for Structural Equation Models: An evaluation of power, bias, and solution propriety. Educational and Psychological Measurement, 73(6), 913-934.  
+
+
+## Acknowledgements
+This study is supported by an Advanced Grant from the European Research Council [694189].
+  
+## Declaration of interest
+The authors declare no competing interests.
+
+## Author contributions
+Adam J. Parker: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; Zoe V. J. Woodhead: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; David P. Carey: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Margriet A. Groen: Conceptualisation, Writing - Review and Editing, Supervision; Eva Gutierrez-Sigut: Methodology, Writing - Review and Editing;
+Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hudson: Supervision; Emma M. Karlsson: Conceptualisation, Methodology, Writing - Review and Editing; Mairéad MacSweeney: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Heather Payne: Methodology, Writing - Review and Editing; Nuala Simpson: Project Administration; Paul A. Thompson: Formal analysis, Data Curation; Writing - Review and Editing; Kate E. Watkins: Conceptualisation, Writing - Review and Editing, Ciara Egan: Methodology, Investigation; Jack H. Grant: Methodology, Investigation; Sophie Harte: Methodology, Investigation; Brad T. Hudson: Methodology, Investigation; Maria Sablik: Investigation; Dorothy V. M. Bishop: Conceptualisation, Methodology, Formal analysis, Writing - original draft, Supervision, Funding Acquisition.
 
 
 ## Supplementary materials  
