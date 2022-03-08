@@ -206,7 +206,7 @@ mysummary[8,writecolnum]<- paste0('t = ',round(tL$statistic,1),'; ', pformat(tL$
 mysummary[9,writecolnum]<- paste0('t = ',round(tR$statistic,1),'; ', pformat(tR$p.value))
 mysummary[10,writecolnum]<- paste0('t = ',-round(tcompare$statistic,1),'; ', pformat(tcompare$p.value))
 cor.eo <-spearman.ci(thisdat[,odds],thisdat[,evens], nrep = 1000, conf.level = 0.95)
-mysummary[11,writecolnum]<-paste0(round(cor.eo$estimate,3),' [',round(cor.eo$conf.int[1],3),', ',round(cor.eo$conf.int[2],3),']')
+mysummary[11,writecolnum]<-paste0(round(cor.eo$estimate,2),' [',round(cor.eo$conf.int[1],2),', ',round(cor.eo$conf.int[2],2),']')
 
 
 
@@ -250,7 +250,7 @@ ggheatmap <- ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
  coord_fixed()
 
 myheatmap <- ggheatmap + 
-geom_text(aes(Var2, Var1, label = round(value,3)), color = "black", size = 4) +
+geom_text(aes(Var2, Var1, label = round(value,2)), color = "black", size = 4) +
 theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank(),
@@ -837,6 +837,8 @@ The analysis starts with presentation of descriptive data, including distributio
 ![Participant recruitment flowchart](COLAflow.jpg)
 
 _Departures from pre-registration plan_  
+Our original flowchart had stated there were four online laterality tasks, but, as stated in the Stage 1 report, one of these had been dropped after pilot testing showed it had poor reliability, and only three tasks were therefore used. The original flowchart from the Stage 1 report was in error in mentioning 4 tasks, and this is corrected here.  
+
 Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing.  Because of the Covid situation, the time periods when it was possible to test in person were greatly restricted, and testing had to be carried out under strict conditions to ensure safety (researchers wearing full personal protective equipment in a ventilated space, and cleaning of equipment between participants). Furthermore, researchers and participants could become unavailable for testing at short notice because of a positive Covid test or notification of a contact with an infected person, and some participants were understandably reluctant to come for in-person testing.
 
 The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
@@ -926,7 +928,9 @@ DLsides <- ggplot(DLdat, aes(x=DL.L, y=DL.R, color=Handedness,shape=as.factor(DL
   scale_color_manual(name="Handedness",
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
-  geom_abline(intercept = 0, slope = 1)
+  geom_abline(intercept = 0, slope = 1)+
+  annotate("text", x=50, y=100, label= "Above diagonal:\nR Ear Advantage",size=3) +
+    annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=3) 
 
 ggsave(paste0(mydir,"/03-graphic-outputs/AFig1_DLsides.png"),width = 6, height = 4)
 
@@ -944,12 +948,10 @@ mycomb$RDTsig[w]<-1
 
 
 RDTdat <- mycomb[mycomb$excludeRDT==0,]
-RDTsides <- ggplot(RDTdat, aes(x=exp(RDT.Lmean), y=exp(RDT.Rmean), color=Handedness,shape=as.factor(RDTsig))) +
-  xlab("Mean correct RT (ms) left VHF")+
-   ylab("Mean correct RT (ms) right VHF")+
+RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=as.factor(RDTsig))) +
+  xlab("Log mean correct RT (ms) L VHF")+
+   ylab("Log mean correct RT (ms) R VHF")+
   geom_point()+
-  xlim(500,1600)+
-  ylim(500,1600)+
   ggtitle("Rhyme Decision") +
   scale_shape_manual(name="Significantly lateralised",
                      labels=c("No","Yes"),
@@ -957,7 +959,9 @@ RDTsides <- ggplot(RDTdat, aes(x=exp(RDT.Lmean), y=exp(RDT.Rmean), color=Handedn
   scale_color_manual(name="Handedness",
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
-  geom_abline(intercept = 0, slope = 1)
+  geom_abline(intercept = 0, slope = 1)+
+    annotate("text", x=6.6, y=7.25, label= "Above diagonal:\nLVF Advantage",size=3) +
+    annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=3) 
 
 ggsave(paste0(mydir,"/",figdir,"/AFig2_RDTsides.png"),width = 6, height = 4)
 
@@ -972,12 +976,10 @@ mycomb$WCsig[w]<-1
 
 
 WCdat <- mycomb[mycomb$excludeWC==0,]
-WCsides <- ggplot(WCdat, aes(x=exp(WC.Lmean), y=exp(WC.Rmean), color=Handedness,shape=as.factor(WCsig))) +
-  xlab("Mean correct RT (ms) left VHF")+
-   ylab("Mean correct RT (ms) right VHF")+
+WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.factor(WCsig))) +
+  xlab("Log mean correct RT (ms) L VHF")+
+   ylab("Log mean correct RT (ms) R VHF")+
   geom_point()+
-    xlim(500,1600)+
-  ylim(500,1600)+
   ggtitle("Word Comprehension") +
   scale_shape_manual(name="Significantly lateralised",
                      labels=c("No","Yes"),
@@ -985,7 +987,9 @@ WCsides <- ggplot(WCdat, aes(x=exp(WC.Lmean), y=exp(WC.Rmean), color=Handedness,
   scale_color_manual(name="Handedness",
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
-  geom_abline(intercept = 0, slope = 1)
+  geom_abline(intercept = 0, slope = 1)+
+      annotate("text", x=6.6, y=7, label= "Above diagonal:\nLVF Advantage",size=3) + 
+    annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=3) 
 
 ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.png"),width = 6, height = 4)
 
@@ -1066,7 +1070,7 @@ Before testing specific predictions about interrelationships between measures, w
 
 onlinesummary <- data.frame(matrix(NA,nrow=12,ncol=4))
 colnames(onlinesummary)<-c('Statistic','Dichotic','Rhyme','Comprehension')
-onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs L-hander t','Split half rho [95% CI]','Test-retest rho [95% CI] (N = 53)')
+onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD): L-hander','Mean (SD): R-hander','one-group t: L-hander','one-group t: R-hander','R-hander vs L-hander t','Split half rho [95% CI]','Test-retest rho [95% CI] (N = 53)')
 ```
 
 
@@ -1082,13 +1086,13 @@ mytask<-'RDT'
 writecolnum <- 3 #column of online summary to write to for this task
 onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 cor3<-spearman.ci(sess1$RDT.zlat, sess3$RDT.zlat, nrep = 1000, conf.level = 0.95)
-onlinesummary[12,3]<-paste0(round(cor3$estimate,3),'[',round(cor3$conf.int[1],3),', ',round(cor3$conf.int[2],3),']')
+onlinesummary[12,3]<-paste0(round(cor3$estimate,2),' [',round(cor3$conf.int[1],2),', ',round(cor3$conf.int[2],2),']')
 
 mytask<-'WC'
 writecolnum <- 4 #column of online summary to write to for this task
 onlinesummary <- populate(mycomb,mytask,onlinesummary,writecolnum,'beh')
 cor4<-spearman.ci(sess1$WC.zlat, sess3$WC.zlat, nrep = 1000, conf.level = 0.95)
-onlinesummary[12,4]<-paste0(round(cor4$estimate,3),' [',round(cor4$conf.int[1],3),', ',round(cor4$conf.int[2],3),']')
+onlinesummary[12,4]<-paste0(round(cor4$estimate,2),' [',round(cor4$conf.int[1],2),', ',round(cor4$conf.int[2],2),']')
 
 
 ft<-flextable(onlinesummary)
@@ -1097,9 +1101,16 @@ ft<-autofit(ft)
 ft
 tabnumber <- tabnumber+1
 tabonlinesummary<-tabnumber
+
+ftbig<-flextable(onlinesummary)
+ftbig <- fontsize(ftbig,size=16)
+ftbig<-autofit(ftbig)
+
+tabnumber <- tabnumber+1
+tabonlinesummary<-tabnumber
 ```
 
-Table `r tabnumber`: _Descriptive statistics for three online laterality measures_  
+Table `r tabnumber`: _Descriptive statistics for LIz for three online laterality measures_  
 
 
 ```{r behpirates, echo=FALSE, warning=FALSE,message=F}
@@ -1108,7 +1119,7 @@ Table `r tabnumber`: _Descriptive statistics for three online laterality measure
 
  mypath<-paste0(mydir,"/",figdir)
   plotname<-paste0(mypath,'/beh_pirates.jpg')
-  plotname<-'beh_pirates.jpg' #creating a version in project directory
+#  plotname<-'beh_pirates.jpg' #creating a version in project directory
 jpeg(plotname, width = 800, height = 500)
 
 bLIdat <- combdat %>% 
@@ -1120,7 +1131,9 @@ levels(bLIdat$Handed)<-c("L","R")
 longdata.b <- pivot_longer(data = bLIdat, cols = c(3:5), names_to = 'Task', values_to = 'LIz')
 longdata.b$Task<-as.factor(longdata.b$Task)
 longdata.b$Task <- factor(longdata.b$Task, levels = c('Dichotic', 'Rhyme', 'Comprehension'))
-pirateplot(data = longdata.b, LIz ~ Handed * Task)
+pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1.5, cex.axis=1, cex.names=1.4,ylab='R hem bias <--- LIz ---> L hem bias')
+
+
 abline(h=0)
 
 
@@ -1366,9 +1379,11 @@ ddati$randgroup<-1+rbinom(nrow(ddati),1,.5) #create random group 1 or 2 for late
 
 LIcols <- c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
 
-myheatmap <- makeheatmap(ddati,LIcols)
+temp<-ddati #make copy with full names for variables and use this for heatmap
+w<-which(colnames(temp)%in%LIcols)
+colnames(temp)[w]<-tasknames
+myheatmap <- makeheatmap(temp,tasknames)
 
-#Saved heatmap needs a bit of tweaking! Size of axis labels and grey background need fixing
 ggsave(paste0(mydir,"/",figdir,"/ftcd-heatmap.png"),width = 6, height = 6)
 ggsave("ftcd-heatmap.png",width = 6, height = 6)
 
@@ -1419,7 +1434,8 @@ model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3'
 #2 factor production/reception model
 model.2F <- '
 f1 =~  A_P1 + B_P2+C_P3
-f2 =~ F_R3 + D_R1 + E_R2  #2 factor model: 
+f2 =~  NA*D_R1 + E_R2 +F_R3 #2 factor model: 
+f2~~1*f2
 #covariance unspecified, which means there is no constraint on covariance
 
 '
@@ -1434,10 +1450,11 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #Creates a structural diagram for single factor model: nb does NOT include path estimates (these can be shown if we put 'par' rather than 'diagram', but it gets messy, and the parameters are shown instead in a table)
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
-
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF1")
-semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Word\nCompr.','Sentence\nCompr.','Syntactic\nDecision','F1')
+
+semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
+    sizeMan2 = 5,nodeLabels=mynodes, filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 fit2 <- cfa(model.2F, estimator="WLSMV",data=ddati)
 sfit2 <- makeSEMtab(fit2)
@@ -1445,8 +1462,9 @@ bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from 
 
 #lavResiduals(fit2)
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2")
-semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+mynodes2<-c(mynodes,'F2')
+semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
+    sizeMan2 = 5,nodeLabels=mynodes2,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
 
 
@@ -1582,14 +1600,14 @@ anova(fit.2Fn,fit.2F)
 
 
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_revised")
-
-semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+mynodes3<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Sentence\nCompr.','Word\nCompr.','Syntactic\nDecision','F1','F2')
+semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
+    sizeMan2 = 5,nodeLabels=mynodes3,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 #redo with save to current directory
 pathfigname<-"pathfigF2_revised"
-semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
+    sizeMan2 = 5,nodeLabels=mynodes3,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 #look at residuals for diagnostics
 res<-resid(fit.2Fn, type = "cor") #large abs values (> .1) indicate relationships not well accounted for
