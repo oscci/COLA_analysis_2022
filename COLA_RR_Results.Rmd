@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "10 Mar 2022"
+date: "11 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -837,8 +837,9 @@ The analysis starts with presentation of descriptive data, including distributio
 
 ![Participant recruitment flowchart](COLAflow.jpg)
 
+
 _Departures from pre-registration plan_  
-Our original flowchart had stated there were four online laterality tasks, but, as stated in the Stage 1 report, one of these had been dropped after pilot testing showed it had poor reliability, and only three tasks were therefore used. The original flowchart from the Stage 1 report was in error in mentioning 4 tasks, and this is corrected here.  
+Our original flowchart had stated there were four online behavioural laterality tasks, but, as stated in the Stage 1 report, one of these had been dropped after pilot testing showed it had poor reliability, and only three tasks were therefore used. The original flowchart from the Stage 1 report was in error in mentioning 4 tasks, and this is corrected here.  
 
 Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing.  Because of the Covid pandemic, the time periods when it was possible to test in person were greatly restricted, and testing had to be carried out under strict conditions to ensure safety (researchers wearing full personal protective equipment in a ventilated space, and cleaning of equipment between participants). Furthermore, researchers and participants could become unavailable for testing at short notice because of a positive Covid test or notification of a contact with an infected person, and some participants were understandably reluctant to attend in-person testing.
 
@@ -877,7 +878,7 @@ tabnumber<-tabnumber+1
 ```
 Table `r tabnumber`: _Demographic characteristics of sample_
 
-Table `r tabnumber` shows demographic data for the subset of individuals tested on the online battery only, and the subset who also completed the session with fTCD. It is evident from inspection that differences between the two subgroups are not substantial. 
+Table `r tabnumber` shows demographic data for the subset of individuals tested on the online behavioural battery only, and the subset who also completed the session with fTCD. It is evident from inspection that differences between the two subgroups are not substantial. 
 
 ## Subsample for test-retest study 
 
@@ -902,7 +903,7 @@ date_diff_stats <- fivenum(sess3$date_diff)
 
 ```
 
-We had preregistered that we would do a test-retest reliability check on online tests for 50 participants. In practice, a subsample of `r nrow(sess3)` participants was retested on part of the online battery within `r ceiling(as.numeric(date_diff_stats[5]) / 7)` weeks of the first session (median = `r date_diff_stats[3]` days, range = `r date_diff_stats[1]` to `r date_diff_stats[5]` days). There were `r mtab[1,1]` left-handed females, `r mtab[2,1]` left-handed males, `r mtab[1,2]` right-handed females, and `r mtab[2,2]` right-handed males. The retest session included the Rhyme Decision and Word Comprehension tasks, which were new, but not Dichotic Listening, for which we had adequate evidence of test-retest reliability from the previous study by Parker et al (2021). 
+We had preregistered that we would do a test-retest reliability check on online behavioural tests for 50 participants. In practice, a subsample of `r nrow(sess3)` participants was retested on part of the online battery within `r ceiling(as.numeric(date_diff_stats[5]) / 7)` weeks of the first session (median = `r date_diff_stats[3]` days, range = `r date_diff_stats[1]` to `r date_diff_stats[5]` days). There were `r mtab[1,1]` left-handed females, `r mtab[2,1]` left-handed males, `r mtab[1,2]` right-handed females, and `r mtab[2,2]` right-handed males. The retest session included the Rhyme Decision and Word Comprehension tasks, which were new, but not Dichotic Listening, for which we had adequate evidence of test-retest reliability from the previous study by Parker et al (2021). 
 
 
 ## Online behavioural battery  
@@ -1005,7 +1006,7 @@ fignumber<-fignumber+1
 
 ```
 
-![Responses to stimuli on left and right: online laterality tasks_](allLRbeh.png)
+![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.png)
   
 
 Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural tasks in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
@@ -1061,7 +1062,7 @@ suppfignumber<- suppfignumber+1
 
 
 
-## Online battery: Distribution of Laterality indices  
+## Online behavioural battery: Distribution of Laterality indices  
 
 Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
 
@@ -1256,7 +1257,7 @@ for (i in 1:length(tasknames)){
 #THESE PLOTS NOT CURRENTLY USED
 ```
 
-```{r accuracyftcd,echo=F}
+```{r accuracyftcd,echo=F,warning=F}
 #What is above chance performance for 2-choice task with 54 items (SD?
 #1-pbinom(33, size=54, prob=0.5) = .03
 #So less than 61% correct is chance level
@@ -1284,16 +1285,17 @@ datalist<-combdat[-poordata,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
 acctab<-describe(datalist[,2:7])
 ```
 ## Accuracy on fTCD tasks  
-The mean number of words produced per trials was `r round(acctab$mean[1],2`, (SD = `r round(acctab$sd[1],2`) for Word Generation and  `r round(acctab$mean[2],2`, (SD = `r round(acctab$sd[2],2`) for Sentence Generation. For the four decision tasks, accuracy was recorded in percentage correct:  `r round(acctab$mean[3],2`, (SD = `r round(acctab$sd[3],2`) for Phonological Decision, `r round(acctab$mean[4],2`, (SD = `r round(acctab$sd[4],2`) for Word Decision, `r round(acctab$mean[5],2`, (SD = `r round(acctab$sd[5],2`) for Sentence Decision, and `r round(acctab$mean[6],2`, (SD = `r round(acctab$sd[6],2`) for Syntactic Decision.  
+The mean number of words produced per trial was `r round(acctab$mean[1],2)`, (SD = `r round(acctab$sd[1],2)`) for Word Generation and  `r round(acctab$mean[2],2)`, (SD = `r round(acctab$sd[2],2)`) for Sentence Generation. For the four decision tasks, accuracy was recorded as mean percentage correct:  `r round(acctab$mean[3],2)` (SD = `r round(acctab$sd[3],2)`) for Phonological Decision, `r round(acctab$mean[4],2)` (SD = `r round(acctab$sd[4],2)`) for Word Decision, `r round(acctab$mean[5],2)` (SD = `r round(acctab$sd[5],2)`) for Sentence Decision, and `r round(acctab$mean[6],2)` (SD = `r round(acctab$sd[6],2)`) for Syntactic Decision.  
+THIS CURRENTLY EXCLUDES 8 CASES WITH V LOW SCORES.  
 
 ## LI Summary Statistics
 
 ```{r LIpirates, echo=FALSE, warning=FALSE,message=F}
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
-#NOW REORDERED IN TERMS OF BIAS TO LEFT HEMISPHERE
+#was REORDERED IN TERMS OF BIAS TO LEFT HEMISPHERE, but now in original order
 
 #Make task names that will print on 2 lines for compactness
-tasknames2 <- c("Sentence\ngeneration","Word\ngeneration","Phonological\ndecision","Sentence\ncomprehension","Syntactic\ndecision","Word\ncomprehension")
+tasknames2 <- c("Word\ngeneration","Sentence\ngeneration","Phonological\ndecision","Word\ndecision","Sentence\ndecision","Syntactic\ndecision")
 #Now make text locations for these on pirate plot: we'll place A-C below plot and D-F above it
 horizpts<-rep(1,6)
 for (i in 1:6){
@@ -1308,15 +1310,15 @@ vertpts[4:6]<-6
 jpeg(plotname, width = 800, height = 500)
 
 LIdata <- ddat %>% 
-  dplyr::select(ID, Rhanded, B_mean_LI,A_mean_LI,  C_mean_LI, E_mean_LI, F_mean_LI, D_mean_LI)
-colnames(LIdata) <- c('ID','Handed','1B','2A','3C','4E','5F','6D')
+  dplyr::select(ID, Rhanded,A_mean_LI,  B_mean_LI, C_mean_LI,D_mean_LI, E_mean_LI, F_mean_LI, )
+colnames(LIdata) <- c('ID','Handed','1A','2BV','3C','4D','5E','6F')
 LIdata$Handed <- as.factor(LIdata$Handed)
 levels(LIdata$Handed)<-c("L","R")
 
 
 longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', values_to = 'LI')
 longdata.d$Task <- as.factor(longdata.d$Task)
-levels(longdata.d$Task)<-c('B','A','C','E','F','D')
+levels(longdata.d$Task)<-c('A','B','C','D','E','F')
 pirateplot(data = longdata.d, LI ~ Handed * Task,ylim=c(-6,8))
 abline(h=0)
 
@@ -1330,7 +1332,7 @@ fignumber<-fignumber+1
 piratenumber <- fignumber
 ```
 
-![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers. Tasks ordered in strength of left-lateralisation, from most to least.](ftcd_pirates.jpg)
+![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers.](ftcd_pirates.jpg)
 
 
 ```{r doppler-ttests,echo=F}
@@ -1833,8 +1835,8 @@ In a final step (strict invariance), we constrain item residual variances as wel
 In sum, results from the measurement invariance test showed that, contrary to our prediction, the same underlying structural model can be assumed to apply for both left- and right-handers, with the differences between handedness groups being explained solely in terms of differences in factor means, rather than in the pattern of covariances between the six LIs. 
 
 ```{r factorcompare,echo=F}
-cohd1 <- cohen.d(ddati$Factor1[ddati$Handed=="Right"],ddati$Factor1[ddati$Handed=="Left"])
-cohd2 <- cohen.d(ddati$Factor2[ddati$Handed=="Right"],ddati$Factor2[ddati$Handed=="Left"])
+cohd1 <- effsize::cohen.d(ddati$Factor1[ddati$Handed=="Right"],ddati$Factor1[ddati$Handed=="Left"])
+cohd2 <- effsize::cohen.d(ddati$Factor2[ddati$Handed=="Right"],ddati$Factor2[ddati$Handed=="Left"])
 fact1 <- t.test(ddati$Factor1 ~ ddati$Handed)
 fact2 <- t.test(ddati$Factor2 ~ ddati$Handed)
 
@@ -1865,7 +1867,7 @@ The obtained result clearly indicated that there were different factor means for
 ## Categorical analysis of LIs  
 Prediction 4 was: _On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised._
 
-The analysis so far has treated laterality as a continuum, but this continuum does have a zero-point, and negative scores indicate right-lateralisation and positive scores left-lateralisation. There are theoretical reasons to suppose that brain function might be influenced more by consistency in direction of lateralisation, than by degree. Thus, regardless of how strong or weak a laterality index is, brain functioning might be more efficient if all language functions are represented in the same hemisphere. 
+The analysis so far has treated laterality as a continuum, but this continuum does have a zero-point, and negative scores indicate right-lateralisation and positive scores left-lateralisation. There are theoretical reasons to suppose that brain function might be influenced more by consistency in direction of lateralisation, than by degree. Thus, regardless of how strong or weak a laterality index is, brain functioning might be more efficient if all language functions are predominantly mediated by the same hemisphere. 
 
 As stated in our preregistration: **_we first adopt the simple approach of dichotomising laterality at a cutoff of zero for each task, and then perform a chi-square analysis to test for association with handedness. For 6 measures, we adopt a Bonferroni-corrected alpha level of .02/6 = .003._** 
 
@@ -1985,7 +1987,7 @@ Nevertheless, although we cannot conclude there is no effect of handedness, it i
 Our fifth prediction was: **_the laterality profile obtained with the online language battery will be significantly associated with the profile seen with the direct measurement of cerebral blood flow using fTCD, with laterality on dichotic listening and word comprehension relating more strongly to receptive language tasks, and rhyme decision to language generation tasks._**
 
 
-A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationship between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (tasks D and C respectively).
+A preliminary inspection of correlations between online and fTCD laterality indices showed very little relationship between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (Word Decision and Phonological Decision respectively).
 
 
 ```{r preparedata,echo=F}
@@ -2010,13 +2012,22 @@ ddati <-cbind(ddati[,1:12],complete(thisdat.j,1))
 
  #need to ensure online LIs from excluded are not included
 mycolsb<-c("DL_z","RDT_z","WC_z",  "A_P1", "B_P2","C_P3", "D_R1","E_R2", "F_R3")
-bigheatmap <- makeheatmap(ddati,mycolsb)
+behnames<-c("Dichotic","Rhyme Decision","Word Comprehension")
+temp<-ddati #make copy with full names for variables and use this for heatmap
+w<-vector()
+for (i in 1:length(mycolsb)){ #use loop to ensure you get variables in the right order
+wx<-which(colnames(temp) == mycolsb[i])
+w<-c(w,wx)
+}
+colnames(temp)[w]<-c(behnames,tasknames)
+
+bigheatmap <- makeheatmap(temp,c(behnames,tasknames))
 ggsave(paste0(mydir,"/",figdir,"/bigheatmap.png"),width = 6, height = 6)
 fignumber<-fignumber+1
 
 ```
 
-![Heatmap with online and fTCD measures](bigheatmap.png)  
+![Heatmap with behavioural and fTCD laterality indices](bigheatmap.png)  
 
 We had preregistered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (Word Decision and phonological decision respectively).
 
