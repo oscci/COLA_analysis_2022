@@ -10,9 +10,10 @@
 ## 1. Prepare packages
 require(tidyverse)
 require(yarrr)
+require(ggpubr)
 
 tasks <- c('WG','SG','PD','WC','SC','SD')
-longtasks<-c('Word Generation','Sentence Generation','Phonological Decision','Word Comprehension','Sentence Comprehension','Syntactic Decision')
+longtasks<-c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
 ntasks <- length(tasks)
 
 basestart=-5 # baseline start
@@ -105,7 +106,7 @@ for (t in 1:ntasks){
   #Total nightmare getting correct allocation of condition to linetype and colour!
   taskmean_long$Handed_Side <- as.factor(taskmean_long$Condition)
   levels(taskmean_long$Handed_Side)<- c('L hander/L side', 'L hander/R side', 
-                                        'R hander/L side','Rhander/R side',
+                                        'R hander/L side','R hander/R side',
                                         'L hander/L-R','R hander/L-R')
 #Make a little file that allocates linetype/color to condition, but NB whether this works depends also on code below, as order of factors v important
   color_lty_cross = expand.grid(

@@ -110,13 +110,13 @@ myflow<-grViz("digraph flowchart {
   
   [1]: paste0('Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
   [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 28 L-handed + 25 R-handed)' )  
-  [3]: paste0('Group 1','\\n','Native speaker:','\\n', LH1a,' L-handed + ',RH1a,' R-handed','\\n','Non-native speaker, passed','\\n', LH1b,' L-handed + ',RH1b,' R-handed')
-  [4]: paste0('Group 2','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH1c,' L-handed + ',RH1c,' R-handed','\\n','b) Failed new screen:','\\n', LH1d,' L-handed + ',RH1d,' R-handed','\\n')
+  [3]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH1a,' L-handed + ',RH1a,' R-handed','\\n','Non-native speaker, passed','\\n', LH1b,' L-handed + ',RH1b,' R-handed')
+  [4]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH1c,' L-handed + ',RH1c,' R-handed','\\n','b) Failed new screen:','\\n', LH1d,' L-handed + ',RH1d,' R-handed','\\n')
   [5]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
   [6]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
   [7]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
-  [8]: paste0('Group 1','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
-  [9]: paste0('Group 2','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
+  [8]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
+  [9]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
 ")
 
 makefile<-1
