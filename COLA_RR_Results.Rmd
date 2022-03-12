@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "11 Mar 2022"
+date: "12 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -75,8 +75,11 @@ usePackage("RVAideMemoire") #for bootstrapped CIs around correlations
 usePackage("effsize")
 usePackage("psych")
 usePackage("magick") #used to combine path diagrams to single figure
-
-
+# devtools::install_github("dr-JT/semoutput") - haven't been able to get this to work?
+# require(semoutput)
+# usePackage("readr")
+# usePackage("semPlot")
+# usePackage("sjPlot")
 options(scipen=999)
 
 tabnumber <-0 #initialise counter for tables
@@ -829,8 +832,131 @@ In the previous study by Woodhead et al. (2019) we excluded cases with fewer tha
 ## Sampling and Analysis Plan
 The analysis starts with presentation of descriptive data, including distributions of scores by handedness, and split-half reliability of measures. The hypotheses are then tested, following the preregistration from table 1 of our original Stage 1 report. The preregistered text is presented with each analysis. All analyses are conducted with alpha = .02 and power .9. A Rmarkdown script to run analyses on simulated data is available on Open Science Framework: https://osf.io/9dbrg/?view_only=357994fa8f6b49ee83964f5108d82ee2.
 
+```{r makeflowchart,echo=F,message=F,warning=F}
+
+# require(DiagrammeR) #for participant recruitment flowchart
+# require(DiagrammeRsvg)
+# require(magrittr)
+# require(rsvg)
+
+#combdat<-read.csv('combdat.csv')
+mydir <- "~/Dropbox/COLA_RR_Analysis"
+figdir <-"03-graphic-outputs" 
+
+
+testtab <- table(combdat$Rhanded,combdat$ftcd)
+
+rownames(testtab)<-c('Left-handed','Right-handed')
+
+
+testtab-table(combdat$Rhanded,combdat$ftcd)
+
+
+LH1 <- testtab[1,1]+testtab[1,2]+testtab[1,3]
+RH1 <-testtab[2,1]+testtab[2,2]+testtab[2,3]
+
+#Need to divide into Group 1 and 2 according to language
+#Group 1 has native speakers and non-native who passed screen
+#Group 2 has (a) nonnative who failed prereg only and (b) nonnative who failed new screen
+
+langtab<-table(combdat$Rhanded,combdat$langgroup)
+
+LH1a <- langtab[1,1]
+RH1a <-langtab[2,1]
+LH1b <- langtab[1,2]
+RH1b <- langtab[2,2]
+LH1c <- langtab[1,3]
+RH1c <- langtab[2,3]
+LH1d <-langtab[1,4]
+RH1d <-langtab[2,4]
+
+
+thisdat<-combdat[combdat$ftcd>0,] #all with 1 or 9 for ftcd
+w<-which(thisdat$ftcd==9)
+thisdat$DopExclude[w]<-9
+testtab2<-table(thisdat$Rhanded,thisdat$DopExclude)
+
+LH2 <- testtab2[1,1]+testtab2[1,3] #here we include those who had unusable data
+RH2 <- testtab2[2,1]+testtab2[2,3]
+
+
+
+dopdat<-combdat[combdat$ftcd==1,]
+
+LH4 <- testtab2[1,1]
+LH5 <- testtab2[1,3]
+LH5a <- testtab2[1,2]
+RH4 <- testtab2[2,1]
+RH5 <- testtab2[2,3]
+RH5a <- testtab2[2,2]
+
+langtab<-table(dopdat$Rhanded,dopdat$langgroup)
+
+LH6a <- langtab[1,1]
+RH6a <-langtab[2,1]
+LH6b <- langtab[1,2]
+RH6b <- langtab[2,2]
+LH6c <- langtab[1,3]
+RH6c <- langtab[2,3]
+LH6d <-langtab[1,4]
+RH6d <-langtab[2,4]
+
+
+
+myflow<-grViz("digraph flowchart {
+  node [fontname = arial, shape = plaintext]
+          X[label='Screening\\nquestions']
+          Y[label= 'Step 1\\nOnline testing']
+          Q[label = 'Language screen']
+          Z[label = 'Step2\\nfTCD for subset']
+          U[label= 'fTCD quality']
+          V[label = 'Language screen']
+   node [fontname = arial, shape = rectangle, color = lightblue, style = filled]
+  A [label = '@@1']
+  B[label='@@2']
+  C [label='@@3']
+  D [label='@@4']
+  E [label='@@5']
+  F [label='@@6']
+  G [label='@@7']
+  H [label='@@8']
+  I [label='@@9']
+
+  A -> B 
+  B->{C,D}
+  C -> E
+  D -> E
+  E ->{F,G}
+  F -> {H,I}
 
   
+      X -> Y [alpha=0,color='white']
+      Y -> Q [alpha=0,color='white']
+      Q -> Z [alpha=0,color='white']
+      Z -> U [alpha=0,color='white']
+      U -> V [alpha=0,color='white']
+              }
+}
+  
+  [1]: paste0('Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
+  [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 28 L-handed + 25 R-handed)' )  
+  [3]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH1a,' L-handed + ',RH1a,' R-handed','\\n','Non-native speaker, passed','\\n', LH1b,' L-handed + ',RH1b,' R-handed')
+  [4]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH1c,' L-handed + ',RH1c,' R-handed','\\n','b) Failed new screen:','\\n', LH1d,' L-handed + ',RH1d,' R-handed','\\n')
+  [5]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
+  [6]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
+  [7]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
+  [8]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
+  [9]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
+")
+
+makefile<-1
+if(makefile==1){
+  filename<-paste0(mydir,"/",figdir,"/","COLAflow.jpg")
+myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
+}
+
+```
+
 
 ## Participants
   
@@ -908,6 +1034,22 @@ We had preregistered that we would do a test-retest reliability check on online 
 
 
 ## Online behavioural battery  
+
+```{r behdataclean,echo=F}
+#table(combdat$DLsame.corr,combdat$excludeDL)
+#uncomment to view data - confirms 75% cutoff for exclusion
+w<-which(combdat$DLsame.corr<.75)
+nDLex <- length(w)
+w<-which(combdat$RDT.pcorr<.75)
+nRDex <- length(w)
+w<-which(combdat$WC.pcorr<.75)
+nWCex <- length(w)
+```
+
+
+### Exclusions  
+We adopted the same procedures as Parker et al (2021) for excluding participants. On Dichotic Listening, `r nDLex` participants were excluded because their accuracy on 'same' trials (where both ears heard the same syllable) was less than 75%.  On Rhyme Decision and Word Comprehension `r nRDex` and `r nWCex` participants respectively were excluded because overall accuracy was less than 75%. 
+
 
 ### Derivation of laterality indices  
 
@@ -1220,6 +1362,158 @@ This prediction was not confirmed. The baseline hypothesis of a single lateralit
 We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with missing data on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
 
 <!-- Plot is created by fctd_task_plots.R-->
+
+```{r maketimecourse,echo=F,message=F}
+## Based on ftcd_task_plots.R script to create fTCD timecourse plots for each of the 6 language tasks. ZW Feb 2022
+
+## The script uses data produced during the fTCD preprocessing. 
+## For each participant, there are 6 .csv files, one for each task,
+## containing the averaged, preprocessed fTCD signal for the task.
+
+## The script reads in all of the data files and averages over all participants,
+## to produce one grand mean plot for each task.
+
+tasks <- c('WG','SG','PD','WC','SC','SD')
+longtasks<-c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
+ntasks <- length(tasks)
+
+basestart=-5 # baseline start
+baseend=2 # baseline end
+poistart=6 # period of interest start
+poiend=23 # period of interest end
+
+## Read in data
+datadir <- "~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_task_means/"
+ftcddata <- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data.csv")
+w<-which(is.na(ftcddata$A_exclude)) #all cases with no signal
+ftcddata <- ftcddata[-w,] 
+
+ftcddata$Nexclude <- ftcddata$A_exclude + ftcddata$B_exclude + ftcddata$C_exclude + ftcddata$D_exclude + ftcddata$E_exclude + ftcddata$F_exclude
+ftcddata <- ftcddata %>% filter(Nexclude <= 1)
+
+#NB; some are NA on Nexclude - I checked and these are both cases with just one missing
+
+# Load in the first one to find out how big it is
+tmpfile <- read.csv(paste0(datadir, '3151603_WG.csv'))
+
+# Get the x-axis (time) information from tmpfile
+mytime <- tmpfile$time
+
+## Get data for left-handers (h=0) and right-handers (h=1)
+for (t in 1:ntasks){
+  taskmean <- matrix(data=NA, nrow=dim(tmpfile)[1], ncol=6)
+  colnames(taskmean) <- c('LeftHand_L', 'LeftHand_R', 'RightHand_L', 
+  'RightHand_R','LeftHand_L-R','RightHand_L-R')
+  for (h in 0:1){
+    mysubj <- which(ftcddata$Hand_R == h) #rows of subs with this handedness
+    nsubj <- length(mysubj)
+     # Create matrices for the data we're going to read in (Ldata and Rdata)
+    Ldata <- Rdata <-diffdata<-matrix(data=NA, nrow=dim(tmpfile)[1], ncol=nsubj)
+    
+    for (s in 1:nsubj){
+      # Read in the data
+      mysubname <- ftcddata$Gorilla_ID[mysubj[s]]
+      myfile <- paste0(datadir,mysubname,'_',tasks[t],'.csv')
+      if (file.exists(myfile)){
+        mydat <- read.csv(myfile)
+        Ldata[ , s] <- mydat$Lmean
+        Rdata[ , s] <- mydat$Rmean
+        diffdata[,s]<-100+mydat$meanDiff #NB we add 100 to the difference so we can put it on the same plot
+      }
+    } # end subject loop
+    
+    # Average over participants (rows)
+    Lmean <- rowMeans(Ldata, na.rm=TRUE)
+    Rmean <- rowMeans(Rdata, na.rm=TRUE)
+    diff <- rowMeans(diffdata,na.rm=TRUE)
+    
+    taskmean[ , (h*2+1)] <- Lmean
+    taskmean[ , (h*2+2)] <- Rmean
+    taskmean[,(h+5)] <- diff #diffs in cols 5 and 6
+    
+  } # end handedness loop
+  
+  # Create plot for this task
+  # Make data longer
+  taskmean <- as.data.frame(taskmean)
+  taskmean$Time <- mytime
+  
+  # Crop to -10 to 30 seconds
+  start_index <- which(mytime==-10)
+  end_index <- which(mytime==24)
+  xtime <- mytime[start_index:end_index]
+  taskmean <- taskmean[start_index:end_index, ]
+  taskmean_long <- pivot_longer(data=taskmean, cols=c(1:6), 
+                                names_to = 'Condition', values_to='Velocity')
+  
+  if (t == 1 | t == 2) {poiend <- 17}
+  if (t > 2) {poiend <- 23}
+  
+  #chaos caused by R's ordering of factors, 
+  # so we need to change some names before factorising.
+  
+  uniques<-unique(taskmean_long$Condition)
+  #These are actually in the right order! Presumably because of order in original file.
+  #But they are character strings that get alphabetised if factored.
+  #So!
+  for (i in 1:6){
+    w<-which(taskmean_long$Condition==uniques[i])
+    n<-c(1,2,3,4,5,6)
+    taskmean_long$Condition[w]<-paste0(n[i],uniques[i]) #stick a number on the front
+  }
+
+  #Total nightmare getting correct allocation of condition to linetype and colour!
+  taskmean_long$Handed_Side <- as.factor(taskmean_long$Condition)
+  levels(taskmean_long$Handed_Side)<- c('L hander/L side', 'L hander/R side', 
+                                        'R hander/L side','R hander/R side',
+                                        'L hander/L-R','R hander/L-R')
+#Make a little file that allocates linetype/color to condition, but NB whether this works depends also on code below, as order of factors v important
+  color_lty_cross = expand.grid(
+    ltypes = c(1,2),
+    colors = c('red','blue','black'),
+    stringsAsFactors = F)
+  color_lty_cross$condition<-levels(taskmean_long$Handed_Side)
+#Change the order, as preferable to have solid for all R and dotted for all L
+  color_lty_cross$ltypes <- c(2,2,1,1,2,1)
+  color_lty_cross$colors <- c("red","blue","red","blue","black","black")
+  
+  thisplot<-ggplot(taskmean_long, aes(x=Time, y=Velocity, group=Handed_Side)) + 
+    geom_line(aes(linetype=Handed_Side,colour=Handed_Side,)) +
+    ylim(94,108)+
+    xlim(-5,25)+
+    scale_y_continuous(breaks = seq(94, 108, by=2),name = "Blood flow velocity", sec.axis = sec_axis(~.-100, name = "L-R"))+
+    scale_x_continuous(breaks = seq(-5, 25, by=5),name = "Time (s)")+
+    scale_color_manual(values = color_lty_cross$colors) +
+    scale_linetype_manual(values = color_lty_cross$ltypes[1:6]) +
+    theme_bw()+
+    geom_hline(yintercept = 100, linetype="solid", alpha = 0.8) +
+    geom_vline(xintercept = 0, linetype="solid", alpha = 0.8) +
+    annotate(geom="label", x=-1, y=95, label="Baseline",hjust=0.5,size=3,fill='black',colour='white')+
+    annotate(geom="label", x=(poistart+poiend)/2, y=95, label="Period of Interest",hjust=0.5,size=3,fill='black',colour='white')+
+    geom_vline(xintercept = basestart, linetype = "dotted", alpha = 0.8) + # Start of Baseline
+    geom_vline(xintercept = baseend, linetype = "dotted", alpha = 0.8) + # End of Baseline
+    geom_vline(xintercept = poistart, linetype = "dotted", alpha = 0.8) + # Start of POI
+    geom_vline(xintercept = poiend, linetype = "dotted", alpha = 0.8) +  # End of POI
+    ggtitle(longtasks[t])
+  thisplot
+  ggsave(paste0('~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_grandmeanx_', tasks[t],'.png'),
+         width = 6,
+         height = 3,)
+  d6<-thisplot
+  if(t==1){d1<-thisplot}
+  if(t==2){d2<-thisplot}
+  if(t==3){d3<-thisplot}
+  if(t==4){d4<-thisplot}
+  if(t==5){d5<-thisplot}
+  
+}
+alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
+ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.png",width = 7, height = 7)
+
+ggsave("alltimecourse.png",width = 7, height = 7)
+
+  # The POI ends earlier for WG and SG tasks, due to REPORT phase
+```
 
 ### Time course of left and right cerebral blood flow velocity for the fTCD tasks  
 
@@ -2143,7 +2437,38 @@ In practice, a model including a free path from Dichotic Listening to Factor 2 g
 **Evaluation of Prediction 5: Equivalence of behavioural and fTCD laterality indices **  
 In our preregistration analysis plan, we stated: **_If the online measures do not correspond to the parallel measures from fTCD this could mean that these measures are insufficiently reliable to index laterality in individuals – this would be evidenced by poor split-half reliability, and would indicate the need to either abandon this approach or to seek better measures. If the measures are reliable, but 95% confidence intervals for path estimates of online measures span zero, we can conclude that the online measures are tapping different aspects of laterality than the fTCD measures. If measures are reliable and good fit is obtained for a two-factor model that incorporates the laterality indices from online measures, this would support the use of online tests as proxy measures for underlying lateralised brain activation_**  
 
-Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. Although the split-half reliability of the online measures was not high, it was not so low as to explain the lack of association with fTCD measures. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, and cannot be used as proxy measures. 
+Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. Although the split-half reliability of the online measures was not high, it was not so low as to explain the lack of association with fTCD measures. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, and cannot be used as proxy measures.  
+
+## Additional analyses  
+It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). 
+
+```{r errs-vs-LI,echo=F,warning=F}
+LIs <- c('DL.zlat.ex','RDT.zlat.ex','WC.zlat.ex','A.LI.ex','B.LI.ex','C.LI.ex','D.LI.ex','E.LI.ex','F.LI.ex')
+perf<-c('DLsame.corr','RDT.pcorr','WC.pcorr','WG_nWords','SG_nWords','PD_Acc','WC_Acc','SC_Acc','SD_Acc')
+LInames<-c("Dichotic Listening","Rhyme Decision","Word Comprehension","Word Generation","Sentence Generation","Phonological Decision","Word Decision","Sentence Decision","Syntactic Decision")
+perfnames<-c("% correct Same","% correct","% correct","N words","N words","% correct","% correct","% correct","% correct")
+ntest<-length(LIs)
+pairframe <- data.frame(matrix(NA,nrow=ntest,ncol=9))
+colnames(pairframe)<-c('LI','Performance','N','rho','p-value','rho:Games with Words','p-value','rho: Lextale','p-value')
+pairframe[,1]<-LInames
+pairframe[,2]<-perfnames
+
+for (n in 1:ntest){
+  mycor <- cor.test(combdat[,LIs[n]],combdat[,perf[n]],method='spearman')
+ 
+  mycorx <-cor.test(combdat[,LIs[n]],combdat[,perf[n]])#pearson just so we get df for N!
+    mycorg <- cor.test(combdat[,LIs[n]],combdat$gramerrs,method='spearman')
+    mycorl <-cor.test(combdat[,LIs[n]],combdat$lexTALE,method='spearman')
+  pairframe[n,3]<-mycorx$parameter+2
+  pairframe[n,4]<-round(mycor$estimate,2)
+   pairframe[n,5]<-pformat2(mycor$p.value)
+   pairframe[n,6]<- -round(mycorg$estimate,2)
+   pairframe[n,7]<-pformat2(mycorg$p.value)
+     pairframe[n,8]<- -round(mycorl$estimate,2)
+   pairframe[n,9]<-pformat2(mycorl$p.value)
+}
+
+```
 
 
 # Discussion
@@ -2315,6 +2640,9 @@ The authors declare no competing interests.
 Adam J. Parker: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; Zoe V. J. Woodhead: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; David P. Carey: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Margriet A. Groen: Conceptualisation, Writing - Review and Editing, Supervision; Eva Gutierrez-Sigut: Methodology, Writing - Review and Editing;
 Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hudson: Supervision; Emma M. Karlsson: Conceptualisation, Methodology, Writing - Review and Editing; Mairéad MacSweeney: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Heather Payne: Methodology, Writing - Review and Editing; Nuala Simpson: Project Administration; Paul A. Thompson: Formal analysis, Data Curation; Writing - Review and Editing; Kate E. Watkins: Conceptualisation, Writing - Review and Editing, Ciara Egan: Methodology, Investigation; Jack H. Grant: Methodology, Investigation; Sophie Harte: Methodology, Investigation; Brad T. Hudson: Methodology, Investigation; Maria Sablik: Investigation; Dorothy V. M. Bishop: Conceptualisation, Methodology, Formal analysis, Writing - original draft, Supervision, Funding Acquisition.
 
+```{r sessioninfo, echo=F}
+sessionInfo()
+```
 
 ## Supplementary materials  
 
@@ -2324,4 +2652,21 @@ Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hu
 
 ## Other supplementals 
 Script is being set up so we can also churn out tables for alternative analyses that adhere strictly to preregistration. We've looked at these and it's clear that subject inclusion and baseline timings do not have any major impact on findings. 
+
+
+## Attempt to use semoutput package
+```{r semoutputs,echo=F}
+#It's not clear this really adds anything
+usecols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3","DL_z","RDT_z","WC_z","Handed","randgroup")
+semdat<-ddati[,usecols]
+semdat2 <- semdat[,1:9]
+sem_descriptives(semdat2)
+# Uses sjPlot to print a nice looking correlation table
+tab_corr(semdat2, na.deletion = "pairwise", digits = 2, triangle = "lower")
+
+sem_tables(fit1)
+sem_tables(fit2)
+
+```
+
 
