@@ -9,7 +9,7 @@ output:
   pdf_document: default
 ---
 
-*Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8, Dorothy V. M. Bishop^1b^  
+*Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8^, Dorothy V. M. Bishop^1b^  
 
 ^a^ Joint first author  
 ^b^ Corresponding author  
@@ -74,6 +74,7 @@ usePackage('rsvg')
 usePackage("RVAideMemoire") #for bootstrapped CIs around correlations
 usePackage("effsize")
 usePackage("psych")
+usePackage("magick") #used to combine path diagrams to single figure
 
 
 options(scipen=999)
@@ -1432,8 +1433,10 @@ Structural equation modeling (Kline, 2011) is a method that allows a formal test
 
 The latent factors are shown in ovals, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure `r fignumber` have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing whether the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignumber-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
-<!---Diagram could be done better!  This version assembled in ppt to get 2 models side by side--->
-![One-factor vs. two-factor structural equation models](path_diags_asppt.jpg)
+
+![One-factor vs. two-factor structural equation models](bothF1F2.tiff)  
+
+
 
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected covariances. 
 
@@ -1483,21 +1486,21 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #Creates a structural diagram for single factor model: nb does NOT include path estimates (these can be shown if we put 'par' rather than 'diagram', but it gets messy, and the parameters are shown instead in a table)
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
-pathfigname<-paste0(mydir,"/",figdir,"/pathfigF1")
-mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Word\nCompr.','Sentence\nCompr.','Syntactic\nDecision','F1')
+pathfigname1<-paste0(mydir,"/",figdir,"/pathfigF1")
+mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Word\nDecision','Sentence\nDecision','Syntactic\nDecision','F1')
 
 semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes, filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,edge.color='black',nodeLabels=mynodes, filetype='tiff',filename=pathfigname1,width=3,height=1.8) #draws a path diagram
 
 fit2 <- cfa(model.2F, estimator="WLSMV",data=ddati)
 sfit2 <- makeSEMtab(fit2)
 bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from this model written to col 3 of bigsummary
 
 #lavResiduals(fit2)
-pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2")
+pathfigname2<-paste0(mydir,"/",figdir,"/pathfigF2")
 mynodes2<-c(mynodes,'F2')
 semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes2,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,edge.color='black',nodeLabels=mynodes2,filetype='tiff',filename=pathfigname2,width=3,height=1.8) #draws a path diagram
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
 
 
@@ -1507,6 +1510,28 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 1
 
 #Also true with the 2F model: fit is better but still well below acceptable on CFI and RMSEA/ Also gives negative variance estimates.
 #measurementInvariance(model=model.2F,estimator="WLSMV",data=ddati,group="Handed")
+
+```
+
+```{r boltfigstogether,echo=F}
+
+#read in the figures just created
+imageX<-image_read(paste0(pathfigname1,'.tiff'))
+imageY<-image_read(paste0(pathfigname2,'.tiff'))
+itemname<- paste0(alldir,'/bothF1F2.tiff')
+itemnamej<-paste0(alldir,'/bothF1F2.jpg')
+
+cropX <- image_crop(imageX, "800x+60")#crop out image of 800 pixels width starting at 60 from left
+cropY <- image_crop(imageY, "800x0+60")
+  
+  imgboth <- c(cropX,cropY)
+  imgboth <- image_append(imgboth)
+  imgboth<-image_trim(imgboth)
+ 
+  tname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.tiff"
+  jname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.jpg"
+  image_write(imgboth, path=tname,format = "tiff")
+  image_write(imgboth, path=jname, format = "jpg")
 
 ```
 
