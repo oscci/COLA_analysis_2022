@@ -1,13 +1,15 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "12 Mar 2022"
+date: "13 Mar 2022"
 output:
   word_document: default
   html_document:
     df_print: paged
   pdf_document: default
 ---
+
+<!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
 
 *Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8^, Dorothy V. M. Bishop^1b^  
 
@@ -365,7 +367,7 @@ mySEMout <-ss[,-4]
 mySEMout[,4:7]<-round(mySEMout[,4:7],3)
 
 #add fit measures
-myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') #can modify this if need be
 fm<-fitmeasures(myfit,myfitmeasures)
 for(i in 1:length(myfitmeasures)){
 mySEMout[(i+srow),1]<-myfitmeasures[i] #write name of fit measure to col 1
@@ -378,7 +380,7 @@ return(mySEMout)
 ```{r makeSEMtab2function,echo=F}
 #Table for SEM output side by side for 2 groups
 makeSEMtab2 <- function(myfit,mygroups){
-ss<- summary(myfit)$PE
+ss<- summary(myfit,standardized=TRUE)$PE
  srow<-nrow(ss)
  scol<-ncol(ss)
 mySEMout <- cbind(ss[1:(srow/2),c(1:3,(scol-3):scol)],ss[(1+srow/2):srow,c((scol-3):scol)])
@@ -387,7 +389,7 @@ mySEMout[(srow/2+1):(srow/2+4),]<-NA #additional rows for fit measures
 
 
 #add fit measures
-myfitmeasures<-c('CFI','rmsea','chisq','DF') #can modify this if need be
+myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') #can modify this if need be
 fm<-fitmeasures(myfit,myfitmeasures)
 for(i in 1:length(myfitmeasures)){
 mySEMout[(i+srow/2),1]<-myfitmeasures[i] #write name of fit measure to col 1
@@ -403,11 +405,11 @@ return(mySEMout)
 
 
 ```{r add-to-bigsummaryfunction,echo=F}
-#This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a chi-square comparison with that model and put p value in final row.
+#This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a $\chi$^2^  comparison with that model and put p value in final row.
 addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
   colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
-ss<- summary(myfit)$PE #get coefficients from current model
-bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
+ss<- summary(myfit,standardized=TRUE)$PE #get standardized coefficients from current model
+#bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
 thisrow<-1 #initialise counter for factor loadings
 #if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
 #If  no path in the model, it just skips it
@@ -417,23 +419,34 @@ for (m in 1:6){
   w<-which(ss$lhs==paste0('f',f))
   x<-which(substr(ss$rhs,1,1) == LETTERS[m])
   myrow<-intersect(w,x)[1]
-  bigsummary[thisrow,writecol]<-round(ss$est[myrow],3)
+  thisstring <- paste0(round(ss$est[myrow],2)," [",round(ss$se[myrow],2),"]")
+  bigsummary[thisrow,writecol]<-thisstring
 }
 }
 #Correlation between factors is added (if it exists)
 myrow<-intersect(which(ss$lhs=='f1'),which(ss$rhs=='f2'))[1]
 if(length(myrow)>0){
-  bigsummary[14,writecol]<-round(ss$est[myrow],3)
+  thisstring <- paste0(round(ss$est[myrow],2)," [",round(ss$se[myrow],2),"]")
+  bigsummary[14,writecol]<-thisstring
 }
 
-wantfits <- c('CFI','rmsea','chisq','df') #fit indices to include
+wantfits <- c('CFI','TLI','SRMR','rmsea','chisq','df','rmsea.ci.lower','rmsea.ci.upper') #fit indices to include
 #NB there are many other fit indices we could add, but if we do, would need to modify bigsummary.
-#Currently script assumes we will have these 4 fit indices 
+#Currently script assumes we will have these fit indices 
 
-fm<-fitmeasures(myfit,wantfits)
+fm<-as.character(round(fitmeasures(myfit,wantfits),2))
+
+w<-which(wantfits=='rmsea')
+#need to bolt upper and lower ci to this value. These are set to be last 2 indices
+y<-which(wantfits=='rmsea.ci.lower')
+fm[w]<-paste0(fm[w], " [",fm[y],"-",fm[(y+1)],"]")
+
+
+
 #find first row to write to
 r<-which(bigsummary[,1]==wantfits[1]) #find row corresponding to first fit index
-bigsummary[r:(r+length(wantfits)-1),writecol]<-fm #write the fit indices in successive rows, starting with r
+writeN <- length(wantfits)-2
+bigsummary[r:(r+writeN-1),writecol]<-fm[1:writeN] #write the fit indices in successive rows, starting with r
 
 
 
@@ -813,7 +826,7 @@ Task order was counterbalanced between participants to avoid order effects using
 
 ![Timings within a single trial for the six tasks used with fTCD](tasktimings.png) 
 
-Task D (Word Decision) used the same 54 picture pairs and audio stimuli that were used for the online Word Comprehension task. The procedure for this task in fTCD has been designed to match that of the Sentence Decision task (task E). In each epoch, a pair of drawings was presented for 3.33 seconds, one above the other, and the spoken word for one of the drawings was played. Participants were required to respond by button press to indicate which drawing matched the spoken word. Each pair of drawings was presented twice, with a different drawing used as the target word, creating 108 epochs in total. Epochs were presented in a pseudorandomised order, with no repetitions of a drawing pair in successive epochs. The same order was used for all participants. The target location was pseudorandomised so that the target was presented at the top / bottom of the screen (and therefore eliciting a left / right button press) in 50% of all epochs to avoid a response bias. In each fTCD trial, six epochs (drawing pairs) were presented, each lasting 3.33 seconds. The pseudorandom order was designed so that within an fTCD trial, there were equal numbers of top or bottom targets. This ensured that odd-even split half reliability data would not be affected by trial-to-trial variation in which hand is used. Participants were instructed to respond as quickly and accurately as possible.  
+Task D (Word Decision) used the same 54 picture pairs and audio stimuli that were used for the online Word Comprehension task. The procedure for this task in fTCD has been designed to match that of the Sentence Decision task (task E). In each epoch, a pair of drawings was presented for 3.33 seconds, one above the other, and the spoken word for one of the drawings was played. Participants were required to respond by button press to indicate which drawing matched the spoken word. Each pair of drawings was presented twice, with a different drawing used as the target word, creating 108 epochs in total. Epochs were presented in a pseudorandomised order, with no repetitions of a drawing pair in successive epochs. The same order was used for all participants. The target location was pseudorandomised so that the target was presented at the top / bottom of the screen (and therefore eliciting a left / right button press) in 50% of all epochs to avoid a response bias. In each fTCD trial, six epochs (drawing pairs) were presented, each lasting 3.33 seconds. The pseudorandom order was designed so that within an fTCD trial, there were equal numbers of top or bottom targets. This ensured that odd-even split-half reliability data would not be affected by trial-to-trial variation in which hand is used. Participants were instructed to respond as quickly and accurately as possible.  
 
 ## Computing laterality index from online battery tasks  
 The Edinburgh Handedness Inventory was scored in the standard way, reflecting how often the left / right hands were used across all the items in the inventory. This score was converted into an index as described below. Indices greater than 0 were categorised as right-handed, and indices less than 0 as left-handed. The Porta Test classifies participants as being either left or right eye dominant.  
@@ -1215,7 +1228,7 @@ Before testing specific predictions about interrelationships between measures, w
 
 onlinesummary <- data.frame(matrix(NA,nrow=12,ncol=4))
 colnames(onlinesummary)<-c('Statistic','Dichotic','Rhyme','Comprehension')
-onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD): L-hander','Mean (SD): R-hander','one-group t: L-hander','one-group t: R-hander','R-hander vs. L-hander t','Split half rho [95% CI]','Test-retest rho [95% CI] (N = 53)')
+onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD): L-hander','Mean (SD): R-hander','one-group t: L-hander','one-group t: R-hander','R-hander vs. L-hander t','Split-half rho [95% CI]','Test-retest rho [95% CI] (N = 53)')
 ```
 
 
@@ -1297,7 +1310,7 @@ As shown in Figure `r fignumber` and Table `r tabnumber`, distributions of LIz o
 
 The Rhyme Decision task was far less reliable, with split-half reliability [95% CI] of `r onlinesummary[11,3]` and test-retest reliability of `r onlinesummary[12,3]`.  These figures indicate that laterality on this test is far from being at chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised. Furthermore, there was no effect of handedness on laterality on this task.  
 
-The Word Comprehension task did rather better than the other tasks in terms of reliability, with split half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were  faster when  pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  
+The Word Comprehension task did rather better than the other tasks in terms of reliability, with split-half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were  faster when  pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  
 
 
 ## Testing a two-factor model using behavioural data
@@ -1636,7 +1649,7 @@ piratenumber <- fignumber
 
 ftcdsummary <- data.frame(matrix(NA,nrow=11,ncol=7))
 colnames(ftcdsummary)<-c('Statistic',LETTERS[1:6])
-ftcdsummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs. L-hander t','Split half rho [95% CI]')
+ftcdsummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs. L-hander t','Split-half rho [95% CI]')
 ```
 
 ```{r fill-ftcdsummary, echo=FALSE, warning=FALSE,message=F}
@@ -1725,28 +1738,34 @@ Because Structural equation modeling (SEM) is not widely used in laterality rese
 
 Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. `r fignumber<-fignumber+1`Figure `r fignumber` shows the single factor model on the left, and a two-factor model on the right. **_The two-factor model is equivalent to Figure 4 from the preregistered document_**. 
 
-The latent factors are shown in ovals, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure `r fignumber` have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing whether the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignumber-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
+The latent factors are shown in circles, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure `r fignumber` have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignumber-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
 
 ![One-factor vs. two-factor structural equation models](bothF1F2.tiff)  
 
 
 
-SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected covariances. 
+SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
 
 It may be noted that the path diagrams shown in Figure `r fignumber` include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
-There is no single method for evaluating the fit of a model to observed data. A chi-square test can give an estimate of the extent of departure of observed values from expectation: a good model is one where chi-square is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. However, it is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Where models are 'nested', with a more complex model including all the parameters of a base model, then model fit can be compared by subtraction of the chi-square and degrees of freedom for the two models; the difference in chi-square is then evaluated, and can indicate whether the simpler model gives as good a fit as a complex model with more parameters - in which case the simpler model is preferred.
+There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions. 
 
-Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. Another measure is the Root Mean Square Error of Approximation (RMSEA) is a 'badness of fit' measure, where a value of zero indicates good fit, and values below .05 are widely regarded as indicating acceptable fit. We report here values for chi-square, CFI and RMSEA. 
+Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figure `r fignumber`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters - in which case the simpler model is preferred. 
+
+A different kind of measure of model fit is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
+
+Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit   The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
+
+Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR.
  
 
 
 ```{r initialisebigsummary,echo=F,include=F}
 #Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
-bigsummary <- data.frame(matrix(NA,nrow=18,ncol=4))
+bigsummary <- data.frame(matrix(NA,nrow=21,ncol=4))
 colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
-bigsummary[,1]<-c('NObs','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2','F -> Fac2','Fac1~~Fac2','CFI','rmsea','chisq','DF')
+bigsummary[,1]<-c('Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','DF')
 ```
 
 
@@ -1976,7 +1995,11 @@ fignumber<-fignumber+1
 Table `r tabnumber`: _Path estimates and fit statistics for 1-factor, 2-factor and modified 2-factor models_
 
 ```{r formatbigsummary,echo=F}
-bigsummary[,2:4]<-round(bigsummary[,2:4],2)
+#bigsummary[,2:4]<-round(bigsummary[,2:4],2)
+for (c in 2:4){
+w<-which(bigsummary[,c]=='NA [NA]')
+bigsummary[w,c]<-'-'
+}
 ftb<-flextable(bigsummary)
 
 ftb<-autofit(ftb)
@@ -2188,7 +2211,7 @@ Prediction 4 was: _On categorical analysis, individuals who depart from left-bra
 
 The analysis so far has treated laterality as a continuum, but this continuum does have a zero-point, and negative scores indicate right-lateralisation and positive scores left-lateralisation. There are theoretical reasons to suppose that brain function might be influenced more by consistency in direction of lateralisation, than by degree. Thus, regardless of how strong or weak a laterality index is, brain functioning might be more efficient if all language functions are predominantly mediated by the same hemisphere. 
 
-As stated in our preregistration: **_we first adopt the simple approach of dichotomising laterality at a cutoff of zero for each task, and then perform a chi-square analysis to test for association with handedness. For 6 measures, we adopt a Bonferroni-corrected alpha level of .02/6 = .003._** 
+As stated in our preregistration: **_we first adopt the simple approach of dichotomising laterality at a cutoff of zero for each task, and then perform a $\chi$^2^ analysis to test for association with handedness. For 6 measures, we adopt a Bonferroni-corrected alpha level of .02/6 = .003._** 
 
 ```{r categorical-assignment, echo=F}
 mycols<-paste0(LETTERS[1:6],'_mean_LI')
@@ -2238,7 +2261,7 @@ Results are shown in Table `r tabnumber`.  The trend is similar for all six task
 
 Our preregistered analysis plan stated: **_If we find no significant difference between handedness groups, then we can conclude that any true difference in the percentage of left-lateralised individuals is 17% or less, i.e., much lower than the estimates of left-sided language lateralisation for left- and right-handers from lesion or Wada studies (67% and 95% respectively, a difference of 28%) We anticipate that all measures will differentiate left- from right-handers with our sample size of 224; any measure that does not do so would be regarded as an exception to the general rule that handedness is weakly predictive of language lateralisation._**  Clearly, this prediction is not supported by the observed data.
 
-We had preregistered a subsidiary analysis as follows: **_After testing associations for individual measures, we will categorise individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests, and conduct a chi-square test contrasting the proportion of left- and right-handers on this composite measure._**  
+We had preregistered a subsidiary analysis as follows: **_After testing associations for individual measures, we will categorise individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests, and conduct a $\chi$^2^ test contrasting the proportion of left- and right-handers on this composite measure._**  
 
 The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests, using the same cutoff of zero,  is shown in Table `r tabnumber+1`. 
 
@@ -2288,7 +2311,7 @@ SG_left_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==0)])/length(ddat$B_catla
 SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catlatL[which(ddat$Rhanded==1)])
 
 ```
-It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on chi-square test, chi-square = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tests included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
+It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on $\chi$^2^  test, $\chi$^2^  = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tests included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
 It is noteworthy that this more categorical analysis finds rates of "atypical", i.e., non-left, lateralisation on language tasks that are task-dependent, and are lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs. `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised. 
 
@@ -2432,7 +2455,7 @@ tabnumber<-tabnumber+1
 ```
 Table `r tabnumber`: _Fit statistics for models including Dichotic Listening_  
 
-In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: chi-square difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not preregistered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower chi-square than the preregistered model (for full results see Supplementary Material).
+In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: $\chi$^2^  difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not preregistered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower $\chi$^2^  than the preregistered model (for full results see Supplementary Material).
 
 **Evaluation of Prediction 5: Equivalence of behavioural and fTCD laterality indices **  
 In our preregistration analysis plan, we stated: **_If the online measures do not correspond to the parallel measures from fTCD this could mean that these measures are insufficiently reliable to index laterality in individuals – this would be evidenced by poor split-half reliability, and would indicate the need to either abandon this approach or to seek better measures. If the measures are reliable, but 95% confidence intervals for path estimates of online measures span zero, we can conclude that the online measures are tapping different aspects of laterality than the fTCD measures. If measures are reliable and good fit is obtained for a two-factor model that incorporates the laterality indices from online measures, this would support the use of online tests as proxy measures for underlying lateralised brain activation_**  
@@ -2654,19 +2677,7 @@ sessionInfo()
 Script is being set up so we can also churn out tables for alternative analyses that adhere strictly to preregistration. We've looked at these and it's clear that subject inclusion and baseline timings do not have any major impact on findings. 
 
 
-## Attempt to use semoutput package
-```{r semoutputs,echo=F}
-#It's not clear this really adds anything
-usecols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3","DL_z","RDT_z","WC_z","Handed","randgroup")
-semdat<-ddati[,usecols]
-semdat2 <- semdat[,1:9]
-sem_descriptives(semdat2)
-# Uses sjPlot to print a nice looking correlation table
-tab_corr(semdat2, na.deletion = "pairwise", digits = 2, triangle = "lower")
+<!--Attempt to use semoutput package - tried but fiddly and doesn't add anything-->
 
-sem_tables(fit1)
-sem_tables(fit2)
-
-```
 
 
