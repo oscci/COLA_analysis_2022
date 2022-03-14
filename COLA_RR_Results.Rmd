@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "13 Mar 2022"
+date: "14 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -10,6 +10,8 @@ output:
 ---
 
 <!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
+
+<!-- to make a reproducible version see https://workflowr.github.io/workflowr/ and groundhog package-->
 
 *Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8^, Dorothy V. M. Bishop^1b^  
 
@@ -77,6 +79,7 @@ usePackage("RVAideMemoire") #for bootstrapped CIs around correlations
 usePackage("effsize")
 usePackage("psych")
 usePackage("magick") #used to combine path diagrams to single figure
+
 # devtools::install_github("dr-JT/semoutput") - haven't been able to get this to work?
 # require(semoutput)
 # usePackage("readr")
@@ -90,10 +93,20 @@ suppfignumber<-0
 ```
 
 <!--- GENERIC FUNCTIONS START -->
+```{r numformat,echo=F}
+#Format numbers so they have same n decimal places, even if zero at end
+
+numformat=function(mynum,ndecimals){
+  newnum <- format(round(mynum,ndecimals),nsmall=ndecimals)
+  return(newnum)
+}
+
+```
+
 ```{r pformat, echo=F}
 #function to format p-values
 pformat=function(myp){
-  pout <- paste('p =',round(myp,3))
+  pout <- paste('p =',numformat(myp,3))
   if(myp<.001){pout = 'p < .001'}
   return(pout)
 }
@@ -102,11 +115,12 @@ pformat=function(myp){
 ```{r pformat2, echo=F}
 #function to format p-values, without the 'p = ' bit
 pformat2=function(myp){
-  pout <- round(myp,3)
+  pout <- numformat(myp,3)
   if(myp<.001){pout ='< .001'}
   return(pout)
 }
 ```
+
 
 
 ```{r LIdensityplot,echo=F}
@@ -197,23 +211,23 @@ nL <- nrow(filter(thisdat,Rhanded==0))
 nR <- nrow(filter(thisdat,Rhanded==1))
 tL<- t.test(thisdat$thiscol[thisdat$Rhanded==0])
 tR<- t.test(thisdat$thiscol[thisdat$Rhanded==1])
-sdL<-round(sd(thisdat$thiscol[thisdat$Rhanded==0],na.rm=T),2)
-sdR<-round(sd(thisdat$thiscol[thisdat$Rhanded==1],na.rm=T),2)
-sdall <-round(sd(thisdat$thiscol,na.rm=T),2) 
+sdL<-numformat(sd(thisdat$thiscol[thisdat$Rhanded==0],na.rm=T),2)
+sdR<-numformat(sd(thisdat$thiscol[thisdat$Rhanded==1],na.rm=T),2)
+sdall <-numformat(sd(thisdat$thiscol,na.rm=T),2) 
 tcompare <- t.test(thisdat$thiscol~thisdat$Rhanded,alternative='less')
 #write N for L and R in row 1 of online summary
 mysummary[1,writecolnum]<-paste0(nL,' LH + ',nR,' RH')
-mysummary[2,writecolnum]<-paste0(round(mean(thisdat$thiscol,na.rm=T),2)," (",sdall,")")
-mysummary[3,writecolnum]<-paste0(round(semTools::skew(thisdat$thiscol)[1],2),' (',pformat(semTools::skew(thisdat$thiscol)[4]),')')
-mysummary[4,writecolnum]<-paste0(round(semTools::kurtosis(thisdat$thiscol)[1],2),' (',pformat(semTools::kurtosis(thisdat$thiscol)[4]),')')
+mysummary[2,writecolnum]<-paste0(numformat(mean(thisdat$thiscol,na.rm=T),2)," (",sdall,")")
+mysummary[3,writecolnum]<-paste0(numformat(semTools::skew(thisdat$thiscol)[1],2),' (',pformat(semTools::skew(thisdat$thiscol)[4]),')')
+mysummary[4,writecolnum]<-paste0(numformat(semTools::kurtosis(thisdat$thiscol)[1],2),' (',pformat(semTools::kurtosis(thisdat$thiscol)[4]),')')
 mysummary[5,writecolnum]<-pformat(normp)
-mysummary[6,writecolnum]<-paste0(round(tL$estimate,2)," (",sdL,")")
-mysummary[7,writecolnum]<-paste0(round(tR$estimate,2)," (",sdR,")")
-mysummary[8,writecolnum]<- paste0('t = ',round(tL$statistic,1),'; ', pformat(tL$p.value))
-mysummary[9,writecolnum]<- paste0('t = ',round(tR$statistic,1),'; ', pformat(tR$p.value))
-mysummary[10,writecolnum]<- paste0('t = ',-round(tcompare$statistic,1),'; ', pformat(tcompare$p.value))
+mysummary[6,writecolnum]<-paste0(numformat(tL$estimate,2)," (",sdL,")")
+mysummary[7,writecolnum]<-paste0(numformat(tR$estimate,2)," (",sdR,")")
+mysummary[8,writecolnum]<- paste0('t = ',numformat(tL$statistic,1),'; ', pformat(tL$p.value))
+mysummary[9,writecolnum]<- paste0('t = ',numformat(tR$statistic,1),'; ', pformat(tR$p.value))
+mysummary[10,writecolnum]<- paste0('t = ',numformat(-tcompare$statistic,1),'; ', pformat(tcompare$p.value))
 cor.eo <-spearman.ci(thisdat[,odds],thisdat[,evens], nrep = 1000, conf.level = 0.95)
-mysummary[11,writecolnum]<-paste0(round(cor.eo$estimate,2),' [',round(cor.eo$conf.int[1],2),', ',round(cor.eo$conf.int[2],2),']')
+mysummary[11,writecolnum]<-paste0(numformat(cor.eo$estimate,2),' [',numformat(cor.eo$conf.int[1],2),', ',numformat(cor.eo$conf.int[2],2),']')
 
 
 
@@ -409,8 +423,8 @@ return(mySEMout)
 addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
   colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
 ss<- summary(myfit,standardized=TRUE)$PE #get standardized coefficients from current model
-#bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
-thisrow<-1 #initialise counter for factor loadings
+bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
+thisrow<-2 #initialise counter for factor loadings; starts row 3, after title
 #if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
 #If  no path in the model, it just skips it
 for (f in 1:2){
@@ -419,33 +433,42 @@ for (m in 1:6){
   w<-which(ss$lhs==paste0('f',f))
   x<-which(substr(ss$rhs,1,1) == LETTERS[m])
   myrow<-intersect(w,x)[1]
-  thisstring <- paste0(round(ss$est[myrow],2)," [",round(ss$se[myrow],2),"]")
+  thisstring <- paste0(numformat(ss$est[myrow],2)," [",numformat(ss$se[myrow],2),"]")  #we use numformat function defined earlier to give tidy cols
   bigsummary[thisrow,writecol]<-thisstring
 }
 }
 #Correlation between factors is added (if it exists)
+thisrow<-thisrow+1
 myrow<-intersect(which(ss$lhs=='f1'),which(ss$rhs=='f2'))[1]
 if(length(myrow)>0){
-  thisstring <- paste0(round(ss$est[myrow],2)," [",round(ss$se[myrow],2),"]")
-  bigsummary[14,writecol]<-thisstring
+  thisstring <- paste0(numformat(ss$est[myrow],2)," [",numformat(ss$se[myrow],2),"]")
+  bigsummary[thisrow,writecol]<-thisstring
 }
 
-wantfits <- c('CFI','TLI','SRMR','rmsea','chisq','df','rmsea.ci.lower','rmsea.ci.upper') #fit indices to include
+wantfits <- c('CFI','TLI','SRMR','rmsea','chisq','chisq.scaled','df','pvalue','pvalue.scaled','rmsea.ci.lower','rmsea.ci.upper') #fit indices to include
 #NB there are many other fit indices we could add, but if we do, would need to modify bigsummary.
 #Currently script assumes we will have these fit indices 
 
-fm<-as.character(round(fitmeasures(myfit,wantfits),2))
-
+#fm<-as.character(round(fitmeasures(myfit,wantfits),2))
+fm <- numformat(fitmeasures(myfit,wantfits),2)
 w<-which(wantfits=='rmsea')
 #need to bolt upper and lower ci to this value. These are set to be last 2 indices
 y<-which(wantfits=='rmsea.ci.lower')
 fm[w]<-paste0(fm[w], " [",fm[y],"-",fm[(y+1)],"]")
 
+w<-which(wantfits=='chisq')
+#need to bolt pvalue to this value. 
+y<-which(wantfits=='pvalue')
+fm[w]<-paste0(fm[w],", ",pformat(as.numeric(fm[y]))) #pformat defined in function at top of script
 
+w<-which(wantfits=='chisq.scaled')
+#need to bolt pvalue to this value. 
+y<-which(wantfits=='pvalue.scaled')
+fm[w]<-paste0(fm[w],", ",pformat(as.numeric(fm[y])))
 
 #find first row to write to
 r<-which(bigsummary[,1]==wantfits[1]) #find row corresponding to first fit index
-writeN <- length(wantfits)-2
+writeN <- length(wantfits)-4 #we don't write the pvalues or CI for RMSEA as they are incorporated with chisqs and RMSEA
 bigsummary[r:(r+writeN-1),writecol]<-fm[1:writeN] #write the fit indices in successive rows, starting with r
 
 
@@ -1690,8 +1713,8 @@ thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','
 
 #Interpolate missing values using mice package
 thisdat.i <- mice(thisdat, m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
-ddati <-cbind(ddat[,c('ID','male','Handed')],complete(thisdat.i,1))
-colnames(ddati)<-c('ID','male','Handed',nunames)
+ddati <-cbind(ddat[,c('ID','male','Handed','langgroup')],complete(thisdat.i,1))
+colnames(ddati)<-c('ID','male','Handed','langgroup',nunames)
 
 ```
 
@@ -1763,9 +1786,12 @@ Following recommendations by Schermelleh-Engel et al. (2003) we report here valu
 
 ```{r initialisebigsummary,echo=F,include=F}
 #Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
-bigsummary <- data.frame(matrix(NA,nrow=21,ncol=4))
+initbigsummary <- function(){
+bigsummary <- data.frame(matrix(NA,nrow=23,ncol=4))
 colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
-bigsummary[,1]<-c('Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','DF')
+bigsummary[,1]<-c('N participants','Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
+return(bigsummary)
+}
 ```
 
 
@@ -1790,8 +1816,10 @@ f2~~1*f2
 '
 
 
-fit1 <- cfa(model.1F, estimator="WLSMV",data=ddati) #runs the model and saves results in fit1
+fit1 <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") #runs the model and saves results in fit1
 sfit1 <- makeSEMtab(fit1) #saves the results from the model in a neat format
+
+bigsummary<- initbigsummary()
 bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from this model written to col 2 of bigsummary. For single factor model we don't specify a comparison model, hence NA.
 
 #lavResiduals(fit1) #if we want to understand reasons for poor fit, we can look at residuals - shows size of covariances that aren't explained by model.
@@ -1960,8 +1988,8 @@ f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model:
 f2~~1*f2
 '
 
-fit.2F<-cfa(model.2F, estimator="WLSMV",data=mydat)
-fit.2Fn <- cfa(model.2Fn, estimator="WLSMV",data=mydat)
+fit.2F<-cfa(model.2F, estimator="WLSMV",data=mydat,test="robust")
+fit.2Fn <- cfa(model.2Fn, estimator="WLSMV",data=mydat,test="robust")
 tab.2Fn <- makeSEMtab(fit.2Fn)
 fitmeasures(fit.2Fn,wantfits)
 
@@ -2589,6 +2617,9 @@ To account for the observed pattern of results, we postulate two language centre
 
 To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same factor than for those loading on different factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
 
+SAY SOMETHING ABOUT HOW CONCLUSIONS MESH WITH WOODHEAD ET AL.
+CAN WE LINK FACTORS TO THIS ANALYSIS? https://pubmed.ncbi.nlm.nih.gov/35267079/
+
 ## Conclusions  
 
 
@@ -2672,7 +2703,52 @@ sessionInfo()
 ### Supplementary Figure `r suppfignumber+1`
 
 ![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.png)
+# Supplementary material B  
+## Full results from Structural Equation models, comparing output with different subsets of participants.
 
+
+```{r lavaanout,echo=F}
+#Generic function for displaying lavaan results
+lavout <- function(modelname,data,fitname){
+  
+}
+
+
+```
+
+### Single Factor Model
+```{r suppoutputs,echo=F}
+bigsumfit1 <- initbigsummary()
+bigsumfit1<-bigsumfit1[,1:3]
+colnames(bigsumfit1)[2:3]<-c('Fit1: Full Sample','Fit1: Selected Sample')
+
+
+fit1A <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2)
+
+rdat <- filter(ddati,langgroup<3)
+
+fit1B <- cfa(model.1F, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1B,NA,'Model.1F',writecol=3)
+
+bigsumfit2 <- bigsumfit1
+fit2A <- cfa(model.2F, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2A,NA,'Model.2F',writecol=2)
+
+fit2B <- cfa(model.2F, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2B,NA,'Model.2F',writecol=3)
+
+bigsumfit2n <- bigsumfit1
+fit2nA <- cfa(model.2Fn, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nA,NA,'Model.2Fn',writecol=2)
+
+fit2nB <- cfa(model.2Fn, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nB,NA,'Model.2Fn',writecol=3)
+
+```
+
+
+ 
 ## Other supplementals 
 Script is being set up so we can also churn out tables for alternative analyses that adhere strictly to preregistration. We've looked at these and it's clear that subject inclusion and baseline timings do not have any major impact on findings. 
 
