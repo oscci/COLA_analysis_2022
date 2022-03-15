@@ -1,6 +1,7 @@
 ---
 title: "Data Processing for Gorilla tasks"
 output:
+  word_document: default
   html_document:
     df_print: paged
 date: "started 2022-01-06"
@@ -283,7 +284,7 @@ for (i in 1:nsub) { # loop through subjects in serial order
     allsum$Rhanded[i] <- 1
     hand<-tmp[tmp$Question.Key == "categorical_hand",]$Response # 
     if(hand=='Left'){allsum$Rhanded[i] <-0}
-    if(hand=='No Preference'){allsum$Rhanded[i] <-0}
+    if(hand=='No preference'){allsum$Rhanded[i] <-0}
     
     educ <- tmp[tmp$Question.Key == "education",]$Response
     allsum$education[i] <- match(educ,educlist) # subject education as numeric code
@@ -1743,12 +1744,38 @@ E. Sentence Comprehension.
 F. Syntactic Decision.
 
 ```{r read.and.combine,echo=F}
+#This chunk redone line by line to ensure we do have the file correctly aligned.
 allsum<-read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.1_gorilla/online_summary/allsum.csv")
 
 combsum <-allsum[allsum$session==1,]
 dopsum <- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data.csv")
-colnames(dopsum)[1]<-'ID'
-combsum <-merge(combsum, dopsum, by= "ID",all.x=T)
+dopsumorig<- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data_origbaseline.csv") #create alternative combined dataset with original baseline for supplement
+colnames(dopsum)[1]<-'IDdop'
+
+nucols<-colnames(dopsum)
+combsum[,nucols]<-NA
+for (i in 1:nrow(combsum)){
+  w<-which(dopsum$ID==combsum$ID[i])
+  if(length(w)>0){
+    combsum[i,nucols]<-dopsum[w,nucols]
+  }
+    
+}
+
+colnames(dopsumorig)[1]<-'IDdop'
+combsumo<-combsum 
+nucols<-colnames(dopsumorig)
+combsumo[,nucols]<-NA
+for (i in 1:nrow(combsumo)){
+  w<-which(dopsumorig$ID==combsumo$ID[i])
+  if(length(w)>0){
+    combsumo[i,nucols]<-dopsumorig[w,nucols]
+  }
+    
+}
+
+#original merge command - gives same result
+#combsum <-merge(combsum, dopsum, by= "ID",all.x=T)
 
 ```
 
@@ -1757,7 +1784,9 @@ Check exclusions
 ```{r checkexclude,echo=F}
 
 #for each laterality measure, create a duplicate column where excluded on that measure are NA; makes it possible to analyse together with appropriate exclusions for each measure 
-
+for (f in 1:2){
+  if(f==2)
+    {combsum<-combsumo} #original baseline version
 combsum$DL.zlat.ex<-combsum$DL.zlat
 combsum$DL.zlat.ex[combsum$excludeDL==1]<-NA
 combsum$RDT.zlat.ex<-combsum$RDT.zlat
@@ -1782,147 +1811,13 @@ combsum$F.LI.ex[combsum$F_exclude==1]<-NA
 combsum$ftcd <- 0
 combsum$ftcd[!is.na(combsum$A1)]<-1 #column that marks whether ftcd data for this ID
 
-
 writedir<-paste0(mydir,"/02-data/combined_data.csv")
+if(f==2){
+writedir<-paste0(mydir,"/02-data/combined_data_origbaseline.csv")
+}
+
 write.csv(combsum,writedir,row.names=F)
+}
 
-# Select only people with fTCD data
-ftcdyes <- filter(combsum,ftcd==1)
-
-# Identify people who were excluded based on Session 1
-ftcdyes$excludeLex <-0
-ftcdyes$excludeLex[ftcdyes$lexTALE<80]<-1
-ftcdyes$excludeGram <-0
-ftcdyes$excludeGram[ftcdyes$gramerr12>1]<-1
-
-
-
-ftcdyes$anyexclude<-ftcdyes$excludeLex+ftcdyes$excludeGram+ftcdyes$excludeDL+ftcdyes$excludeRDT+ftcdyes$excludeWC
-
-ftcdyes$langexclude<-ftcdyes$excludeLex+ftcdyes$excludeGram
-#We'll treat lexTALE<60 separately
-ftcdyes$langexclude[ftcdyes$lexTALE<60]<-3 #ZW: changed to 3 as it could be 2 if excludeLex=1 and excludeGram=1
-#In fact, no-one who did Doppler had lexTALE<60 anyway
-
-table1(~ factor(male) + age  + factor(bilingual)+factor(lexCode)+factor(gramerr12)++factor(langexclude)+factor(excludeDL)+factor(excludeRDT)+factor(excludeWC)+factor(anyexclude)|factor(Rhanded) , data=ftcdyes)
 
 ```
-```{r comparelangexcluded,echo=F}
-# Test whether fTCD LI values differ for people who were included / excluded based on session 1 language proficiency measures
-
-
-table1(~ DL.zlat.ex+RDT.zlat.ex+WC.zlat.ex+A.LI.ex+B.LI.ex+C.LI.ex+D.LI.ex+E.LI.ex+F.LI.ex|factor(langexclude) , data=ftcdyes)
-
-aovDL <- aov(DL.zlat ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovDL)
-
-aovRDT <- aov(RDT.zlat ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovRDT)
-
-aovWC <- aov(WC.zlat ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovWC)
-
-aovALIe <- aov(A.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovALIe)
-
-aovBLIe <- aov(B.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovBLIe)
-
-aovCLIe <- aov(C.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovCLIe)
-
-aovDLIe <- aov(D.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovDLIe)
-
-aovELIe <- aov(E.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovELIe)
-
-aovFLIe <- aov(F.LI.ex ~ langexclude, data = ftcdyes)
-# Summary of the analysis
-summary(aovFLIe)
-
-```
-
-
-```{r initialplots.ftcd,echo=F}
-myfile<-filter(combsum,A_exclude==0)
-myfile$temp<-myfile$A_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Word Generation LI'
-xrange<-c(-8,8)
-A.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-A.LI.plot
-
-myfile<-filter(combsum,B_exclude==0)
-myfile$temp<-myfile$B_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Sentence Generation LI'
-xrange<-c(-8,8)
-B.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-B.LI.plot
-
-myfile<-filter(combsum,C_exclude==0)
-myfile$temp<-myfile$C_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Phonological Decision LI'
-xrange<-c(-8,8)
-C.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-C.LI.plot
-
-myfile<-filter(combsum,D_exclude==0)
-myfile$temp<-myfile$D_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Word Comprehension LI'
-xrange<-c(-8,8)
-D.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-D.LI.plot
-
-myfile<-filter(combsum,E_exclude==0)
-myfile$temp<-myfile$E_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Sentence Comprehension LI'
-xrange<-c(-8,8)
-E.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-E.LI.plot
-
-myfile<-filter(combsum,F_exclude==0)
-myfile$temp<-myfile$F_mean_LI
-myfile$cattemp<-myfile$Rhanded
-mysubsetname<-'Handedness'
-mytab<- table(myfile$cattemp)
-mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
-xlabel <-'Syntactic Decision LI'
-xrange<-c(-8,8)
-F.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
-F.LI.plot
-
-# Look at association between behavioural and fTCD versions of word comprehension task
-plot(combsum$WC.zlat,combsum$D_mean_LI,col=(1+combsum$Rhanded),ylim=c(-5,5))
-abline(h=0,lty=2)
-abline(v=0,lty=2)
-
-```
-
