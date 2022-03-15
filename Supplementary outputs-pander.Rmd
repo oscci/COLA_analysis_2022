@@ -116,6 +116,21 @@ bigsummary[r:(r+writeN-1),writecol]<-fm[1:writeN] #write the fit indices in succ
 'Factor 2 -> Syntactic Decision',
 'Factor 1 <-> Factor 2')
 #abandoned as it played havoc with formatting
+  
+bigsummary[3:15,1]<-
+  c('Fac 1 -> A_P1',
+'Fac 1 -> B_P2',
+'Fac 1 -> C_P3',
+'Fac 1 -> D_R1',
+'Fac 1 -> E_R2',
+'Fac 1 -> F_R3',
+'Fac 2 -> A_P1',
+'Fac 2 -> B_P2',
+'Fac 2 -> C_P3',
+'Fac 2 -> D_R1',
+'Fac 2 -> E_R2',
+'Fac 2 -> F_R3',
+'Fac 1 <-> Fac 2')
 
 
 return(bigsummary)
@@ -127,7 +142,7 @@ return(bigsummary)
 initbigsummary <- function(){
 bigsummary <- data.frame(matrix(NA,nrow=23,ncol=4))
 colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
-bigsummary[,1]<-c('N participants','Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
+bigsummary[,1]<-c('N participants','Stand. paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
 return(bigsummary)
 }
 ```
@@ -197,6 +212,8 @@ colnames(bigsumfit1)[2:5]<-c('1 Factor: Full Sample','1 Factor: Selected Sample'
 
 bigsumfit1<-bigsumfit1[-(9:15),]
 
+
+
 #Model 2F
 bigsumfit2 <- initbigsummary()
 bigsumfit2$X<-NA #extra column
@@ -213,6 +230,7 @@ bigsumfit2<- addmodel(bigsumfit2,fit2C,NA,'Model.2F',writecol=4)
 fit2D <- cfa(model.2F, estimator="WLSMV",data=rdatOB,test="robust") 
 bigsumfit2<- addmodel(bigsumfit2,fit2D,NA,'Model.2F',writecol=5)
 colnames(bigsumfit2)[2:5]<-c('2 Factor: Full Sample','2 Factor: Selected Sample','2 Factor: Full Sample - Orig. baseline','2 Factor: Selected Sample - Orig. baseline')
+bigsumfit2<-bigsumfit2[-(6:11),]
 
 #Model 2Fn
 bigsumfit2n <- initbigsummary()
@@ -230,6 +248,7 @@ fit2nD <- cfa(model.2Fn, estimator="WLSMV",data=rdatOB,test="robust")
 bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5)
 
 colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: \nFull Sample','Modified 2 Factor: \nSelected Sample','Modified 2 Factor: \nFull Sample - Orig. baseline','Modified 2 Factor: \nSelected Sample - Orig. baseline')
+bigsumfit2n<-bigsumfit2n[-c(2,6,8:10,16),]
 ```
 This table shows the covariance and means matrix for the raw data for the full sample, using the -5 to 2 s baseline, as reported in main paper.  
 
@@ -250,16 +269,19 @@ autofit(flextable(mycov))
 ```{r makemodellist,echo=F}
 fitlist <-c('fit1A','fit2A','fit2nA')
 namelist<-c('Single Factor Model','2 Factor Model','Modified 2 Factor Model')
-modellist<-c(model.1F,model.2F,model.2Fn)
+modellist<-c('f1 =~ A_P1+B_P2+C_P3+D_R1+E_R2+F_R3',
+             'f1 =~ A_P1+B_P2+C_P3, f2 =~ NA*D_R1+E_R2+F_R3, f2~~1f2',
+             'f1 =~ A_P1+B_P2+C_P3 +E_R2, f2 =~ NA*F_R3+C_P3+D_R1+E_R2, f2~~1f2')
 
 ```
 
 ```{r tryloop,results='asis',echo=F}
+#using pander function with 'asis' allows looping over text as well as computions for each model.
 for (i in 1:length(namelist)){
 pandoc.header(namelist[i], level = 1)
-pandoc.p(paste("Summary output from the model is shown for the preregistered criteria (Selected sample with original baseline from -10 to 0 s, last column), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s, second column).") )
+pandoc.p(paste("Summary output from the model is shown for the preregistered criteria (Selected sample with original baseline from -10 to 0 s) in column 4), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s) in column 1.") )
 pandoc.p("")
-pandoc.p(paste0("Model is specified as:",modellist[i] ))
+pandoc.p(paste0("Model is specified in lavaan syntax as:",modellist[i] ))
 pandoc.p("")
 
 if(i==1){bigsum<- bigsumfit1
@@ -268,12 +290,19 @@ if(i==2){bigsum<- bigsumfit2
          myfit <- fit2A}
 if(i==3){bigsum<- bigsumfit2n
          myfit <- fit2nA}
-for (c in 2:ncol(bigsum)){
-w<-which(bigsum[,c]=='NA [NA]')
-bigsum[w,c]<-'-'
-}
 
-pandoc.table(bigsum,justify='left')
+colnames(bigsum)<-c('','1','2','3','4')
+addbigsum<-data.frame(matrix(NA,nrow=2,ncol=5))
+addbigsum[1,]<-c('Sample','Full','Selected','Full','Selected')
+addbigsum[2,]<-c('Baseline','-5 to 2','-5 to 2','-10 to 0','-10 to 0')
+colnames(addbigsum)<-c('','1','2','3','4')
+bigsum<-rbind(addbigsum,bigsum)
+
+bigsum[4,2:5]<-'' #remove NAs
+w<-which(bigsum[,1]=='Fit indices')
+bigsum[w,2:5]<-''
+
+pandoc.table(bigsum,justify='left',style='rmarkdown',row.names=F,split.table=Inf)
 
 pandoc.p("")
 pandoc.p("The detailed fit statistics for this model, with the final criteria (Full sample with baseline -5 to 2s) are shown below.")
