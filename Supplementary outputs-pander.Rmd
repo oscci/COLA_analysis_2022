@@ -1,0 +1,320 @@
+---
+title: "Supplement B: Full SEM output"
+author: "Dorothy Bishop"
+date: "15/03/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# If the package is not installed, install it. If it is installed, load it.
+usePackage <- function(p) {
+    if (!is.element(p, installed.packages()[,1]))
+        install.packages(p, dep = TRUE)
+    require(p, character.only = TRUE)
+}
+usePackage('tidyr')
+usePackage('dplyr')
+usePackage("flextable")
+usePackage("semTools")
+usePackage("lavaan")
+usePackage("semPlot")
+usePackage("pander")
+
+options(scipen=999)
+
+tabnumber <-0 #initialise counter for tables
+fignumber <-0 # initialise counter for figs
+suppfignumber<-0 
+```
+
+```{r numformat,echo=F}
+#Format numbers so they have same n decimal places, even if zero at end
+
+numformat=function(mynum,ndecimals){
+  newnum <- format(round(mynum,ndecimals),nsmall=ndecimals)
+  return(newnum)
+}
+
+```
+
+```{r pformat, echo=F}
+#function to format p-valuesd
+pformat=function(myp){
+  pout <- paste('p =',numformat(myp,3))
+  if(myp<.001){pout = 'p < .001'}
+  return(pout)
+}
+```
+
+```{r add-to-bigsummaryfunction,echo=F}
+#This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a $\chi$^2^  comparison with that model and put p value in final row.
+addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
+  colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
+ss<- summary(myfit,standardized=TRUE)$PE #get standardized coefficients from current model
+bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
+thisrow<-2 #initialise counter for factor loadings; starts row 3, after title
+#if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
+#If  no path in the model, it just skips it
+for (f in 1:2){
+for (m in 1:6){
+  thisrow<-thisrow+1
+  w<-which(ss$lhs==paste0('f',f))
+  x<-which(substr(ss$rhs,1,1) == LETTERS[m])
+  myrow<-intersect(w,x)[1]
+  thisstring <- paste0(numformat(ss$est[myrow],2)," [",numformat(ss$se[myrow],2),"]")  #we use numformat function defined earlier to give tidy cols
+  bigsummary[thisrow,writecol]<-thisstring
+}
+}
+#Correlation between factors is added (if it exists)
+thisrow<-thisrow+1
+myrow<-intersect(which(ss$lhs=='f1'),which(ss$rhs=='f2'))[1]
+if(length(myrow)>0){
+  thisstring <- paste0(numformat(ss$est[myrow],2)," [",numformat(ss$se[myrow],2),"]")
+  bigsummary[thisrow,writecol]<-thisstring
+}
+
+wantfits <- c('CFI','TLI','SRMR','rmsea','chisq','chisq.scaled','df','pvalue','pvalue.scaled','rmsea.ci.lower','rmsea.ci.upper') #fit indices to include
+#NB there are many other fit indices we could add, but if we do, would need to modify bigsummary.
+#Currently script assumes we will have these fit indices 
+
+#fm<-as.character(round(fitmeasures(myfit,wantfits),2))
+fm <- numformat(fitmeasures(myfit,wantfits),2)
+w<-which(wantfits=='rmsea')
+#need to bolt upper and lower ci to this value. These are set to be last 2 indices
+y<-which(wantfits=='rmsea.ci.lower')
+fm[w]<-paste0(fm[w], " [",fm[y],"-",fm[(y+1)],"]")
+
+w<-which(wantfits=='chisq')
+#need to bolt pvalue to this value. 
+y<-which(wantfits=='pvalue')
+fm[w]<-paste0(fm[w],", ",pformat(as.numeric(fm[y]))) #pformat defined in function at top of script
+
+w<-which(wantfits=='chisq.scaled')
+#need to bolt pvalue to this value. 
+y<-which(wantfits=='pvalue.scaled')
+fm[w]<-paste0(fm[w],", ",pformat(as.numeric(fm[y])))
+
+#find first row to write to
+r<-which(bigsummary[,1]==wantfits[1]) #find row corresponding to first fit index
+writeN <- length(wantfits)-4 #we don't write the pvalues or CI for RMSEA as they are incorporated with chisqs and RMSEA
+bigsummary[r:(r+writeN-1),writecol]<-fm[1:writeN] #write the fit indices in successive rows, starting with r
+
+
+#bigsummary[3:15,1]<-
+  c('Factor 1 -> Word Generation',
+'Factor 1 -> Sentence Generation',
+'Factor 1 -> Phonological Decision',
+'Factor 1 -> Word Decision',
+'Factor 1 -> Sentence Decision',
+'Factor 1 -> Syntactic Decision',
+'Factor 2 -> Word Generation',
+'Factor 2 -> Sentence Generation',
+'Factor 2 -> Phonological Decision',
+'Factor 2 -> Word Decision',
+'Factor 2 -> Sentence Decision',
+'Factor 2 -> Syntactic Decision',
+'Factor 1 <-> Factor 2')
+#abandoned as it played havoc with formatting
+
+
+return(bigsummary)
+}
+```
+
+```{r initialisebigsummary,echo=F,include=F}
+#Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
+initbigsummary <- function(){
+bigsummary <- data.frame(matrix(NA,nrow=23,ncol=4))
+colnames(bigsummary)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
+bigsummary[,1]<-c('N participants','Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
+return(bigsummary)
+}
+```
+
+```{r modelspecification,echo=F}
+#This is definition of single factor model we will use here. A_P1 will be index variable with path of 1. 
+model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3' 
+
+
+#2 factor production/reception model
+model.2F <- '
+f1 =~  A_P1 + B_P2+C_P3
+f2 =~  NA*D_R1 + E_R2 +F_R3 
+f2~~1*f2
+
+'
+
+model.2Fn <- '
+f1 =~  B_P2+A_P1 +C_P3+ E_R2
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 
+
+f2~~1*f2
+'
+
+```
+
+
+
+
+## Results from Structural Equation models, comparing output with different inclusion criteria.  
+
+In the numerical outputs, summary labels are used for the 6 fTCD variables, as follows:
+A_P1: Word Generation  
+B_P2: Sentence Generation  
+C_P3: Phonological Decision  
+D_R1: Word Decision  
+E_R2: Sentence Decision  
+F_R3: Syntactic Decision
+
+### Covariance and means matrix for raw data  
+
+```{r suppoutputs,echo=F,message=F,include=F}
+bigsumfit1 <- initbigsummary()
+bigsumfit1$X<-NA #extra column
+
+colnames(bigsumfit1)[2:5]<-c('Fit1: Full Sample','Fit1: Selected Sample','Fit1: Full Sample - Orig. baseline','Fit1: Selected Sample - Orig. baseline')
+
+ddati <- read.csv('ddati.csv')
+ddatOB <- read.csv('ddati_origbaseline.csv')
+
+fit1A <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2)
+
+rdat <- dplyr::filter(ddati,langgroup<3)
+rdatOB <-dplyr::filter(ddatOB,langgroup<3)
+
+fit1B <- cfa(model.1F, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1B,NA,'Model.1F',writecol=3)
+
+fit1C <- cfa(model.1F, estimator="WLSMV",data=ddatOB,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1C,NA,'Model.1F',writecol=4)
+
+fit1D <- cfa(model.1F, estimator="WLSMV",data=rdatOB,test="robust") 
+bigsumfit1<- addmodel(bigsumfit1,fit1D,NA,'Model.1F',writecol=5)
+
+colnames(bigsumfit1)[2:5]<-c('1 Factor: Full Sample','1 Factor: Selected Sample','1 Factor: Full Sample - Orig. baseline','1 Factor: Selected Sample - Orig. baseline')
+
+bigsumfit1<-bigsumfit1[-(9:15),]
+
+#Model 2F
+bigsumfit2 <- initbigsummary()
+bigsumfit2$X<-NA #extra column
+
+fit2A <- cfa(model.2F, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2A,NA,'Model.2F',writecol=2)
+
+fit2B <- cfa(model.2F, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2B,NA,'Model.2F',writecol=3)
+
+fit2C <- cfa(model.2F, estimator="WLSMV",data=ddatOB,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2C,NA,'Model.2F',writecol=4)
+
+fit2D <- cfa(model.2F, estimator="WLSMV",data=rdatOB,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2D,NA,'Model.2F',writecol=5)
+colnames(bigsumfit2)[2:5]<-c('2 Factor: Full Sample','2 Factor: Selected Sample','2 Factor: Full Sample - Orig. baseline','2 Factor: Selected Sample - Orig. baseline')
+
+#Model 2Fn
+bigsumfit2n <- initbigsummary()
+bigsumfit2n$X<-NA #extra column
+fit2nA <- cfa(model.2Fn, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nA,NA,'Model.2Fn',writecol=2)
+
+fit2nB <- cfa(model.2Fn, estimator="WLSMV",data=rdat,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nB,NA,'Model.2Fn',writecol=3)
+
+fit2nC <- cfa(model.2Fn, estimator="WLSMV",data=ddatOB,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nC,NA,'Model.2Fn',writecol=4)
+
+fit2nD <- cfa(model.2Fn, estimator="WLSMV",data=rdatOB,test="robust") 
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5)
+
+colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: \nFull Sample','Modified 2 Factor: \nSelected Sample','Modified 2 Factor: \nFull Sample - Orig. baseline','Modified 2 Factor: \nSelected Sample - Orig. baseline')
+```
+This table shows the covariance and means matrix for the raw data for the full sample, using the -5 to 2 s baseline, as reported in main paper.  
+
+```{r covmatrix,echo=F}
+mycov<-cov(ddati[,5:10])
+mycov<-as.data.frame(mycov)
+mymeans<-colMeans(ddati[,5:10])
+mycov<-rbind(mycov,mymeans)
+mycov<- round(mycov,3)
+row.names(mycov)[7]<-'Means'
+mycov <-tibble::rownames_to_column(mycov)
+colnames(mycov)[1]<- 'Covariances'
+autofit(flextable(mycov))
+```
+
+
+
+```{r makemodellist,echo=F}
+fitlist <-c('fit1A','fit2A','fit2nA')
+namelist<-c('Single Factor Model','2 Factor Model','Modified 2 Factor Model')
+modellist<-c(model.1F,model.2F,model.2Fn)
+
+```
+
+```{r tryloop,results='asis',echo=F}
+for (i in 1:length(namelist)){
+pandoc.header(namelist[i], level = 1)
+pandoc.p(paste("Summary output from the model is shown for the preregistered criteria (Selected sample with original baseline from -10 to 0 s, last column), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s, second column).") )
+pandoc.p("")
+pandoc.p(paste0("Model is specified as:",modellist[i] ))
+pandoc.p("")
+
+if(i==1){bigsum<- bigsumfit1
+          myfit <- fit1A}
+if(i==2){bigsum<- bigsumfit2
+         myfit <- fit2A}
+if(i==3){bigsum<- bigsumfit2n
+         myfit <- fit2nA}
+for (c in 2:ncol(bigsum)){
+w<-which(bigsum[,c]=='NA [NA]')
+bigsum[w,c]<-'-'
+}
+
+pandoc.table(bigsum,justify='left')
+
+pandoc.p("")
+pandoc.p("The detailed fit statistics for this model, with the final criteria (Full sample with baseline -5 to 2s) are shown below.")
+pandoc.p("")
+
+pandoc.header("Unstandardized path estimates", level = 2) 
+ft_pe <- parameterEstimates(myfit)
+ft_pe[,4:9]<-numformat(ft_pe[,4:9],3)
+pandoc.table(ft_pe,justify='left')
+pandoc.p("")
+
+pandoc.header("Standardized path estimates", level = 2) 
+ft_se <- parameterEstimates(myfit)
+ft_se[,4:9]<-numformat(ft_se[,4:9],3)
+pandoc.table(ft_se,justify='left')
+pandoc.p("")
+
+pandoc.header("Model-implied fitted covariance matrix", level = 2) 
+ft_fit <- as.data.frame(fitted(myfit))
+ft_fit <- numformat(ft_fit,3)
+ft_fit <-tibble::rownames_to_column(ft_fit)
+colnames(ft_fit)[1]<-'Variable'
+
+pandoc.table(ft_fit,justify='left')
+pandoc.p("")
+
+pandoc.header("Unstandardized residuals of fitted model", level = 2) 
+ft_res <- as.data.frame(residuals(myfit))
+ft_res<-ft_res[,-1] #get rid of 'type' column
+ft_res <- numformat(ft_res,3)
+
+ft_res <-tibble::rownames_to_column(ft_res)
+colnames(ft_res)[1]<-'Variable'
+
+
+pandoc.table(ft_res,justify='left')
+pandoc.p("")
+
+
+
+
+}
+```
+
