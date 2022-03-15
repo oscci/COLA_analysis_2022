@@ -347,3 +347,92 @@ pandoc.p("")
 }
 ```
 
+## Exploratory analysis leading to modified two-factor model  
+
+```{r summaryofOE,echo=F}
+ddat_OE<-read.csv("ddat_OE.csv")
+mygroup<-1
+mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
+
+model.2FZWa <- '
+f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
+       a*A_o+a*A_e +
+       c*C_o+c*C_e+
+       e*E_o+e*E_e
+f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ 
+       c*C_o+c*C_e+
+       e2*E_o+e2*E_e+
+       f2*F_o+f2*F_e
+f1~~1*f1
+f2~~1*f2
+A_o~~av*A_o #equate variances for odds and evens
+A_e~~av*A_e
+B_o~~bv*B_o
+B_e~~bv*B_e
+C_o~~cv*C_o
+C_e~~cv*C_e
+D_o~~dv*D_o
+D_e~~dv*D_e
+E_o~~ev*E_o
+E_e~~ev*E_e
+F_o~~fv*F_o
+F_e~~fv*F_e
+'
+
+fit.2FZWa.1 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
+
+
+#Now test model with hold-out group 2
+mygroup <-2
+mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
+fit.2FZWa.2 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
+
+
+
+```
+
+Exploratory analysis used a random half of the sample, and took mean LIs for odd and even trials to ensure model identification. We started with the bifactor model of Woodhead et al. (2021) and dropped nonsignificant paths. 
+The model syntax was specified in lavaan:
+
+f1 =~  NA * B_o + equal("f1=~B_o") * B_e+  
+       a * A_o + a * A_e +  
+       c * C_o + c * C_e +  
+       e * E_o + e * E_e  
+f2 =~  NA * D_o + equal("f2=~D_o") * D_e +   
+       c * C_o + c * C_e +  
+       e2 * E_o + e2 * E_e+  
+       f2 * F_o + f2 * F_e  
+f1 ~~ 1 * f1  
+f2 ~~ 1 * f2  
+A_o ~~ av * A_o #equate variances for odds and evens  
+A_e ~~ av * A_e  
+B_o ~~ bv * B_o  
+B_e ~~ bv * B_e  
+C_o ~~ cv * C_o  
+C_e ~~ cv * C_e  
+D_o ~~ dv * D_o  
+D_e ~~ dv * D_e  
+E_o ~~ ev * E_o  
+E_e ~~ ev * E_e  
+F_o ~~ fv * F_o  
+F_e ~~ fv * F_e'
+
+
+Summary output with the initial test sample was as follows:
+
+```{r oddevenout,echo=F}
+summary(fit.2FZWa.1)
+myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') 
+fitmeasures(fit.2FZWa.1,myfitmeasures)
+
+```
+
+For the holdout sample, the summary was:
+
+```{r oddevenout2,echo=F}
+summary(fit.2FZWa.2)
+fitmeasures(fit.2FZWa.2,myfitmeasures)
+
+```
+
+
