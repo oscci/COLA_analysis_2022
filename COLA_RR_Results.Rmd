@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "15 Mar 2022"
+date: "17 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -851,7 +851,7 @@ _Materials_. A total of 108 experimental images were selected from the MultiPic 
 
 Each image pair was presented a total of four times, with each image twice in either the left or right visual field. The name of each image was presented twice: once when the image was in the right visual field, and once when the image was in the left. `r fignumber <- fignumber+1`See Figure `r fignumber` for an example. The images were displaced at 7.9 degrees of visual angle from the point of fixation. Gorilla’s screen scaling tool was used to maintain consistency of stimulus size across browsers and computers. In total, 208 trials were presented across four blocks.  
 
-![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right _. _This figure has been modified from the preregistered version for clarity._](WordCompDemo.png) 
+![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right. _This figure has been modified from the preregistered version for clarity._](WordCompDemo.png) 
 
 _Procedure_. Participants completed a familiarisation procedure (where each picture was shown along with its spoken name) and a number of practice trials. They then completed 208 experimental trials (four blocks of 52 stimuli). Each trial began with a central fixation cross which was visible for 600 ms. The target word was then presented aurally along with two semantically related parafoveal images that were visible for 150 ms. Participants indicated whether the oral word matched the image in the left or right visual field by pressing Q for the left visual field and P for the right visual field. Participants’ responses triggered the next trial. Accuracy and response times were recorded.  
 
@@ -1043,7 +1043,7 @@ Our plan had been to recruit 300 left-handers and 150 right-handers for the onli
 
 The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
 
-To justify this approach, we first considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`.
+To justify this approach, we first considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (See Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`).
 
 Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. 
 
@@ -1378,7 +1378,7 @@ The Word Comprehension task did rather better than the other tasks in terms of r
 
 Prediction 1 stated: **_The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and word comprehension task), which is not accountable for in terms of low reliability of measures._**  
 
-_Departure from pregistration_: _We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section x below)._  
+_Departure from pregistration_: _We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section on 'Relationship among fTCD and behavioural laterality indices' )._  
 
 
 
@@ -1713,6 +1713,9 @@ colnames(ftcdsummary)<-c('Statistic',LETTERS[1:6])
 ftcdsummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs. L-hander t','Split-half rho [95% CI]')
 ```
 
+The pirate plot in Figure `r fignumber` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) for left and right-handed participants.  
+
+
 ```{r fill-ftcdsummary, echo=FALSE, warning=FALSE,message=F}
 #We use the same function 'populate' to populate the data frame as we had for behavioural tasks - the 'ftcd' term at end of function call ensures correct columns are found
 for (t in 1:6){
@@ -1733,7 +1736,7 @@ ftcdtabnumber<-tabnumber #for later reference
 Table `r tabnumber`: _Descriptive statistics for six fTCD laterality measures_  
 
 
-The pirate plot in Figure `r fignumber` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) for left and right-handed participants,
+
 
 Table `r tabnumber` shows basic statistics for the fTCD laterality indices, in the same format as for the online tasks. Right-handers showed significant left-lateralisation on Word Generation, Sentence Generation, Phonological Decision, and Sentence Decision, but were not lateralised for Word Decision or Syntactic Decision.  Left-handers were significantly left-lateralised for Word Generation, Sentence Generation and Phonological Decision, were not lateralised for Sentence Decision or Syntactic Decision, and were significantly right-lateralised for Word Decision.  The direct comparison between left- and right-handers showed significantly greater left-lateralisation in right-handers on all tasks except Word Decision and Syntactic Decision, which showed only a trend in that direction.
 
@@ -1797,6 +1800,7 @@ myheatmap <- makeheatmap(temp,tasknames)
 ggsave(paste0(mydir,"/",figdir,"/ftcd-heatmap.png"),width = 6, height = 6)
 ggsave("ftcd-heatmap.png",width = 6, height = 6)
 
+suppnum<-suppnum+1
 
 ```
 ![Heatmap showing correlations between laterality indices from six fTCD tasks](ftcd-heatmap.png) 
@@ -1818,15 +1822,15 @@ SEM does not arrive at a single algebraic estimation of model fit, but rather us
 
 It may be noted that the path diagrams shown in Figure `r fignumber` include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
-There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions. 
+There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
-Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figure `r fignumber`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters - in which case the simpler model is preferred. 
-
-A different kind of measure of model fit is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
+For this reason, a range of  different kind of measure of model fit have been devised. The first is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
 
 Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit   The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
 
-Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR.
+Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figure `r fignumber`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters - in which case the simpler model is preferred. 
+
+Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR. The model-fitting  Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
  
 
 
@@ -2084,9 +2088,9 @@ ftb
 ```
 
 
-We used the lavaan() package to perform the preregistered model comparison. To take into account non-normality of some variables, the WLSMV estimator was specified; this uses weighted least squares with robust standard errors and a mean- and variance adjusted test statistic, and makes no distributional assumptions about the observed variables. Table `r tabnumber` summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
+We used the lavaan() package to perform the preregistered model comparison. To take into account non-normality of some variables, the WLSMV estimator was specified; this uses weighted least squares with robust standard errors and a mean- and variance adjusted test statistic, and makes no distributional assumptions about the observed variables. When this estimator is used, robust $\chi$^2^  values should be used to evaluate model fit, though the unadjusted $\chi$^2^ values are used for model comparison. Table `r tabnumber` summarises the main output of the model-fitting. The fit of both the one-factor and the two-factor model is poor. 
 
-Therefore, as planned, we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021). Fuller details of the analysis are given in Supplementary material.  Because we had data from a single session, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Decision and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was excellent. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignumber` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
+Therefore, as planned, we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021). Fuller details of the analysis are given in Supplementary material.  Because we had data from a single session, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Decision and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was good. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignumber` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
 
 ![Factor structure of best-fitting model.](pathfigF2_revised.jpg)
 **Evaluation of Prediction 2: Separable factors for receptive and production fTCD laterality measures **
@@ -2402,7 +2406,7 @@ Nevertheless, although we cannot conclude there is no effect of handedness, it i
 
 
 
-## Relationship between fTCD and behavioural laterality indices
+## Relationship among fTCD and behavioural laterality indices
 
 
 Our fifth prediction was: **_the laterality profile obtained with the online language battery will be significantly associated with the profile seen with the direct measurement of cerebral blood flow using fTCD, with laterality on dichotic listening and word comprehension relating more strongly to receptive language tasks, and rhyme decision to language generation tasks._**
@@ -2542,7 +2546,7 @@ In our preregistration analysis plan, we stated: **_If the online measures do no
 Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. Although the split-half reliability of the online measures was not high, it was not so low as to explain the lack of association with fTCD measures. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, and cannot be used as proxy measures.  
 
 ## Additional analyses  
-It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). Supplementary file `r suppnum` shows relevant analyses indicating that this is not the case. 
+It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). Supplementary file `r suppcorr` shows relevant analyses indicating that this is not the case. 
 
 # Discussion
 
