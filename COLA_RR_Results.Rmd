@@ -90,6 +90,7 @@ options(scipen=999)
 tabnumber <-0 #initialise counter for tables
 fignumber <-0 # initialise counter for figs
 suppfignumber<-0 
+suppnum <- 0
 ```
 
 <!--- GENERIC FUNCTIONS START -->
@@ -394,25 +395,45 @@ return(mySEMout)
 ```{r makeSEMtab2function,echo=F}
 #Table for SEM output side by side for 2 groups
 makeSEMtab2 <- function(myfit,mygroups){
-ss<- summary(myfit,standardized=TRUE)$PE
+ss<- summary(myfit,standardized=TRUE)$PE  #get the standardized parameter estimates
+wantcols<-c("lhs", "op","rhs" ,  "est" ,"se" )
+ss<-ss[,wantcols]
+ss[,4:5]<-numformat(ss[,4:5],2)
+for (i in 1:nrow(ss)){
+ss[i,3]<-paste0(ss[i,1],ss[i,2],ss[i,3])
+}
+ss<-ss[,3:5]
+
  srow<-nrow(ss)
  scol<-ncol(ss)
-mySEMout <- cbind(ss[1:(srow/2),c(1:3,(scol-3):scol)],ss[(1+srow/2):srow,c((scol-3):scol)])
-mySEMout[,4:11]<-round(mySEMout[,4:11],3)
-mySEMout[(srow/2+1):(srow/2+4),]<-NA #additional rows for fit measures
+ sshort<-srow/2
+mySEMout <- cbind(ss[1:sshort,],ss[(1+sshort):srow,2:3])
+
+
+myfitmeasures <- c('CFI','TLI','SRMR','rmsea','rmsea.ci.lower','rmsea.ci.upper','chisq','df','pvalue','chisq.scaled','pvalue.scaled') #can modify this if need be
+lfm<-length(myfitmeasures)
+
+mySEMout[(sshort+1):(sshort+(1+lfm)),]<-NA #additional rows for fit measures
 
 
 #add fit measures
-myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') #can modify this if need be
+
+mySEMout[(1+sshort),]<-c('Fit measures','','','','')
 fm<-fitmeasures(myfit,myfitmeasures)
 for(i in 1:length(myfitmeasures)){
-mySEMout[(i+srow/2),1]<-myfitmeasures[i] #write name of fit measure to col 1
-mySEMout[(i+srow/2),2]<-round(fm[i],3) #write value to col 2
+mySEMout[(1+i+sshort),1]<-myfitmeasures[i] #write name of fit measure to col 1
+mySEMout[(1+i+sshort),2]<-round(fm[i],3) #write value to col 2
 }
 
+mySEMout[(sshort+1):nrow(mySEMout),3:5]<-''
+
 #make different col headers for the 2 groups
-colnames(mySEMout)[4:7]<-paste0(colnames(mySEMout)[4:7],mygroups[1])
-colnames(mySEMout)[8:11]<-paste0(colnames(mySEMout)[8:11],mygroups[2])
+colnames(mySEMout)[2:3]<-paste0(colnames(mySEMout)[2:3],mygroups[1])
+colnames(mySEMout)[4:5]<-paste0(colnames(mySEMout)[4:5],mygroups[2])
+colnames(mySEMout)[1]<-'Estimates'
+mySEMout<-rbind(mySEMout[1,],mySEMout) #add a row at the top
+mySEMout[1,]<-c('Parameter Estimates','','','','')
+
 return(mySEMout)
 }
 ```
@@ -559,6 +580,8 @@ w<-which(combdat$No_signal==1)
 combdat$ftcd[w]<-9 #cases marked 9 were seen but did not have a signal
 
 supplementary <- 0 #set this to zero for the main paper. With other values we can change the selection criteria to look at implications of using original language exclusion cutoff. When supplementary=1, we include only those shown in flowchart as group 1 (native and nonnative)
+
+#NB the supplementary results are now shown in Supplementary files. 
 
 if(supplementary==1){
   mydir <- alldir[2]
@@ -899,8 +922,6 @@ testtab <- table(combdat$Rhanded,combdat$ftcd)
 rownames(testtab)<-c('Left-handed','Right-handed')
 
 
-testtab-table(combdat$Rhanded,combdat$ftcd)
-
 
 LH1 <- testtab[1,1]+testtab[1,2]+testtab[1,3]
 RH1 <-testtab[2,1]+testtab[2,2]+testtab[2,3]
@@ -1022,12 +1043,11 @@ Our plan had been to recruit 300 left-handers and 150 right-handers for the onli
 
 The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
 
-Analyses that exclude participants on the basis of preregistered cutoffs on language test scores are provided in Supplementary materials. Differences in means, variances and covariances for the full sample and the restricted sample are all very small and there are no meaningful differences to results from statistical tests or modeling. 
-
+To justify this approach, we first considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`.
 
 Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. 
 
-Figure `r fignumber` divides participants according to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). Here we report data on the whole sample with no exclusions based on the language screen, but in Supplementary material we compare our results with those obtained using the original, stringent language cutoff (excluding all Group M), or a revised cutoff (excluding only Group Mb).
+Figure `r fignumber` divides participants according to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). Here we report data on the whole sample with no exclusions based on the language screen, but in Supplementary file 2 we compare our results with those obtained using the original, stringent language cutoff (excluding all Group M), and show that differences are minimal.
 
 
 
@@ -1207,8 +1227,12 @@ Visualisations of the raw data from which laterality indices were computed, colo
 In our pre-registration we stated that we would compute a conventional laterality index, 100 x (Left-Right)/(Left+Right), as well as a laterality z-score:
 (pL-.5)/sqrt(pL.pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).  
 
+```{r addsupp,echo=F}
+suppnum <- suppnum+1
+suppdich<-suppnum
+```
 
-As is evident from Supplementary figure `r suppfignumber+1`, the LIz score is very highly correlated with the conventional LI, the principal difference being that the LIz follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use LIz, as this allows us to compare different tasks on a common scale. 
+As is evident from the scatterplot in Supplementary file `r suppnum`, the LIz score is very highly correlated with the conventional LI, the principal difference being that the LIz follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use LIz, as this allows us to compare different tasks on a common scale. 
 
 In Rhyme Decision, the task was to judge which of two pictured items had a name that rhymed with a centrally-presented written word. The pictures were presented in the left or right periphery. This was an easy task, as the words used were common, and the participants were given a practice session where they were introduced to all the pictures and their names. We could therefore use accuracy as an index of engagement with the task, and we excluded `r length(intersect(which(combdat$excludeRDT==1),which(combdat$lang2exclude==0)))` participants with accuracy of less than 75% correct. 
 
@@ -1624,14 +1648,14 @@ for(i in 1:6){
 poordata<-unique(poordata)
 poordatalist<-combdat[poordata,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
 write.csv(poordatalist,'poordatacases.csv',row.names=F)
-
-#These cases to be checked; For time being we exclude them when computing means, but will need to update this after checking.
-datalist<-combdat[-poordata,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
+datalist<-combdat[,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
 acctab<-describe(datalist[,2:7])
+
+#After checking, we do have 5 cases where Syntactic Decision is below 60% correct. 3 of them in language group 1, and two in language group 3. None is currently excluded.
 ```
 ## Accuracy on fTCD tasks  
 The mean number of words produced per trial was `r round(acctab$mean[1],2)`, (SD = `r round(acctab$sd[1],2)`) for Word Generation and  `r round(acctab$mean[2],2)`, (SD = `r round(acctab$sd[2],2)`) for Sentence Generation. For the four decision tasks, accuracy was recorded as mean percentage correct:  `r round(acctab$mean[3],2)` (SD = `r round(acctab$sd[3],2)`) for Phonological Decision, `r round(acctab$mean[4],2)` (SD = `r round(acctab$sd[4],2)`) for Word Decision, `r round(acctab$mean[5],2)` (SD = `r round(acctab$sd[5],2)`) for Sentence Decision, and `r round(acctab$mean[6],2)` (SD = `r round(acctab$sd[6],2)`) for Syntactic Decision.  
-THIS CURRENTLY EXCLUDES 8 CASES WITH V LOW SCORES.  
+ 
 
 ## LI Summary Statistics
 
@@ -1903,16 +1927,16 @@ cropY <- image_crop(imageY, "800x0+60")
 
 
 #make oddeven file so can try same model as Woodhead et al
-wantcols <- c("ID","male","Rhanded","A_mean_odd","A_mean_even","B_mean_odd","B_mean_even","C_mean_odd","C_mean_even","D_mean_odd","D_mean_even","E_mean_odd","E_mean_even","F_mean_odd","F_mean_even","DopExclude")
+wantcols <- c("ID","male","Rhanded","langgroup","A_mean_odd","A_mean_even","B_mean_odd","B_mean_even","C_mean_odd","C_mean_even","D_mean_odd","D_mean_even","E_mean_odd","E_mean_even","F_mean_odd","F_mean_even","DopExclude")
 ddat_OE <- combdat[combdat$ftcd==1,wantcols]
 ddat_OE<-ddat_OE[ddat_OE$DopExclude==0,]
 
 #impute missing values using mice package
-nunames<-wantcols[4:15]
+nunames<-wantcols[5:16]
 thisdat.j <- mice(ddat_OE[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
-ddat_OE <-cbind(ddat_OE[,1:3],complete(thisdat.j,1))
+ddat_OE <-cbind(ddat_OE[,1:4],complete(thisdat.j,1))
 
-colnames(ddat_OE)<-c("ID","male","Rhanded","A_o","A_e","B_o","B_e","C_o","C_e","D_o","D_e","E_o","E_e","F_o","F_e")
+colnames(ddat_OE)<-c("ID","male","Rhanded","langgroup","A_o","A_e","B_o","B_e","C_o","C_e","D_o","D_e","E_o","E_e","F_o","F_e")
 set.seed(50)
 
 #We explore for best model using just half the data (randgroup = 1)
@@ -1920,6 +1944,8 @@ set.seed(50)
 ddat_OE$randgroup<-1+rbinom(nrow(ddat_OE),1,.5) #create random group 1 or 2 for later split
 mygroup <-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
+
+write.csv(ddat_OE,'ddat_OE.csv',row.names=F) #save this for use in Supplementary tables
 
 #Model that is same as Woodhead et al
 model.2FZW <- '
@@ -2163,7 +2189,7 @@ tabM0 <- makeSEMtab(fitM0)  #
 # configural invariance
 fitM1 <- cfa(model.2Fn, estimator="WLSMV",data = ddati,meanstructure=T, group = "Handed")
 
-tabM1 <- makeSEMtab2(fitM1,c('_L','_R'))  #in tab1, everything varies for the 2 groups
+tabM1 <- makeSEMtab2(fitM1,c('_L','_R')) #in tab1, everything varies for the 2 groups
 
 # weak invariance
 fitM2 <- cfa(model.2Fn, ddati, estimator="WLSMV",meanstructure=T,group = "Handed",
@@ -2194,6 +2220,9 @@ tabM4 <- makeSEMtab2(fitM4,c('_L','_R'))
 # model comparison tests
 #mylavtest<-lavTestLRT(fitM1, fitM2, fitM3,fitM3a, fitM4)
 mylavtest<-lavTestLRT(fitM1, fitM2, fitM3,fitM3a,fitM4)
+
+save(tabM1,tabM2,tabM3,tabM3a,tabM4,file='SEMtab2groups.RData')
+#save tabs which can then be included in supplementary material
 ```
 
 ```{r showlavtest,echo=F,warning=F,message=F}
@@ -2513,36 +2542,7 @@ In our preregistration analysis plan, we stated: **_If the online measures do no
 Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. Although the split-half reliability of the online measures was not high, it was not so low as to explain the lack of association with fTCD measures. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, and cannot be used as proxy measures.  
 
 ## Additional analyses  
-It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). 
-
-```{r errs-vs-LI,echo=F,warning=F}
-LIs <- c('DL.zlat.ex','RDT.zlat.ex','WC.zlat.ex','A.LI.ex','B.LI.ex','C.LI.ex','D.LI.ex','E.LI.ex','F.LI.ex')
-perf<-c('DLsame.corr','RDT.pcorr','WC.pcorr','WG_nWords','SG_nWords','PD_Acc','WC_Acc','SC_Acc','SD_Acc')
-LInames<-c("Dichotic Listening","Rhyme Decision","Word Comprehension","Word Generation","Sentence Generation","Phonological Decision","Word Decision","Sentence Decision","Syntactic Decision")
-perfnames<-c("% correct Same","% correct","% correct","N words","N words","% correct","% correct","% correct","% correct")
-ntest<-length(LIs)
-pairframe <- data.frame(matrix(NA,nrow=ntest,ncol=9))
-colnames(pairframe)<-c('LI','Performance','N','rho','p-value','rho:Games with Words','p-value','rho: Lextale','p-value')
-pairframe[,1]<-LInames
-pairframe[,2]<-perfnames
-
-for (n in 1:ntest){
-  mycor <- cor.test(combdat[,LIs[n]],combdat[,perf[n]],method='spearman')
- 
-  mycorx <-cor.test(combdat[,LIs[n]],combdat[,perf[n]])#pearson just so we get df for N!
-    mycorg <- cor.test(combdat[,LIs[n]],combdat$gramerrs,method='spearman')
-    mycorl <-cor.test(combdat[,LIs[n]],combdat$lexTALE,method='spearman')
-  pairframe[n,3]<-mycorx$parameter+2
-  pairframe[n,4]<-round(mycor$estimate,2)
-   pairframe[n,5]<-pformat2(mycor$p.value)
-   pairframe[n,6]<- -round(mycorg$estimate,2)
-   pairframe[n,7]<-pformat2(mycorg$p.value)
-     pairframe[n,8]<- -round(mycorl$estimate,2)
-   pairframe[n,9]<-pformat2(mycorl$p.value)
-}
-
-```
-
+It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). Supplementary file `r suppnum` shows relevant analyses indicating that this is not the case. 
 
 # Discussion
 
@@ -2720,156 +2720,56 @@ Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hu
 sessionInfo()
 ```
 
-## Supplementary materials  
+# Supplementary file `r suppcorr`
 
-### Supplementary Figure `r suppfignumber+1`
+Correlational analysis of Laterality Indices and (a) measures of task performance; (b) Games with Words score; (c) LexTALE scores. THe first table shows correlations with the raw laterality indices, and the second table shows correlations with absolute laterality indices (strength of laterality regardless of direction). A total 54 correlations is considered, giving Bonferroni-corrected alpha level of .0009. None of the correlations reached this level. 
+
+```{r errs-vs-LI,echo=F,warning=F}
+LIs <- c('DL.zlat.ex','RDT.zlat.ex','WC.zlat.ex','A.LI.ex','B.LI.ex','C.LI.ex','D.LI.ex','E.LI.ex','F.LI.ex')
+perf<-c('DLsame.corr','RDT.pcorr','WC.pcorr','WG_nWords','SG_nWords','PD_Acc','WC_Acc','SC_Acc','SD_Acc')
+LInames<-c("Dichotic Listening","Rhyme Decision","Word Comprehension","Word Generation","Sentence Generation","Phonological Decision","Word Decision","Sentence Decision","Syntactic Decision")
+perfnames<-c("% correct Same","% correct","% correct","N words","N words","% correct","% correct","% correct","% correct")
+ntest<-length(LIs)
+pairframe <- data.frame(matrix(NA,nrow=ntest,ncol=9))
+colnames(pairframe)<-c('LI','Performance','N','rho: Performance','p-value','rho:Games with Words','p-value_','rho: Lextale','p-value__')
+pairframe[,1]<-LInames
+pairframe[,2]<-perfnames
+
+for (r in 1:2){ #First round does absolute LI , 2nd round original LI
+for (n in 1:ntest){
+  xvalue<-combdat[,LIs[n]]
+   if(r==1){xvalue<-abs(xvalue)}
+  mycor <- cor.test(xvalue,combdat[,perf[n]],method='spearman')
+  mycorx <-cor.test(xvalue,combdat[,perf[n]])#pearson just so we get df for N!
+    mycorg <- cor.test(xvalue,combdat$gramerrs,method='spearman')
+    mycorl <-cor.test(xvalue,combdat$lexTALE,method='spearman')
+  pairframe[n,3]<-mycorx$parameter+2
+  pairframe[n,4]<-round(mycor$estimate,2)
+   pairframe[n,5]<-pformat2(mycor$p.value)
+   pairframe[n,6]<- -round(mycorg$estimate,2)
+   pairframe[n,7]<-pformat2(mycorg$p.value)
+     pairframe[n,8]<- -round(mycorl$estimate,2)
+   pairframe[n,9]<-pformat2(mycorl$p.value)
+}
+  if(r==1){pairframe.abs<-pairframe}
+}
+#flextable dislikes duplicate colnames for p-value
+
+
+
+fpf1 <- flextable(pairframe)
+fpf1 <- set_caption(fpf1,"Correlations (rho) with raw LIs: Performance measures and language competence measures")
+fpf1
+
+fpf2 <- flextable(pairframe)
+fpf2 <- set_caption(fpf2,"Correlations (rho) with absolute LIs: Performance measures and language competence measures")
+fpf2
+```
+
+
+
+### Supplementary File `r suppdich`
 
 ![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.png)
-# Supplementary material B  
-## Full results from Structural Equation models, comparing output with different subsets of participants.  
-
-In the numerical outputs, summary labels are used for the 6 fTCD variables, as follows:
-A_P1: Word Generation  
-B_P2: Sentence Generation  
-C_P3: Phonological Decision  
-D_R1: Word Decision  
-E_R2: Sentence Decision  
-F_R3: Syntactic Decision
-
-
-
-```{r suppoutputs,echo=F}
-bigsumfit1 <- initbigsummary()
-bigsumfit1$X<-NA #extra column
-
-colnames(bigsumfit1)[2:4]<-c('Fit1: Full Sample','Fit1: Selected Sample','Fit1: Full Sample - Orig. baseline','Fit1: Selected Sample - Orig. baseline')
-
-
-ddatOB <- read.csv('ddati_origbaseline.csv')
-
-fit1A <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2)
-
-rdat <- filter(ddati,langgroup<3)
-rdatOB <-filter(ddatOB,langgroup<3)
-
-fit1B <- cfa(model.1F, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1B,NA,'Model.1F',writecol=3)
-
-fit1C <- cfa(model.1F, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1C,NA,'Model.1F',writecol=4)
-
-fit1D <- cfa(model.1F, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1D,NA,'Model.1F',writecol=5)
-
-colnames(bigsumfit1)[2:5]<-c('1 Factor: Full Sample','1 Factor: Selected Sample','1 Factor: Full Sample - Orig. baseline','1 Factor: Selected Sample - Orig. baseline')
-
-bigsumfit1<-bigsumfit1[-(9:15),]
-
-#Model 2F
-bigsumfit2 <- initbigsummary()
-bigsumfit2$X<-NA #extra column
-
-fit2A <- cfa(model.2F, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2A,NA,'Model.2F',writecol=2)
-
-fit2B <- cfa(model.2F, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2B,NA,'Model.2F',writecol=3)
-
-fit2C <- cfa(model.2F, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2C,NA,'Model.2F',writecol=4)
-
-fit2D <- cfa(model.2F, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2D,NA,'Model.2F',writecol=5)
-colnames(bigsumfit2)[2:5]<-c('2 Factor: Full Sample','2 Factor: Selected Sample','2 Factor: Full Sample - Orig. baseline','2 Factor: Selected Sample - Orig. baseline')
-
-#Model 2Fn
-bigsumfit2n <- initbigsummary()
-bigsumfit2n$X<-NA #extra column
-fit2nA <- cfa(model.2Fn, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nA,NA,'Model.2Fn',writecol=2)
-
-fit2nB <- cfa(model.2Fn, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nB,NA,'Model.2Fn',writecol=3)
-
-fit2nC <- cfa(model.2Fn, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nC,NA,'Model.2Fn',writecol=4)
-
-fit2nD <- cfa(model.2Fn, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5)
-
-colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: Full Sample','Modified 2 Factor: Selected Sample','Modified 2 Factor: Full Sample - Orig. baseline','Modified 2 Factor: Selected Sample - Orig. baseline')
-```
-
-
-
-### Single Factor Model
-
-Summary output from the single factor model can be compared for the preregistered criteria (Selected sample with original baseline from -10 to 0 s, last column), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s, second column).  
-
-### Covariance and means matrix 
-```{r covmatrix,echo=F}
-mycov<-cov(ddati[,5:10])
-mycov<-as.data.frame(mycov)
-mymeans<-colMeans(ddati[,5:10])
-mycov<-rbind(mycov,mymeans)
-mycov<- round(mycov,3)
-row.names(mycov)[7]<-'Means'
-mycov <-add_rownames(mycov)
-colnames(mycov)[1]<- 'Covariances'
-flextable(mycov)
-```
- 
-
-
-```{r formatbigsummaryx,echo=F} 
-#couldn't get this to work as function!
-for (c in 2:ncol(bigsumfit1)){
-w<-which(bigsumfit1[,c]=='NA [NA]')
-bigsumfit1[w,c]<-'-'
-}
-ftb<-flextable(bigsumfit1)
-
-#ftb<-autofit(ftb)
-ftb
-
-
-``` 
-
-  
-The detailed fit statistics for the single factor model, with the final criteria (Full sample with baseline -5 to 2s) are shown below.
-
-### Unstandardized path estimates  
-
-```{r printestimates}
-ft_pe <- parameterEstimates(fit1A)
-ft_pe[,4:9]<-numformat(ft_pe[,4:9],3)
-flextable(ft_pe)
-```
-
-### Standardized path estimates  
-```{r printsestimates}
-ft_se <- standardizedsolution(fit1A)
-ft_se[,4:9]<-numformat(ft_se[,4:9],3)
-flextable(ft_se)
-```
- 
-
-### Model-implied fitted covariance matrix    
-```{r printfitted}
-ft_fit <- as.data.frame(fitted(fit1A))
-ft_fit <- numformat(ft_fit,3)
-ft_fit <-add_rownames(ft_fit)
-flextable(ft_fit)
-```
- 
-
-### Unstandardized residuals of fitted model     
-```{r printresids}
-ft_res <- as.data.frame(residuals(fit1A))
-ft_res[2:ncol(ft_res)] <- numformat(ft_res[2:ncol(ft_res)],3)
-ft_res<-add_rownames(ft_res)
-flextable(ft_res)
-```
 
 
