@@ -982,6 +982,46 @@ N.B. We already had test-retest on Dichotic so it was not given in Session 3.
 We read in the data and mark whether a trial was correct or incorrect.
 For 'same' trials, we measure % correct, and exclude those who score less than 75% correct: this is the cutoff used by Parker et al (2021).
 
+```{r headphonecheck,echo=F}
+h1<-all_dat[all_dat$Task.Name=="headphone check",]
+h1<-h1[h1$ANSWER %in% c('First','Second','Third'),]
+h1$head1correct <-0
+w<-which(h1$ANSWER==h1$Response)
+h1$head1correct[w]<-1
+h.agg<-aggregate(h1$head1correct,by=list(h1$subject),FUN=sum)
+
+h2<-all_dat[all_dat$Task.Name=="headphone check (2)",]
+h2<-h2[h2$ANSWER %in% c('First','Second','Third'),]
+h2$head2correct <-0
+w<-which(h2$ANSWER==h2$Response)
+h2$head2correct[w]<-1
+h.agg2<-aggregate(h2$head2correct,by=list(h2$subject),FUN=sum)
+
+allsum$head1corr<-NA
+allsum$head2corr<-NA
+
+
+for (i in 1:nrow(allsum)){
+    subj <- allsum$subject[i]
+    w<-which(h.agg$Group.1==subj)
+    if(length(w)>0)
+     {allsum$head1corr[i]<-h.agg$x[w]}
+      w<-which(h.agg2$Group.1==subj)
+    if(length(w)>0){
+     allsum$head2corr[i]<-h.agg2$x[w]
+    }
+}
+allsum$headfail<-0
+w<-which(allsum$head1corr<4)
+allsum$headfail[w]<-1
+w<-which(allsum$head2corr<4)
+allsum$headfail[w]<-1
+  
+#table(allsum$headfail) -not run, confirms all those included here passed headphone check
+
+```
+
+
 ```{r read_dichotic_dat, warning=FALSE,echo=F}
 task <- "Dichotic Listening"
 wanted <- c("subject",  "Response", "RT", "left_channel", "right_channel", "Spreadsheet.Name") # select wanted columns
