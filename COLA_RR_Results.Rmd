@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "17 Mar 2022"
+date: "18 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -12,6 +12,8 @@ output:
 <!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
 
 <!-- to make a reproducible version see https://workflowr.github.io/workflowr/ and groundhog package-->
+
+<!-- IF YOU RUN THE SUPPLEMENTARY OUTPUTS-PANDER.RMD SCRIPT BEFORE THIS ONE, YOU GET A CONFLICT BETWEEN PANDER AND FLEXTABLE, AND THIS SCRIPT CRASHES WITH ERROR MESSAGE WHEN FONT SIZE IS SET IN FLEXTABLE.  TO OVERCOME THIS, RESTART R BEFORE YOU RUN THIS SCRIPT-->
 
 *Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8^, Dorothy V. M. Bishop^1b^  
 
@@ -2175,10 +2177,11 @@ Step 4: Strict invariance
 #same model in different syntax to make it easier to interpret
 
 model.2Fn <- '
-f1 =~  A_P1 + B_P2+C_P3+ E_R2
-f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
-'
+f1 =~  B_P2+A_P1 +C_P3+ E_R2
+f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model:
 
+f2~~1*f2
+'
 
 #measurementInvariance(model=model.2Fn,estimator="WLSMV",data=ddati,group="Handed")
 #This gives message to say command is deprecated.
@@ -2188,7 +2191,7 @@ f2 =~  F_R3 + C_P3+D_R1+ E_R2   #2 factor model: no constraint on covariance
 #NB makeSEMtab2 is a function defined at top of script - just makes it easier to compare parameters across groups
 
 fitM0 <- cfa(model.2Fn,estimator="WLSMV", data = ddati,meanstructure=T)
-tabM0 <- makeSEMtab(fitM0)  #
+#tabM0 <- makeSEMtab(fitM0)  #
 
 # configural invariance
 fitM1 <- cfa(model.2Fn, estimator="WLSMV",data = ddati,meanstructure=T, group = "Handed")
@@ -2253,7 +2256,15 @@ Table `r tabnumber`: _Nested tests of model equivalence for left and right-hande
 
 The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary for the two handedness groups. Initially, a model is fit in which all the paths, covariances, and intercepts are free to differ between left- and right-handers. This model is tested against a model of 'metric invariance', which sets the loadings from each observed variable to the factors to be the same for the two groups. If the fit of the model does not worsen, we can assume the basic model structure is equivalent for the two groups. This test of equivalence was passed (see Table `r tabnumber`).
 
-At the next step, (scalar invariance), the item intercepts are set to be the same across groups. Once again, the model fit did not worsen (see Table `r tabnumber`). We then added a further constraint, which was that the covariance between factors should be the same for the two groups. Again, model fit was not impaired.  
+```{r checkf1f2cov,echo=F}
+w<-which(tabM3$Estimates=='f1~~f2')
+myests <- tabM3[w,2:5]
+
+```
+
+At the next step, (scalar invariance), the item intercepts are set to be the same across groups. Once again, the model fit did not worsen (see Table `r tabnumber`). 
+
+Previously, Woodhead et al. (2021) had found weaker covariance between factors in left-handers than in right-handers. To test whether this was the case for the current dataset, we added a further constraint, which was that the covariance between factors should be the same for the two groups. The covariance between factors was numerically lower in left-handers (`r myests[1]`, SE = `r myests[2]`) than right-handers (`r myests[3]`, SE = `r myests[4]`), but the difference was not great, and model fit was not impaired when the covariance was forced to be identical in the two handedness groups. 
 
 In a final step (strict invariance), we constrain item residual variances as well as factor loadings and intercepts to be equal across groups. Here we obtained a substantial worsening of model fit, indicating that the mean difference between groups on the latent factors is not the same. 
 
@@ -2280,10 +2291,14 @@ df2<-round(fact2$parameter,1)
 
 pf1<-pformat(fact1$p.value)
 pf2<-pformat(fact2$p.value)
+
+#useful to also have sds for factor scores by handedness
+agfac1 <- aggregate(ddati$Factor1,by=list(ddati$Handed),FUN=sd)
+agfac2 <- aggregate(ddati$Factor2,by=list(ddati$Handed),FUN=sd)
 ```
 
 
-In a further exploratory analysis, we compared left- and right-handers on mean factor scores. For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t = `r t1`, df = `r df1`, `r pf1`. For Factor 2, the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t = `r t2`, df = `r df2`, `r pf2`. 
+In a further exploratory analysis, we compared left- and right-handers on mean factor scores: values for Factor 1 were mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; for Factor 2, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t = `r t1`, df = `r df1`, `r pf1`. For Factor 2, the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t = `r t2`, df = `r df2`, `r pf2`. 
 
 **Evaluation of Prediction 3: Different model parameters for left- and right-handers **
 Our interpretation of this analysis was rather complex, given the range of possible results. Specifically we  in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
@@ -2428,7 +2443,7 @@ for (i in 1:nrow(ddati)){
 #impute missing values using mice package
 nunames<-c('DL_z','RDT_z','WC_z')
 thisdat.j <- mice(ddati[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
-ddati <-cbind(ddati[,1:12],complete(thisdat.j,1))
+ddati <-cbind(ddati[,1:ncol],complete(thisdat.j,1))
 ```
 
 
@@ -2569,7 +2584,9 @@ In a final step of analysis, we considered adding the laterality indices from on
 ## Left vs. right-handers  
 For both behavioural and fTCD LIs, with just one exception, there was a consistent trend for stronger left-hemisphere bias in right-handers than in left-handers. This reached significance on all measures except fTCD Word Decision. The exception was online Rhyme Judgement, which was not left-lateralised and where means for left- and right-handers were very similar. 
 
-The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures, we had concluded that there was more dissociation between factors in left-handers, but the sample size was small for this kind of analysis.  Even with the current sample size, power to detect model invariance is limited. Having noted those limitations, our analysis suggested that there was no reason to postulate different models for left- vs. right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means, and was driven primarily by differences on Factor 1, which related to tasks involving verbal production. 
+The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures (Woodhead et al., 2021), we had concluded that there was more dissociation between factors in left-handers, but this finding was not replicated here. There are two possible explanations for this discrepancy. First, the sample size in both the current and the previous study was small for this kind of analysis, raising the possibility that the initial finding was a false positive, or the current finding a false negative.  Even with the current sample size, power to detect model invariance is limited. Second, the language tasks used with fTCD differed across studies. In the Woodhead et al study, we included a List Generation task, that was intended to be a relatively pure measure of phonological output, using overlearned sequences, as well as a Semantic Decision task, which involved judging whether two pictures were semantically related. The List Generation task was dropped because of low reliability, and the Word Decision task was substituted for Semantic Decision to give a purer measure of receptive language. We cannot rule out the possibility that these tests would show different patterns of association in left- and right-handers. Note, however, that the data do not support an additional possibility, namely that left-handers are more variable than right-handers. The comparison of factor scores in the two handedness groups showed substantial differences in means, but only small differences in standard deviations. 
+
+Overall, we can conclude that the current data suggest that there is no reason to postulate different models for left- vs. right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means, and was driven primarily by differences on Factor 1, which related to tasks involving verbal production. 
 
 These quantitative differences between laterality groups in handedness did not, however, translate into pronounced differences in proportions who were atypically lateralised on individual tasks, and most people had a mixture of left- and right-lateralisation across the whole fTCD battery.
 
@@ -2578,8 +2595,6 @@ The finding of a slight bias to right hemisphere lateralisation on the Word Comp
 
 ## Differences between behavioural and fTCD measures of laterality
 The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, we may note that even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. Both tasks are well-lateralised with good reliability. 
-
-I THINK IT WOULD BE WORTH NOTING HERE PRIOR WORK ON DICHOTIC vs. FMRI - CHECK WITH DAVID/EMMA?
 
 ## Interpreting the two-factor structure    
 
@@ -2644,9 +2659,15 @@ To account for the observed pattern of results, we postulate two language centre
 To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same factor than for those loading on different factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
 
 SAY SOMETHING ABOUT HOW CONCLUSIONS MESH WITH WOODHEAD ET AL.
-CAN WE LINK FACTORS TO THIS ANALYSIS? https://pubmed.ncbi.nlm.nih.gov/35267079/
+
+
+
 
 ## Conclusions  
+
+Language laterality in individuals is not a single dimension, but varies depending on task demands. A simple two-factor model that distinguished tasks involving language production and comprehension was superior to a single-factor model in accounting for individual variation, but tasks did not neatly map onto the two factors. Previously, we had suggested that a different factor structure would be seen in left- and right-handers, but that was not the case for the current dataset: handedness determined the mean level of laterality on a language production factor, but not the covariance between factors. 
+Behavioural laterality measures, assessed online, were only weakly related to laterality measured using fTCD. 
+The full dataset provides unique possibilities for assessing associations between different laterality measures and is openly available for exploration by other researchers without restriction. 
 
 
 ## References  
