@@ -1,7 +1,7 @@
 ---
-title: "Supplement B: Full SEM output"
+title: "Supplement 3: Full SEM output"
 author: "Dorothy Bishop"
-date: "15/03/2022"
+date: "16/03/2022"
 output: word_document
 ---
 
@@ -249,19 +249,30 @@ bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5)
 
 colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: \nFull Sample','Modified 2 Factor: \nSelected Sample','Modified 2 Factor: \nFull Sample - Orig. baseline','Modified 2 Factor: \nSelected Sample - Orig. baseline')
 bigsumfit2n<-bigsumfit2n[-c(2,6,8:10,16),]
+
+
 ```
 This table shows the covariance and means matrix for the raw data for the full sample, using the -5 to 2 s baseline, as reported in main paper.  
 
 ```{r covmatrix,echo=F}
-mycov<-cov(ddati[,5:10])
-mycov<-as.data.frame(mycov)
-mymeans<-colMeans(ddati[,5:10])
-mycov<-rbind(mycov,mymeans)
-mycov<- round(mycov,3)
-row.names(mycov)[7]<-'Means'
-mycov <-tibble::rownames_to_column(mycov)
-colnames(mycov)[1]<- 'Covariances'
-autofit(flextable(mycov))
+#Function to create covariance matrix with means in last row.
+docov<-function(mydata){
+  mycov<-cov(mydata[,5:10])
+  mycov<-as.data.frame(mycov)
+    mycov<- numformat(mycov,3)
+  for (i in 1:ncol(mycov)){
+    for (j in (i+1):(1+ncol(mycov))){
+      mycov[j,i]<-'.'
+    }
+  }
+  mymeans<-numformat(colMeans(mydata[,5:10]),3)
+  mycov[(ncol(mycov)+1),]<-mymeans
+
+  row.names(mycov)[(ncol(mycov)+1)]<-'Means'
+  mycov <-tibble::rownames_to_column(mycov)
+  colnames(mycov)[1]<- 'Covariances'
+  autofit(flextable(mycov))
+}
 ```
 
 
@@ -276,6 +287,10 @@ modellist<-c('f1 =~ A_P1+B_P2+C_P3+D_R1+E_R2+F_R3',
 ```
 
 ```{r tryloop,results='asis',echo=F}
+
+#Display covs and means
+docov(ddati)
+
 #using pander function with 'asis' allows looping over text as well as computions for each model.
 for (i in 1:length(namelist)){
 pandoc.header(namelist[i], level = 1)
@@ -391,7 +406,7 @@ fit.2FZWa.2 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
 
 ```
 
-Exploratory analysis used a random half of the sample, and took mean LIs for odd and even trials to ensure model identification. We started with the bifactor model of Woodhead et al. (2021) and dropped nonsignificant paths. 
+Exploratory analysis used a random half of the sample, and took mean LIs for odd and even trials to ensure model identification. We started with the bifactor model of Woodhead et al. (2021) and dropped nonsignificant paths, which gave the final modified two-factor model.  
 The model syntax was specified in lavaan:
 
 f1 =~  NA * B_o + equal("f1=~B_o") * B_e+  
@@ -418,16 +433,21 @@ F_o ~~ fv * F_o
 F_e ~~ fv * F_e'
 
 
-Summary output with the initial test sample was as follows:
+Note that the _e and _o subscripts refer to laterality indices computed from odd and even trials for each task. The paths to the factors and the variances are equated across odd and even versions of each laterality index. Summary output with the initial test sample was as follows:
+
+
+
 
 ```{r oddevenout,echo=F}
-summary(fit.2FZWa.1)
 myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') 
-fitmeasures(fit.2FZWa.1,myfitmeasures)
+
+summary(fit.2FZWa.2)
+fitmeasures(fit.2FZWa.2,myfitmeasures)
+
 
 ```
 
-For the holdout sample, the summary was:
+The same model was then tested in the second random half of the sample. For this holdout sample, the summary was:
 
 ```{r oddevenout2,echo=F}
 summary(fit.2FZWa.2)
@@ -436,3 +456,46 @@ fitmeasures(fit.2FZWa.2,myfitmeasures)
 ```
 
 
+# Model equivalence for left- and right-handers 
+
+We first show the covariance matrix and means separately for the left- and right-handed subgroups. 
+
+```{r modelequivs,echo=F}
+load('SEMtab2groups.RData')
+pandoc.p(paste("Left-handers, N = ",length(ddati$Handed=='Left')))
+docov(ddati[ddati$Handed=='Left',])
+pandoc.p("")
+pandoc.p(paste("Right-handers, N = ",length(ddati$Handed=='Right')))
+docov(ddati[ddati$Handed=='Right',])
+pandoc.p("")
+```
+
+
+The tables below show the factor loadings and fit measures for the sequence of models used to test model invariance, with estimates for left-handers in columns denoted by _L, and those for right-handers in columns denoted by _R.  
+
+
+
+```{r showequivmodelfits,echo=F}
+
+ftabM1<-flextable(tabM1)
+ftabM1 <- set_caption(ftabM1,"No equality constraints")
+autofit(ftabM1)
+pandoc.p("")
+ftabM2<-flextable(tabM2)
+ftabM2 <- set_caption(ftabM2,"Equal loadings")
+autofit(ftabM2)
+pandoc.p("")
+ftabM3<-flextable(tabM3)
+ftabM3 <- set_caption(ftabM3,"Equal loadings and intercepts")
+autofit(ftabM3)
+pandoc.p("")
+ftabM3a<-flextable(tabM3a)
+ftabM3a <- set_caption(ftabM3a,"Equal loadings, intercepts and factor covariance")
+autofit(ftabM3a)
+pandoc.p("")
+ftabM4<-flextable(tabM4)
+ftabM4 <- set_caption(ftabM4,"Equal loadings, intercepts, factor covariance and factor means")
+autofit(ftabM4)
+
+
+```
