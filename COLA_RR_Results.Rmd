@@ -312,7 +312,7 @@ cor2<-spearman.ci(var1, var2, nrep = 1000, conf.level = 0.95)
 #cor1 <- cor.test(bivdat$tempx[bivdat$Rhanded==0],bivdat$tempy[bivdat$Rhanded==0],method="spearman")
 #cor2 <- cor.test(bivdat$tempx[bivdat$Rhanded==1],bivdat$tempy[bivdat$Rhanded==1],method="spearman")
 lab1<- paste0("Group 1: rho = ",round(cor1$estimate,3),": 95% CI: ",round(cor1$conf.int[1],3),' to ',round(cor1$conf.int[2],3))
-lab2<- paste0("Group 1: rho = ",round(cor2$estimate,3),": 95% CI: ",round(cor2$conf.int[1],3),' to ',round(cor2$conf.int[2],3))
+lab2<- paste0("Group 2: rho = ",round(cor2$estimate,3),": 95% CI: ",round(cor2$conf.int[1],3),' to ',round(cor2$conf.int[2],3))
 
 
 #lab1<- paste0("L-handers: rs = ",round(cor1$estimate,2))
@@ -735,7 +735,7 @@ An important feature of the data was that test-retest reliability of the lateral
 The primary goal of the current study is to consolidate the findings of Woodhead et al. (2019, 2020) by replicating and extending the findings of dissociated language functions, using some new tasks. We studied a large sample using online behavioural laterality assessment, plus a smaller subset of these individuals assessed with fTCD.  
 
 ## 1.2 Methodological Considerations  
-Most contemporary studies of brain lateralisation use fMRI, which provides information about localisation as well as laterality of brain activation. Estimates of lateralisation from fMRI are dependent on the experimental task, the specific brain region, and the selection of a baseline task. Decisions about how to quantify laterality, and selection of statistical thresholds can lead to different estimates of group and individual asymmetry (Bradshaw et al., 2017; Seghier, 2008; Wilke & Lidzba, 2007). In addition, fMRI has poor temporal resolution and is expensive enough to preclude routine studies using large numbers of participants. In contrast, fTCD—the method used by Woodhead et al. (2019, 2020)—allows for direct comparison of blood flow in the left and right middle cerebral arteries, and has good temporal resolution. Although fTCD cannot provide information about which brain regions are active, it is considerably less expensive than fMRI and is portable. fTCD has also been validated using the gold standard Wada test of language lateralisation (Knecht, Deppe, Ebner, Henningsen, Huber et al., 1998). A third approach to the study of functional asymmetry, which dates back to the 1960s, involves inferring which hemisphere is more engaged in behavioural tasks when visual or auditory stimuli are presented in a way that preferentially engages one hemisphere (reviewed in Bryden, 1982). Accuracy or response time measures can be used to provide an indication of left- or right-sided bias, both at the group level and in individuals. We have recently shown that good quality data can be obtained with some behavioural tasks using online administration, which makes it feasible to assess very large samples (Parker, Woodhead, Thompson, & Bishop, 2020).  
+Most contemporary studies of brain lateralisation use fMRI, which provides information about localisation as well as laterality of brain activation. Estimates of lateralisation from fMRI are dependent on the experimental task, the specific brain region, and the selection of a baseline task. Decisions about how to quantify laterality, and selection of statistical thresholds can lead to different estimates of group and individual asymmetry (Bradshaw et al., 2017; Seghier, 2008; Wilke & Lidzba, 2007). In addition, fMRI has poor temporal resolution and is expensive enough to preclude routine studies using large numbers of participants. In contrast, fTCD—the method used by Woodhead et al. (2019, 2020)—allows for direct comparison of blood flow in the left and right middle cerebral arteries, and has good temporal resolution. Although fTCD cannot provide information about which brain regions are active, it is considerably less expensive than fMRI and is portable. FTCD has also been validated using the gold standard Wada test of language lateralisation (Knecht, Deppe, Ebner, Henningsen, Huber et al., 1998). A third approach to the study of functional asymmetry, which dates back to the 1960s, involves inferring which hemisphere is more engaged in behavioural tasks when visual or auditory stimuli are presented in a way that preferentially engages one hemisphere (reviewed in Bryden, 1982). Accuracy or response time measures can be used to provide an indication of left- or right-sided bias, both at the group level and in individuals. We have recently shown that good quality data can be obtained with some behavioural tasks using online administration, which makes it feasible to assess very large samples (Parker, Woodhead, Thompson, & Bishop, 2020).  
 
 In principal, it would be of value to use all three approaches with the same set of participants, to obtain convergent evidence from methods that make different assumptions and use different approaches to assess laterality. Ultimately, we aim to adopt that approach: here we made a start on that goal with a study of individual differences in language lateralisation that uses the last two of these methods: behavioural testing in a large sample, followed by fTCD with a subset of the same participants. We first describe the rationale for selecting specific measures: the tasks are described in greater detail under Methods.  
 
@@ -745,7 +745,7 @@ Our selection of behavioural measures was guided by methodological and theoretic
 
 One of the first behavioural tasks used to study language lateralisation is dichotic listening, where a person hears simultaneous streams of words or speech sounds in left and right ears. Under binaural presentation, the contralateral auditory pathways take precedence and the ipsilateral pathways are suppressed. Thus sounds presented to the right ear have a more direct access to the left hemisphere speech systems than those played to the left ear, with a strong bias to report items from the right ear being present at a population-level. Good reliability (above r = .75) was found for a dichotic listening task administered via a mobile app (Bless et al., 2013) and we found similarly high levels of reliability for this task using online presentation (Parker et al., 2020). Dichotic listening laterality is not, however, strongly predictive of language laterality as measured by fMRI (Bethmann et al., 2007; although see Sørenson & Westerhausen, 2020, for a reappraisal). This lack of specificity could mean that factors such as attentional bias affect performance, invalidating the test as a measure of language laterality, particularly in individual participants. However, another possibility is that dichotic listening is a good measure of lateralisation of receptive language, but it may be dissociable from laterality for language generation.  
 
-Another type of behavioural method to assess lateralisation involves visual presentation. Stimuli are briefly placed in the left or right visual half-fields, which project primarily to the contralateral hemisphere. This method has long been used to assess language laterality, either using written words or pictures as stimuli (Bryden, 1982). Laterality indices show a right visual field advantage (VFA) at the population level, but results depend crucially on specific aspects of task design. Laterality indices from such tasks do not, however, necessarily correlate highly with dichotic listening (Voyer, 1998). Hunter and Brysbaert (2008) argued that one needs a visual half-field task involving speech production to obtain good prediction of language laterality as measured by fMRI. This hypothesis fits with our theoretical perspective: a visual half-field task that involves language generation would be expected to be better than dichotic listening for predicting lateralisation of word generation as measured by fTCD. Van der Hagen and Brysbaert (2018) reported reliability for three visual laterality tasks in a sample of 50 left-handers tested on two occasions, with test-retest correlations ranging from .49 (optimal viewing position - OVP- for written words), .77 (visual half-field with pictures) to .83 (visual half-field with words). Parker et al. (2020) developed a new rhyme decision task that involved covert naming, but reliability was below a prespecified cutoff for acceptability of .65 ($r_s = .63$). We subsequently gathered pilot data on a modified version of the task for 15 left-handers and 15 right-handers, and obtained split-half reliability of 0.74. Contrary to our expectation, task performance was not significantly lateralised in either left-handers or right-handers, but the good reliability indicates it measures a stable individual difference.  
+Another type of behavioural method to assess lateralisation involves visual presentation. Stimuli are briefly placed in the left or right visual half-fields, which project primarily to the contralateral hemisphere. This method has long been used to assess language laterality, either using written words or pictures as stimuli (Bryden, 1982). Laterality indices show a right visual field advantage (VFA) at the population level, but results depend crucially on specific aspects of task design. Laterality indices from such tasks do not, however, necessarily correlate highly with dichotic listening (Voyer, 1998). Hunter and Brysbaert (2008) argued that one needs a visual half-field task involving speech production to obtain good prediction of language laterality as measured by fMRI. This hypothesis fits with our theoretical perspective: a visual half-field task that involves language generation would be expected to be better than dichotic listening for predicting lateralisation of word generation as measured by fTCD. Van der Hagen and Brysbaert (2018) reported reliability for three visual laterality tasks in a sample of 50 left-handers tested on two occasions, with test-retest correlations ranging from .49 (optimal viewing position - OVP- for written words), .77 (visual half-field with pictures) to .83 (visual half-field with words). Parker et al. (2020) developed a new rhyme decision task that involved covert naming, but reliability was below a prespecified cutoff for acceptability of .65 (Spearman $r_s = .63$). We subsequently gathered pilot data on a modified version of the task for 15 left-handers and 15 right-handers, and obtained split-half reliability of 0.74. Contrary to our expectation, task performance was not significantly lateralised in either left-handers or right-handers, but the good reliability indicates it measures a stable individual difference.  
 
 The pilot study also gathered data on two further tasks designed to tap into more receptive aspects of language: the OVP task, and a new word comprehension task, that simply involved selecting which of two laterally-presented pictures matched a spoken word. Reliability of the OVP task was relatively poor, but the laterality index from the word comprehension task had split-half reliability of 0.74, again suggesting there are stable individual differences in lateralisation. In our pilot data, the word comprehension task was significantly lateralised, but in the opposite direction to prediction, i.e., with better performance for pictures shown in the left compared to the right visual field. Given our goal of using reliable tasks that involve production or receptive language, regardless of lateral bias shown on the tasks, we decided to focus on dichotic listening, rhyme decision and word comprehension (see Methods). In practice, our chosen language tasks differ in ways other than the generative/receptive distinction: one visual half-field task, for instance, involves written rather than spoken language, and some tasks require accessing meaning whereas others do not. It would not be possible to design a battery that completely controlled for all task variables; rather we planned to administer tasks with diverse characteristics, predicting that generation vs. reception of language will determine which laterality indices form a common factor.  
 
@@ -813,7 +813,12 @@ Although this study did not include fMRI, we prioritised participants who were l
 If the participant passed the screening questionnaire, they were invited to complete an online consent form prior to starting the online testing session. Those who took part in the second session (in-person testing with fTCD) completed an additional written consent form for that session.  
 
 ## 2.2 Procedure
-There were two stages to the project. All participants who proceeded beyond the initial screening  completed the online testing (Step 1), and a subset of participants were invited back for the fTCD session (Step 2). Participants received course credit or were paid in accordance with guidelines at their local testing centre (at least £8 per hour).  
+There were two stages to the project. Participants who proceeded beyond the initial screening  were invited to complete the online testing (Step 1), and a subset of participants were invited back for the fTCD session (Step 2). Participants received course credit or were paid in accordance with guidelines at their local testing centre (at least £8 per hour).  
+<!-- From ZW/AP: I think this is too much detail, but 1071 people started online session
+807 people passed screening questionnaire (264 did not)
+644 people completed online session (163 failed to complete)
+621 people were kept in the analysis (23 people did not pass data checks? Not sure about this)
+-->
 
 ## 2.3 Step 1: Online Testing  
 
@@ -846,11 +851,13 @@ The Games With Words test (Hartshorne, Tenenbaum, & Pinker, 2018) was used to sc
 
 ### 2.3.6 Rhyme Decision  
 A modified version of a rhyme decision visual half-field task reported by Parker et al. (2020) was administered to determine brain lateralisation for language production. This involved participants judging which of two parafoveal images rhymed with a foveally presented word. The laterality index from the original task had test-retest reliability of r = .63, and the overall lateralisation effect, though significant, was small. We modified the task from the original with the aim of improving its psychometric properties: first, we removed trials in which neither of the pictures rhymed with the target word, as these were potentially confusing. Second, we increased the distance between the centrally presented word and parafoveal images, to ensure the image is projected exclusively, at least initially, to the contralateral hemisphere. Pilot testing with 30 participants obtained split-half reliability of r = .74 with this version. _Note, however, lower reliability was found with our main sample, as reported in Results_.  
+
 #### 2.3.6.1 Materials  
 Written stimuli consisted of twenty-six monosyllabic written words (e.g. bite). Stimulus pairs were created so that each written word was paired with an image with a name that rhymed (e.g. kite). For each of the 26 word-image pairs there was a corresponding pair whose words did not rhyme with the first pair (e.g. the corresponding pair for bite-kite was more-door), see Appendix 3. On each trial, stimuli were presented such that the written word was accompanied by one rhyming image and one non-rhyming image (e.g. kite-bite-door). All possible combinations were included such that each pairing constituted four individual items. Thus, there were 52 unique stimuli, and all images appeared both as rhymes and non-rhymes (see Parker et al., 2020, for further detail).  
-Word stimuli were presented in 28 pt black Courier New font on a white background. The images were displaced at 7.9 degrees of visual angle from the point of fixation. Gorilla’s screen scaling tool was used to maintain consistency of stimulus size across browsers and computers.  
+Word stimuli were presented in 28 pt black Courier New font on a white background. The images were displaced at 7.9 degrees of visual angle from the point of fixation. Gorilla’s screen scaling tool was used to maintain consistency of stimulus size across browsers and computers.
+
 #### 2.3.6.2 Procedure  
-articipants completed a familiarisation procedure where they viewed each image pair. The images were shown with their name presented in text below the image to ensure that participants used the appropriate word when making a rhyme decision. They then completed 208 trials of the rhyme decision task (four blocks of 52 stimuli). Each trial began with a central fixation cross which was visible for 800 ms after which a foveally presented word appeared for 200 ms. Two bilateral images then appeared for 150 ms. At stimulus offset, participants indicated whether the centrally presented word rhymed with the image present to the left or right visual field by pressing S for the left visual field and K for the right visual field. Participants’ responses triggered the next trial. Accuracy and response times were recorded.   
+Participants completed a familiarisation procedure where they viewed each image pair. The images were shown with their name presented in text below the image to ensure that participants used the appropriate word when making a rhyme decision. They then completed 208 trials of the rhyme decision task (four blocks of 52 stimuli). Each trial began with a central fixation cross which was visible for 800 ms after which a foveally presented word appeared for 200 ms. Two bilateral images then appeared for 150 ms. At stimulus offset, participants indicated whether the centrally presented word rhymed with the image present to the left or right visual field by pressing S for the left visual field and K for the right visual field. Participants’ responses triggered the next trial. Accuracy and response times were recorded.   
 
 ### 2.3.7 Word Comprehension task  
 A novel online word comprehension task was administered to determine  lateralisation of receptive language. This task involved indicating which of two semantically related parafoveal images matched an orally presented word stimulus. Pilot testing with 30 participants and one block of stimuli obtained split-half reliability of r = .76.    
@@ -887,7 +894,7 @@ The total battery consisted of the following tests (described in more detail in 
 On each trial, the task was to silently generate words that begin with a specified letter, and subsequently report them when a cue is given. The task used 18 letters that commonly begin English words (S, C, P, D, T, B, R, A, E, F, G, H, I, L, M, U, O, W).  
 
 ### 2.4.2 Task B: Sentence Generation  
-This task was based on Mazoyer et al. (2014). Participants were shown a line drawing in each trial and asked to produce a meaningful sentence to describe it. The 18 stimuli were selected from those used by Woodhead et al. (2018).  
+This task was based on Mazoyer et al. (2014). Participants were shown a line drawing in each trial and asked to produce a meaningful sentence to describe it, following a prescribed simple structure, (e.g., "The boy in the hat flew the kite"). The 18 stimuli were selected from those used by Woodhead et al. (2018).  
 
 ### 2.4.3 Task C: Phonological Decision  
 Following a familiarisation task, for each trial, participants decided whether the names of pairs of pictures rhymed. The design of the original task from Woodhead et al. (2019) was supplemented by adding a number of black and white drawings from the MultiPic database (Duñabeitia et al., 2018), in order to create stimuli for three new trials.  
@@ -920,10 +927,11 @@ For the Rhyme Decision and Word Comprehension tasks, each participant’s RT for
 For dichotic listening, a laterality index was calculated based on trials in which participants correctly identified one of the two consonant-vowel sounds. The count of correct responses that corresponded to each side was used to generate an accuracy laterality index. The index was calculated in the traditional fashion: 100 x (Left – Right) / (Left + Right). The laterality index allows us to relate our findings to prior research that uses this index. In addition, we computed a LIz-score for each participant, using the formula:  
 z = (pL-.5)/sqrt((pL.pR)/n)  
 where pR is the proportion of R responses, pL is the proportion of L responses, and n is the total L and R responses. As with the rhyme decision task, the z-score is highly correlated with the traditional laterality index, but has the advantage that it can be used to test whether an individual’s lateral bias is unlikely to have arisen by chance.  
+_We made two small modifications to the pre-registered plan; first we flipped the sign where necessary to ensure that left-hemisphere superiority was reflected in a positive score on all measures. This has no material effect on any computations, but gives better consistency with other research. Second, for the laterality z-score on dichotic listening, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear)._
 
 ## 2.5.2 Functional Transcranial Doppler Ultrasound Tasks  
 Following Woodhead et al. (2019) we calculated a laterality index using a customised R script (R Core Team, 2016). The cerebral blood flow velocity (CBFV) data were first down-sampled from 100 to 25 Hz and then segmented into epochs. Spiking or dropout data-points were identified as being outside of the 0.0001–0.9999 quantiles of the CBFV data. If only a single artefact data-point was identified within an epoch, it was replaced with the mean for that epoch. If more than one data-point was identified, the epoch was rejected. The CBFV was then normalised (by dividing by the mean and multiplying by 100) such that the values for CBFV become independent of the angle of insonation and the diameter of the middle cerebral artery. Heart cycle integration was then used to normalize the data relative to rhythmic modulations in CBFV. 
-_The pre-registration document stated that "Epochs are baseline corrected using the interval from −10 to 0 s pre-stimulus time (where the onset of the ‘Clear’ stimulus is used as the start of the trial, 0 s pre-stimulus time)."  Woodhead et al used a shorter interval of -5 to 2 seconds for baseline correction to avoid activity from the prior trial influencing the baseline. We had aimed to avoid that problem by having slightly longer epochs, but inspection of blood flow plots (see Figure `r fignumber+4` below) showed this was not the case, and so we reverted to the baseline of -5 to 2 s. This avoids unstable baselines, and is consistent with the baseline period used by Woodhead et al. For completeness, the script to create this paper has been rerun using the preregistered baseline, and is shown in Supplement x. This indicates that the shorter baseline gives slightly cleaner data, but does not exert any material impact on the main findings._  
+_The pre-registration document stated that "Epochs are baseline corrected using the interval from −10 to 0 s pre-stimulus time (where the onset of the ‘Clear’ stimulus is used as the start of the trial, 0 s pre-stimulus time)."  Woodhead et al used a shorter interval of -5 to 2 seconds for baseline correction to avoid activity from the prior trial influencing the baseline. We had aimed to avoid that problem by having slightly longer epochs, but inspection of blood flow plots (see Figure `r fignumber+4` below) showed this was not the case, and so we reverted to the baseline of -5 to 2 s, consistent with the baseline period used by Woodhead et al. For completeness, all key analyses have been re-run using the original baseline, to confirm this has minimal effect on outcomes (see Supplementary file 3)._  
  Finally, artefacts were identified as values below 60% and above 140% of the mean normalised CBFV: any epochs containing such artefacts are rejected. The laterality index was then computed as the mean difference between blood flow velocity in left and right channels over a period of interest that is specified in advance for each task. For tasks without an overt speech ‘report’ stimulus (tasks C-F), the period of interest was from 6-23 s peri-stimulus time to cover the whole period where the participant is performing the decision task; left-hemisphere blood flow typically increases as each item in the trial is responded to. For tasks with a ‘report’ stimulus (tasks A-B) the period of interest was from 6-17 s to avoid capturing activity related to the overt speech production.
 The standard error of the laterality index for each individual was computed from the laterality index obtained across individual trials, and was used both to identify outliers (individuals with unreliable laterality indices) and to categorise individuals in terms of direction of laterality. When the 95% confidence interval of the laterality index spanned zero, laterality was coded as bilateral; otherwise, it was coded as left or right depending on the sign of the difference.  
 In the previous study by Woodhead et al. (2019) we excluded cases with fewer than 12 acceptable trials and then used the Hoaglin-Iglewicz (1987) criterion for outlier detection: this involves identifying cases that have values well outside the interquartile range for the group. This was used to identify individuals where the laterality index for a given task had an unusually large standard error, indicative of high trial-by-trial variation. However, we noted that some individuals had very low standard errors, despite having fewer than 12 usable trials, and so in the current study our preregistration specified a minimum number of 10 trials (out of 18 trials administered), while retaining the Hoaglin-Iglewicz method for removing data for a given subject and condition when the standard error of the laterality index was high.  
@@ -1004,32 +1012,26 @@ myflow<-grViz("digraph flowchart {
   node [fontname = arial, shape = plaintext]
           X[label='Screening\\nquestions']
           Y[label= 'Step 1\\nOnline testing']
-          Q[label = 'Language screen']
           Z[label = 'Step2\\nfTCD for subset']
           U[label= 'fTCD quality']
           V[label = 'Language screen']
    node [fontname = arial, shape = rectangle, color = lightblue, style = filled]
   A [label = '@@1']
   B[label='@@2']
-  C [label='@@3']
-  D [label='@@4']
-  E [label='@@5']
-  F [label='@@6']
-  G [label='@@7']
-  H [label='@@8']
-  I [label='@@9']
+  E [label='@@3']
+  F [label='@@4']
+  G [label='@@5']
+  H [label='@@6']
+  I [label='@@7']
 
   A -> B 
-  B->{C,D}
-  C -> E
-  D -> E
+  B-> E
   E ->{F,G}
   F -> {H,I}
 
   
       X -> Y [alpha=0,color='white']
-      Y -> Q [alpha=0,color='white']
-      Q -> Z [alpha=0,color='white']
+      Y -> Z [alpha=0,color='white']
       Z -> U [alpha=0,color='white']
       U -> V [alpha=0,color='white']
               }
@@ -1037,13 +1039,11 @@ myflow<-grViz("digraph flowchart {
   
   [1]: paste0('Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
   [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 28 L-handed + 25 R-handed)' )  
-  [3]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH1a,' L-handed + ',RH1a,' R-handed','\\n','Non-native speaker, passed','\\n', LH1b,' L-handed + ',RH1b,' R-handed')
-  [4]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH1c,' L-handed + ',RH1c,' R-handed','\\n','b) Failed new screen:','\\n', LH1d,' L-handed + ',RH1d,' R-handed','\\n')
-  [5]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
-  [6]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
-  [7]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
-  [8]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
-  [9]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
+  [3]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
+  [4]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
+  [5]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
+  [6]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
+  [7]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
 ")
 
 makefile<-1
@@ -1071,12 +1071,11 @@ Our plan had been to recruit 300 left-handers and 150 right-handers for the onli
 
 The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
 
-To justify this approach, we first considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (See Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`).
+To justify this approach, we considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (See section 3.5 below and Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`).
 
 Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. 
 
-Figure `r fignumber` divides participants according to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). Here we report data on the whole sample with no exclusions based on the language screen, but in Supplementary file 2 we compare our results with those obtained using the original, stringent language cutoff (excluding all Group M), and show that differences are minimal.
-
+Figure `r fignumber` also shows the new rather than preregistered approach to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). In the original flowchart, the language screen was used to exclude those in group M prior to Step 2, whereas in the final study, we included these individuals. In Supplementary file 3 we compare the current results with those obtained using the original, stringent language cutoff (excluding all Group M), and show that differences are minimal.
 
 
 
@@ -1091,6 +1090,7 @@ mycomb$Gender <- factor(mycomb$male,levels=c(0,1),labels=c("Female","Male"))
 label(mycomb$age) <- "Age (yr)"
 mycomb$Native <- factor(mycomb$nativeEnglish,levels=c(0,1),labels=c("No","Yes"))
 label(mycomb$Native)<-"Native English speaker"
+label(mycomb$EHI.LI)<-"Edinburgh Handedness LI"
 mycomb$Bilingual <- factor(mycomb$bilingual,levels=c("No","Yes"),labels=c("No","Yes"))
 mycomb$Handedness <- factor(mycomb$Rhanded,levels=c(0,1),labels=c("Left-Handed","Right-Handed"))
 mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FTCD data"))
@@ -1252,12 +1252,12 @@ WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.f
 ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.png"),width = 6, height = 4)
 
 #plot with all 3 L vs. R scatterplots together in a row.
-allplot <- ggarrange(DLsides, RDTsides, WCsides, ncol = 3, nrow = 1,common.legend=TRUE)
+allplot <- ggarrange(DLsides, RDTsides, WCsides, ncol = 1, nrow = 3,common.legend=TRUE)
 
 
-ggsave(paste0(mydir,"/",figdir,"/allLRbeh.png"),width = 9, height = 3)
+ggsave(paste0(mydir,"/",figdir,"/allLRbeh.png"),width = 6, height = 12)
 #also save to current project to enable access when knitting to word
-ggsave("allLRbeh.png",width = 9, height = 3)
+ggsave("allLRbeh.png",width = 6, height = 12)
 fignumber<-fignumber+1
 
 ```
@@ -1267,8 +1267,6 @@ fignumber<-fignumber+1
 
 Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural tasks in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
 
-In our pre-registration we stated that we would compute a conventional laterality index, 100 x (Left-Right)/(Left+Right), as well as a laterality z-score:
-(pL-.5)/sqrt(pL.pR/n).  We made one small modification, which was to flip the sign of these quotients, so that for all our laterality measures, left-hemisphere superiority is reflected in a positive score. This has no material effect on any computations, but gives better consistency with other research. For the laterality z-score, scores were censored at +/- 10, to avoid undue influence from a handful of extreme scores (participants who responded overwhelmingly to one ear).  
 
 ```{r addsupp,echo=F}
 suppnum <- suppnum+1
@@ -1279,7 +1277,7 @@ As is evident from the scatterplot in Supplementary file `r suppnum`, the LIz sc
 
 In Rhyme Decision, the task was to judge which of two pictured items had a name that rhymed with a centrally-presented written word. The pictures were presented in the left or right periphery. This was an easy task, as the words used were common, and the participants were given a practice session where they were introduced to all the pictures and their names. We could therefore use accuracy as an index of engagement with the task, and we excluded `r length(intersect(which(combdat$excludeRDT==1),which(combdat$lang2exclude==0)))` participants with accuracy of less than 75% correct. 
 
-The dependent variable of interest was Response Time (RT), which was computed for correct responses in each half-field, after excluding outliers using a participant-specific algorithm. This involved taking the complete set of correct RTs for a participant, and applying the Hoaglin-Iglewicz (1987) criterion of outlier detection with cutoff set to 1.65 to remove unusually long RTs. In addition, any RTs less than 200 ms were excluded. A LIz was then computed by computing a t-test for each participant, to compare the mean correct RT to left- and right-sided stimuli. Absolute values of LIz greater than 1.96 can be regarded as evidence that an individual is significantly faster to one side than the other. Because RT is scaled so that high values correspond to poor performance, the LIz was computed so that it was positive when left-sided RT was greater than right-sided RT. Thus, those with a left-hemisphere advantage should cluster below the black line.
+The dependent variable of interest was Response Time (RT), which was computed for correct responses in each half-field, after excluding outliers using a participant-specific algorithm. This involved taking the complete set of correct RTs for a participant, and applying the Hoaglin-Iglewicz (1987) criterion of outlier detection with cutoff set to 1.65 to remove unusually long RTs. In addition, any RTs less than 200 ms were considered anticipation errors and excluded. A LIz was then computed by computing a t-test for each participant, to compare the mean correct RT to left- and right-sided stimuli. Absolute values of LIz greater than 1.96 can be regarded as evidence that an individual is significantly faster to one side than the other. Because RT is scaled so that high values correspond to poor performance, the LIz was computed so that it was positive when left-sided RT was greater than right-sided RT. Thus, those with a left-hemisphere advantage should cluster below the black line.
 
 
 As with Rhyme Decision, Word Comprehension involved responding to laterally presented visual stimuli. The stimuli are pictures of semantically-related words, and the task is simply to respond to the picture whose name is spoken. Again, this is an easy task, where the focus is on RT of correct responses. Participants who made more than 75% errors on the task (N = `r length(intersect(which(combdat$excludeWC==1),which(combdat$lang2exclude==0)))`) were excluded from analysis.  The same method as for Rhyme Decision was used to remove outlier RTs participant by participant before computing a LIz based on comparison of mean RT to left and right sides, where a positive value indicated faster RTs to stimuli presented in the right visual field.  
@@ -1324,7 +1322,7 @@ suppfignumber<- suppfignumber+1
 
 ### 3.2.3 Distribution of Laterality Indices  
 
-Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  
+Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  For these, and subsequent analyses of handedness, a simple binary split into left- and right-handed was made according to self-reported writing hand.  
 
 
 ```{r DL-ttests,echo=F, message=F, warning=F}
@@ -1372,7 +1370,7 @@ tabnumber <- tabnumber+1
 tabonlinesummary<-tabnumber
 ```
 
-Table `r tabnumber`: _Descriptive statistics for LIz for three online laterality measures_  
+Table `r tabnumber`: _Descriptive statistics for LIz for three online laterality measures (LIz)_  
 
 
 ```{r behpirates, echo=FALSE, warning=FALSE,message=F}
@@ -1414,14 +1412,14 @@ As shown in Figure `r fignumber` and Table `r tabnumber`, distributions of LIz o
 
 The Rhyme Decision task was far less reliable, with split-half reliability [95% CI] of `r onlinesummary[11,3]` and test-retest reliability of `r onlinesummary[12,3]`.  These figures indicate that laterality on this test is far from being at chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised. Furthermore, there was no effect of handedness on laterality on this task.  
 
-The Word Comprehension task did rather better than the other tasks in terms of reliability, with split-half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were  faster when  pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  
+The Word Comprehension task did rather better than the other tasks in terms of reliability, with split-half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were faster when pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  We consider the implications of these findings in the Discussion below. 
 
 
 ### 3.2.4 Testing Prediction 1: Fit of two-factor model to behavioural data 
 
 Prediction 1 stated: **_The pattern of correlation between laterality indices from online measures will reflect the extent to which they involve implicit speech production, rather than whether they involve spoken or written language. Thus we anticipate dissociation between the rhyme judgement task and the other two measures (dichotic listening and word comprehension task), which is not accountable for in terms of low reliability of measures._**  
 
-_Departure from pregistration_: _We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section on 'Relationship among fTCD and behavioural laterality indices' )._  
+_Departure from pregistration_: _We had planned to do a formal comparison of model fit using AIC weights, but we realised our data were inadequate for this because our Model A was, in formal terms, just-identified: it simply estimated three pairwise correlations from the data, and always gave perfect fit, regardless of the size or direction of correlations. We considered alternative approaches to the analysis, but decided to just report the correlations at this stage, as the pattern of results was distinctive, and we had already planned to incorporate the online behavioural measures into the SEM analysis that includes the fTCD measures (see section 3.4 below)._  
 
 
 
@@ -1457,9 +1455,9 @@ RD_WC_plot <- bivplot2(bivdat,name1,name2)
 #ggsave(paste0(mydir,"/03-graphic-outputs/RD-WC.png"),width = 6, height = 4)
 
 #For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
-allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 3, nrow = 1,common.legend=TRUE)
-ggsave(paste0(mydir,"/",figdir,"allbiv.png"),width = 9, height = 3)
-#ggsave('allbiv.png',width = 9, height = 3)
+allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 1, nrow = 3,common.legend=TRUE)
+ggsave(paste0(mydir,"/",figdir,"allbiv.png"),width = 4, height = 12)
+ggsave('allbiv.png',width = 4, height = 12)
 fignumber<-fignumber+1
 ```
 ![Bivariate distributions of LIs on behavioural tasks](allbiv.png) 
@@ -1476,7 +1474,7 @@ This prediction was not confirmed. The baseline hypothesis of a single lateralit
 
 
 
-We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with missing data on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
+We excluded `r n_excluded` participants who met our criteria for outliers on two or more fTCD tasks. For the remaining `r nrow(ddat)` participants, the numbers with fewer than 10 usable trials on the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`, `r n_excludeLI[3]`, `r n_excludeLI[4]`, `r n_excludeLI[5]` and `r n_excludeLI[6]` respectively.
 
 <!-- Plot is created by fctd_task_plots.R-->
 
@@ -1489,6 +1487,12 @@ We excluded `r n_excluded` participants who met our criteria for outliers on two
 
 ## The script reads in all of the data files and averages over all participants,
 ## to produce one grand mean plot for each task.
+
+
+#NB. I can't get this to use same y-axis scale for all 6 figures - once you add the 2ndary axis it defaults to fitting to largest number. 
+#Will need fiddling - I can thing of 2 ways of making it behave - a) add spurious large value , maybe if one is added that is outside xaxis range, this will affect y axis but not plot?
+## Otherwise, only solution seems to be to hand-craft the 2nd axis.
+## The yaxis scaling is fine provided you omit the 2ndary axis. 
 
 tasks <- c('WG','SG','PD','WC','SC','SD')
 longtasks<-c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
@@ -1596,13 +1600,12 @@ for (t in 1:ntasks){
   
   thisplot<-ggplot(taskmean_long, aes(x=Time, y=Velocity, group=Handed_Side)) + 
     geom_line(aes(linetype=Handed_Side,colour=Handed_Side,)) +
-    ylim(94,108)+
-    xlim(-5,25)+
-    scale_y_continuous(breaks = seq(94, 108, by=2),name = "Blood flow velocity", sec.axis = sec_axis(~.-100, name = "L-R"))+
-    scale_x_continuous(breaks = seq(-5, 25, by=5),name = "Time (s)")+
     scale_color_manual(values = color_lty_cross$colors) +
     scale_linetype_manual(values = color_lty_cross$ltypes[1:6]) +
     theme_bw()+
+    xlim(-5,25)+
+    scale_y_continuous(name = "Blood flow velocity", sec.axis = sec_axis(~.-100, name = "L-R"),breaks = seq(94, 108, by=2))+
+    scale_x_continuous(breaks = seq(-5, 25, by=5),name = "Time (s)")+
     geom_hline(yintercept = 100, linetype="solid", alpha = 0.8) +
     geom_vline(xintercept = 0, linetype="solid", alpha = 0.8) +
     annotate(geom="label", x=-1, y=95, label="Baseline",hjust=0.5,size=3,fill='black',colour='white')+
@@ -1624,7 +1627,7 @@ for (t in 1:ntasks){
   if(t==5){d5<-thisplot}
   
 }
-alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
+alltimes <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
 ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.png",width = 7, height = 7)
 
 ggsave("alltimecourse.png",width = 7, height = 7)
@@ -1776,7 +1779,7 @@ tabnumber<-tabnumber+1
 ftcdtabnumber<-tabnumber #for later reference
 ```
 
-Table `r tabnumber`: _Descriptive statistics for six fTCD laterality measures_  
+Table `r tabnumber`: _Descriptive statistics for six fTCD laterality indices.  
 
 
 
@@ -2341,7 +2344,7 @@ agfac2 <- aggregate(ddati$Factor2,by=list(ddati$Handed),FUN=sd)
 ```
 
 
-In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t = `r t1`, df = `r df1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`.the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t = `r t2`, df = `r df2`, `r pf2`. 
+In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t (`r df1`) = `r t1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`.the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t (`r df2`) = `r t2`, `r pf2`. 
 
 **Evaluation of Prediction 3: Different model parameters for left- and right-handers **
 Our interpretation of this analysis was rather complex, given the range of possible results. Specifically we  in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
@@ -2394,6 +2397,7 @@ for (i in 1:6){
  mydiff<-chidf[,4]
   tabnumber<-tabnumber+1
   
+
   
 ```
 Table `r tabnumber`: _Proportions showing left lateralisation on fTCD tasks_
@@ -2426,6 +2430,9 @@ tabnumber<-tabnumber+1
 chitab<-matrix(c(sum(tabN[1:6,1]),sum(tabN[1:6,2]),tabN[7,1],tabN[7,2]),nrow=2)
 mychiN<-chisq.test(chitab)
 
+#KW suggested figure - I think table is better.
+mytab<-as.table(t(ntestL[,2:3]))
+bp<-barplot(t(mytab))
 
 
 #Some exploratory analyses folllow
@@ -2440,16 +2447,6 @@ mychi4<-chisq.test(chitab4)
 
 
 
-#repeating with L handers subdivided into extreme or moderate 
-ddat$hand3cat <- ddat$Rhanded
-ddat$hand3cat[ddat$EHI.LI<(-90)]<--1
-
-tabN4a <- table(ddat$NleftABCE,ddat$hand3cat)
-ntestL_F1_LHs<-round(prop.table(tabN4a,2),3)
-
-# How many right/left-handers are left lateralised for SG?
-SG_left_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==0)])/length(ddat$B_catlatL[which(ddat$Rhanded==0)])
-SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catlatL[which(ddat$Rhanded==1)])
 
 ```
 It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on $\chi$^2^  test, $\chi$^2^  = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tests included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
@@ -2458,7 +2455,7 @@ It is noteworthy that this more categorical analysis finds rates of "atypical", 
 
 **Evaluation of Prediction 4: On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised.**  Our preregistered analysis did not support this prediction, but this negative result should be interpreted cautiously. 
 
-It would be rash, given the observed data, to assume that there was no handedness effect on consistent left-lateralisation. First, the categorical analysis is less sensitive than the analysis of continuous laterality indices shown in Table `r ftcdtabnumber`, which clearly indicate reduced lateralisation for left-handers on a subset of tasks. Furthermore, as shown in our prior analyses, the different laterality indices are not independent, and hence Bonferroni correction, which assumes independence of measures,  is over-conservative. We drew a binary divide at zero, but this means that many cases close to zero will not be clearly lateralised. An alternative approach would have been to make a three-way division between lateralised left, not lateralised, and lateralised right. The main reason for not doing that was that the numbers in the clearly lateralised groups would be relatively small, giving low power.  
+It would be premature, given the observed data, to assume that there was no handedness effect on consistent left-lateralisation. First, the categorical analysis is less sensitive than the analysis of continuous laterality indices shown in Table `r ftcdtabnumber`, which clearly indicate reduced lateralisation for left-handers on a subset of tasks. Furthermore, as shown in our prior analyses, the different laterality indices are not independent, and hence Bonferroni correction, which assumes independence of measures,  is over-conservative. We drew a binary divide at zero, but this means that many cases close to zero will not be clearly lateralised. An alternative approach would have been to make a three-way division between lateralised left, not lateralised, and lateralised right. The main reason for not doing that was that the numbers in the clearly lateralised groups would be relatively small, giving low power.  
 
 Nevertheless, although we cannot conclude there is no effect of handedness, it is evident that on the fTCD measures, the differences between left- and right-handers are modest, and smaller than reported in the literature on Wada testing. The most striking finding is that, when we use just a categorical left- vs. right-hemisphere coding, a large proportion of people are not consistently left-lateralised across measures,  regardless of handedness. 
 
@@ -2605,11 +2602,13 @@ In our preregistration analysis plan, we stated: **_If the online measures do no
 
 Overall, the associations between behavioural and fTCD laterality indices were low enough to give little confidence in the specific pattern of associations. Although the split-half reliability of the online measures was not high, it was not so low as to explain the lack of association with fTCD measures. The main conclusion is that behavioural measures of laterality based on speed of responding to lateralised stimuli have little in common with measures of relative blood flow to the two hemispheres while performing the same tasks, and cannot be used as proxy measures.  
 
-## 3.5 Exploratory Analysis of Relationship between Behavioural Performance and Laterality Indices
+## 3.5 Additional Analysis of Relationship between Behavioural Performance and Laterality Indices
 
 It seemed possible that the laterality indices might be influenced by either the language status of participants, and/or behavioural scores on the fTCD tasks (number of items generated or percentage correct). Supplementary file `r suppcorr` shows relevant analyses indicating that this is not the case. 
 
-# 4. Discussion
+# 4. Discussion  
+
+In this study, we measured individual differences in language laterality using two approaches: behavioural biases on online measures, and task-related blood flow to left and right hemispheres using fTCD. Our focus was on the extent to which laterality measures were associated, and whether the pattern of association differed for left- and right-handers.
 
 We had preregistered five specific predictions, none of which was confirmed. Nevertheless, the study has taken forward our understanding of language laterality, by allowing us to dismiss certain hypotheses, suggesting new avenues for research, and evaluating comparability of different ways of measuring cerebral lateralisation.
 
@@ -2623,21 +2622,21 @@ Considering first the online behavioural data, the most noteworthy observation w
 
 For the fTCD data, we again found good evidence for reliability of LIs on most tasks, even though some tasks were not left-lateralised. Consistent with Woodhead et al (2021), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that all individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, others the right, and others more equally balanced. The LI from the Word Decision task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. In addition, this task showed a trend for right-hemisphere bias, particularly in left-handers. 
 
-With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered, alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single-factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two subgroups to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
+With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered, alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single-factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two sub samples to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
 
-In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  A model that included Dichotic Listening gave better fit when a non-zero paths was included, than when it was set to zero, but the best fit was seen for a model where both Dichotic Listening loaded on Factor 1 (with language production tasks), rather than for our prespecified model where Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
+In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  A model that included Dichotic Listening gave better fit when a non-zero path was included, than when it was set to zero, but the best fit was seen for a model where Dichotic Listening loaded on Factor 1 (with language production tasks), rather than for our prespecified model where Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
 
 ## 4.2 Left- Versus Right-Handers   
 For both behavioural and fTCD LIs, with just one exception, there was a consistent trend for stronger left-hemisphere bias in right-handers than in left-handers. This reached significance on all measures except fTCD Word Decision. The exception was online Rhyme Judgement, which was not left-lateralised and where means for left- and right-handers were very similar. 
 
-The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures (Woodhead et al., 2021), we had concluded that there was more dissociation between factors in left-handers, but this finding was not replicated here. There are two possible explanations for this discrepancy. First, the sample size in both the current and the previous study was small for this kind of analysis, raising the possibility that the initial finding was a false positive, or the current finding a false negative.  Even with the current sample size, power to detect model invariance is limited. Second, the language tasks used with fTCD differed across studies. In the Woodhead et al study, we included a List Generation task, that was intended to be a relatively pure measure of phonological output, using overlearned sequences, as well as a Semantic Decision task, which involved judging whether two pictures were semantically related. The List Generation task was dropped because of low reliability, and the Word Decision task was substituted for Semantic Decision to give a purer measure of receptive language. We cannot rule out the possibility that these tests would show different patterns of association in left- and right-handers. Note, however, that the data do not support an additional possibility, namely that left-handers are more variable than right-handers. The comparison of factor scores in the two handedness groups showed substantial differences in means, but only small differences in standard deviations. 
+The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures (Woodhead et al., 2021), we had concluded that there was more dissociation between factors in left-handers, but this finding was not replicated here. There are two possible explanations for this discrepancy. First, the sample size in both the current and the previous study was small for this kind of analysis, raising the possibility that the initial finding was a false positive, or the current finding a false negative.  Even with the current sample size, power to detect model invariance is limited. Second, the language tasks used with fTCD differed across studies. In the Woodhead et al study, we included a List Generation task, that was intended to be a relatively pure measure of phonological output, using overlearned sequences, as well as a Semantic Decision task, which involved judging whether two pictures were semantically related. The List Generation task was dropped because of low reliability, and the Word Decision task was substituted for Semantic Decision to give a purer measure of comprehension at the single word level. We cannot rule out the possibility that these tests would show different patterns of association in left- and right-handers. Note, however, that the data did not support an additional possibility, namely that left-handers are more variable than right-handers. The comparison of factor scores in the two handedness groups showed differences in means, but only small differences in standard deviations. 
 
 Overall, we can conclude that the current data suggest that there is no reason to postulate different models for left- vs. right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means, and was driven primarily by differences on Factor 1, which related to tasks involving verbal production. 
 
 These quantitative differences between laterality groups in handedness did not, however, translate into pronounced differences in proportions who were atypically lateralised on individual tasks, and most people had a mixture of left- and right-lateralisation across the whole fTCD battery.
 
 ## 4.3 Right Hemisphere Lateralisation for Word Comprehension  
-The finding of a slight bias to right hemisphere lateralisation for single word comprehension  is puzzling. This is especially the case given that it was found both in the online behavioural version of the task (see Table `r tabonlinesummary` and in the analogous Word Decision fTCD task (see Table `r ftcdtabnumber`). Furthermore, on the behavioural task, left-handers showed a stronger effect than right-handers. This consistent picture, however, is challenged by the fact that the correlation between LIs on the online and fTCD versions of the task was close to zero.   
+The finding of a slight bias to right hemisphere lateralisation for single word comprehension  is puzzling. The relatively low reliability of the task, in both behavioural and fTCD formats, indicates the need for caution in interpretation. Furthermore, this task was the easiest in the battery, with near-ceiling performance by all participants, and it could be that it was insufficiently challenging to engage lateralised language systems.  We might be tempted to dismiss the result as a fluke, except for the fact that the bias was found both in the online behavioural version of the task (see Table `r tabonlinesummary` and in the analogous Word Decision fTCD task (see Table `r ftcdtabnumber`). Furthermore, on the behavioural task, left-handers showed a stronger effect than right-handers, in line with their reduced left-hemisphere bias on other tasks. This consistent picture, however, is challenged by the fact that the correlation between LIs on the online and fTCD versions of the task was close to zero. Overall, the pattern of results is puzzling, and we may need more reliable measures of word comprehension to determine whether it is meaningful. 
 
 ## 4.4 Differences Between Behavioural and fTCD Measures of Laterality  
 The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, we may note that even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. Both tasks are well-lateralised with good reliability. 
@@ -2659,7 +2658,7 @@ Table `r tabnumber`: _Characteristics of tasks_
 
 Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted, the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Decision on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
 
-Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have covertly repeated sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we had dropped from the current study a List Generation task used by Woodhead, Rutherford and Bishop (2020) that simply involved repeating overlearned sequences such as days of the week, as it had been only weakly lateralised. The Sentence Decision task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
+Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have rehearsed sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we and others have found that repeating overlearned sequences such as numbers or days of the week is not lateralised (Dhanjal et al., 2008;  Woodhead, Rutherford & Bishop, 2020).  The Sentence Decision task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
 
 ```{r densplotexplore,echo=F,include=F}
 
@@ -2704,7 +2703,7 @@ To account for the observed pattern of results, we postulate two language centre
 
 To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same factor than for those loading on different factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
 
-SAY SOMETHING ABOUT HOW CONCLUSIONS MESH WITH WOODHEAD ET AL.
+
 
 
 
@@ -2778,7 +2777,7 @@ Wolf, E. J., Harrington, K. M., Clark, S. L., & Miller, M. W. (2013). Sample siz
 
 
 ## Acknowledgements
-This study is supported by an Advanced Grant from the European Research Council [694189].
+This study is supported by an Advanced Grant from the European Research Council [694189]. We thank Melissa Gibbs and Hussein Mehmet for assistance with recruitment and data collection.  
   
 ## Declaration of interest
 The authors declare no competing interests.
@@ -2788,7 +2787,7 @@ Adam J. Parker: Conceptualisation, Methodology, Validation, Formal analysis, Inv
 Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hudson: Supervision; Emma M. Karlsson: Conceptualisation, Methodology, Writing - Review and Editing; Mairéad MacSweeney: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Heather Payne: Methodology, Writing - Review and Editing; Nuala Simpson: Project Administration; Paul A. Thompson: Formal analysis, Data Curation; Writing - Review and Editing; Kate E. Watkins: Conceptualisation, Writing - Review and Editing, Ciara Egan: Methodology, Investigation; Jack H. Grant: Methodology, Investigation; Sophie Harte: Methodology, Investigation; Brad T. Hudson: Methodology, Investigation; Maria Sablik: Investigation; Dorothy V. M. Bishop: Conceptualisation, Methodology, Formal analysis, Writing - original draft, Supervision, Funding Acquisition.
 
 ```{r sessioninfo, echo=F}
-sessionInfo()
+# sessionInfo()
 ```
 
 # Supplementary file `r suppcorr`
