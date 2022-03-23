@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "21 Mar 2022"
+date: "23 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -272,6 +272,8 @@ ggheatmap <- ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
   theme_minimal()+ 
  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
     size = 12, hjust = 1))+
+theme(axis.text.y = element_text(
+    size = 12, hjust = 1))+
  coord_fixed()
 
 myheatmap <- ggheatmap + 
@@ -302,18 +304,17 @@ bivplot2<-function(bivdat,name1,name2){
 
 #correlations for each group
 
-var1<-bivdat$tempx[bivdat$Group==1]
-var2<-bivdat$tempy[bivdat$Group==1]
+var1<-bivdat$tempx
+var2<-bivdat$tempy
 cor1<-spearman.ci(var1, var2, nrep = 1000, conf.level = 0.95)
-var1<-bivdat$tempx[bivdat$Group==2]
-var2<-bivdat$tempy[bivdat$Group==2]
-cor2<-spearman.ci(var1, var2, nrep = 1000, conf.level = 0.95)
 
-#cor1 <- cor.test(bivdat$tempx[bivdat$Rhanded==0],bivdat$tempy[bivdat$Rhanded==0],method="spearman")
-#cor2 <- cor.test(bivdat$tempx[bivdat$Rhanded==1],bivdat$tempy[bivdat$Rhanded==1],method="spearman")
-lab1<- paste0("Group 1: rho = ",round(cor1$estimate,3),": 95% CI: ",round(cor1$conf.int[1],3),' to ',round(cor1$conf.int[2],3))
-lab2<- paste0("Group 2: rho = ",round(cor2$estimate,3),": 95% CI: ",round(cor2$conf.int[1],3),' to ',round(cor2$conf.int[2],3))
 
+
+
+#attempt to include CIs with correlation - could not work it out. 
+lab1<- paste0("r[s] == ",round(cor1$estimate,3),"*[",round(cor1$conf.int[1],3),"*, " ,round(cor1$conf.int[2],3),"*]")
+
+lab2<- paste0("r[s] == ",round(cor1$estimate,3)) #correlation with subscript (need parse=TRUE below)
 
 #lab1<- paste0("L-handers: rs = ",round(cor1$estimate,2))
 #lab2<- paste0("R-handers: rs = ",round(cor2$estimate,2))   
@@ -329,8 +330,8 @@ myplot <- ggplot(bivdat, aes(x=tempx, y=tempy, color=Handedness)) +
                        values=c("blue","red"))+
   geom_hline(yintercept=0,linetype="dashed")+
    geom_vline(xintercept=0,linetype="dashed")+
-  annotate("text", x=-5, y=9.5, label= lab1,size=2.8) +
-  annotate("text", x=-5, y=8, label= lab2,size=2.8)   
+  annotate("text", x=-7, y=9.5, label= lab2,size=3,parse=TRUE) +
+  theme(text = element_text(size = 8)) 
   return(myplot)
 }
 
@@ -867,7 +868,7 @@ A total of 108 experimental images were selected from the MultiPic databank (Du�
 
 Each image pair was presented a total of four times, with each image twice in either the left or right visual field. The name of each image was presented twice: once when the image was in the right visual field, and once when the image was in the left. `r fignumber <- fignumber+1`See Figure `r fignumber` for an example. The images were displaced at 7.9 degrees of visual angle from the point of fixation. Gorilla’s screen scaling tool was used to maintain consistency of stimulus size across browsers and computers. In total, 208 trials were presented across four blocks.  
 
-![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right. _This figure has been modified from the preregistered version for clarity._](WordCompDemo.png) 
+![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right. _This figure has been modified from the preregistered version for clarity._](WordCompDemo.eps) 
 
 #### 2.3.7.2 Procedure  
 Participants completed a familiarisation procedure (where each picture was shown along with its spoken name) and a number of practice trials. They then completed 208 experimental trials (four blocks of 52 stimuli). Each trial began with a central fixation cross which was visible for 600 ms. The target word was then presented aurally along with two semantically related parafoveal images that were visible for 150 ms. Participants indicated whether the oral word matched the image in the left or right visual field by pressing Q for the left visual field and P for the right visual field. Participants’ responses triggered the next trial. Accuracy and response times were recorded.  
@@ -889,7 +890,8 @@ The study implemented a within subjects design where participants completed all 
 ## 2.4 Step 2: Functional Transcranial Doppler Ultrasound (fTCD)  
 A subset of participants were given six tasks using fTCD that could be administered in a single session of about 90-120 mins. These participants were selected on the basis of handedness and willingness and ability to travel for in-person testing to one of the _six test centres (Oxford, University College London, Bangor, Lincoln, Lancaster, University of Western Australia)_.  
 The tasks were designed to cover a range of language functions in as standard a format as possible. Four of the language tasks (tasks B, C, E and F below) were based on tasks used by Woodhead et al. (2019). We omitted the List Generation task used by Woodhead et al. (2019), as it showed poor test-retest reliability. Instead, we used a shortened version of the gold standard Word Generation task (Knecht et al., 2000). As detailed below, the basic procedure for this task was the same as used by Knecht et al., but with fewer trials and a shorter rest period between trials. The sixth task was a new Word Decision task, selected to act as a third indicator of receptive language.  
-The total battery consisted of the following tests (described in more detail in a later section:    
+The six tasks are described below.
+
 ### 2.4.1 Task A: Word Generation  
 On each trial, the task was to silently generate words that begin with a specified letter, and subsequently report them when a cue is given. The task used 18 letters that commonly begin English words (S, C, P, D, T, B, R, A, E, F, G, H, I, L, M, U, O, W).  
 
@@ -901,6 +903,7 @@ Following a familiarisation task, for each trial, participants decided whether t
 
 ### 2.4.4 Task D: Word Decision  
 Participants were presented with pairs of pictured items on each trial, and were asked to press a key to indicate which one matched a spoken word. The pictures were from the same semantic category. The picture pairs and audio stimuli for this task were the same as those used in the online word comprehension task (see below for further details).   
+
 ### 2.4.5 Task E: Sentence Decision  
 
 Two pictures were presented on each trial, and the task was to determine which one matched a spoken sentence. Items were based on picture pairs taken from the Test for Reception of Grammar - 2 (Bishop, 2003), using distractors that differed in syntactic arrangement of words. As we used slightly more trials than Woodhead et al. (2019), additional pictures and sentences were devised in the same way. New spoken sentences were created for all items using Google text to speech, with a male British voice.  
@@ -915,7 +918,7 @@ Timings for the tasks are shown in Figure `r fignumber`. All stimulus materials 
 
 Task order was counterbalanced between participants to avoid order effects using a replicated Latin square design using a customised script in R Studio. Details of task A are described by Woodhead et al. (2018), and Tasks B, C, E and F by Woodhead et al. (2019). Task D was designed for this study and is described below.  
 
-![Timings within a single trial for the six tasks used with fTCD](tasktimings.png) 
+![Timings within a single trial for the six tasks used with fTCD](tasktimings.eps) 
 
 Task D (Word Decision) used the same 54 picture pairs and audio stimuli that were used for the online Word Comprehension task. The procedure for this task in fTCD has been designed to match that of the Sentence Decision task (task E). In each epoch, a pair of drawings was presented for 3.33 seconds, one above the other, and the spoken word for one of the drawings was played. Participants were required to respond by button press to indicate which drawing matched the spoken word. Each pair of drawings was presented twice, with a different drawing used as the target word, creating 108 epochs in total. Epochs were presented in a pseudorandomised order, with no repetitions of a drawing pair in successive epochs. The same order was used for all participants. The target location was pseudorandomised so that the target was presented at the top / bottom of the screen (and therefore eliciting a left / right button press) in 50% of all epochs to avoid a response bias. In each fTCD trial, six epochs (drawing pairs) were presented, each lasting 3.33 seconds. The pseudorandom order was designed so that within an fTCD trial, there were equal numbers of top or bottom targets. This ensured that odd-even split-half reliability data would not be affected by trial-to-trial variation in which hand is used. Participants were instructed to respond as quickly and accurately as possible.  
 
@@ -1015,7 +1018,7 @@ myflow<-grViz("digraph flowchart {
           Z[label = 'Step2\\nfTCD for subset']
           U[label= 'fTCD quality']
           V[label = 'Language screen']
-   node [fontname = arial, shape = rectangle, color = lightblue, style = filled]
+   node [fontname = arial, shape = rectangle, color = black]
   A [label = '@@1']
   B[label='@@2']
   E [label='@@3']
@@ -1046,10 +1049,12 @@ myflow<-grViz("digraph flowchart {
   [7]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
 ")
 
-makefile<-1
+makefile<-0
 if(makefile==1){
-  filename<-paste0(mydir,"/",figdir,"/","COLAflow.jpg")
-myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
+  filename<-paste0(mydir,"/",figdir,"/","COLAflow.eps")
+  #myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
+  tmp <- export_svg(myflow)
+  rsvg_eps(charToRaw(tmp), filename, width=3543) # Should be 9cm, 1000dpi
 }
 
 ```
@@ -1061,7 +1066,7 @@ myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
   
 `r fignumber<-fignumber+1`
 
-![Participant recruitment flowchart](COLAflow.jpg)
+![Participant recruitment flowchart](COLAflow.eps)
 
 
 ### 3.1.1 Departures From Pre-registration Plan   
@@ -1187,10 +1192,11 @@ DLsides <- ggplot(DLdat, aes(x=DL.L, y=DL.R, color=Handedness,shape=as.factor(DL
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-  annotate("text", x=50, y=100, label= "Above diagonal:\nR Ear Advantage",size=3) +
-    annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=3) 
+  annotate("text", x=50, y=100, label= "Above diagonal:\nR Ear Advantage",size=2.5) +
+    annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=2.5) + 
+  theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/03-graphic-outputs/AFig1_DLsides.png"),width = 6, height = 4)
+ggsave(paste0(mydir,"/03-graphic-outputs/AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 
@@ -1218,10 +1224,11 @@ RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-    annotate("text", x=6.6, y=7.25, label= "Above diagonal:\nLVF Advantage",size=3) +
-    annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=3) 
+    annotate("text", x=6.6, y=7.25, label= "Above diagonal:\nLVF Advantage",size=2.5) +
+    annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.5) + 
+  theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/",figdir,"/AFig2_RDTsides.png"),width = 6, height = 4)
+ggsave(paste0(mydir,"/",figdir,"/AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 ```
@@ -1246,23 +1253,24 @@ WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.f
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-      annotate("text", x=6.6, y=7, label= "Above diagonal:\nLVF Advantage",size=3) + 
-    annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=3) 
+      annotate("text", x=6.6, y=7, label= "Above diagonal:\nLVF Advantage",size=2.5) + 
+    annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.5) + 
+  theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.png"),width = 6, height = 4)
+ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
 
 #plot with all 3 L vs. R scatterplots together in a row.
 allplot <- ggarrange(DLsides, RDTsides, WCsides, ncol = 1, nrow = 3,common.legend=TRUE)
 
 
-ggsave(paste0(mydir,"/",figdir,"/allLRbeh.png"),width = 6, height = 12)
+ggsave(paste0(mydir,"/",figdir,"/allLRbeh.eps"),width = 9, height = 25, units="cm", dpi=300)
 #also save to current project to enable access when knitting to word
-ggsave("allLRbeh.png",width = 6, height = 12)
+ggsave("allLRbeh.eps",width = 9, height = 25, units="cm", dpi=300)
 fignumber<-fignumber+1
 
 ```
 
-![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.png)
+![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.eps)
   
 
 Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural tasks in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
@@ -1308,8 +1316,8 @@ dens2 <- ggplot(DLdat, aes(x = DL.zlat, fill = Handedness)) +
 dens1 + plot_spacer() + plot1 + dens2 + 
   plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
 
-DLdens <- ggsave(paste0(mydir,"/",figdir,"/AFig4_DLdens.png"),width = 5, height = 4)
-ggsave("AFig4_DLdens.png",width = 5, height = 4)#resave to project folder
+DLdens <- ggsave(paste0(mydir,"/",figdir,"/AFig4_DLdens.eps"),width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)
+ggsave("AFig4_DLdens.eps",width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)#resave to project folder
 
 suppfignumber<- suppfignumber+1
 ```
@@ -1356,14 +1364,14 @@ onlinesummary[12,4]<-paste0(round(cor4$estimate,2),' [',round(cor4$conf.int[1],2
 
 
 ft<-flextable(onlinesummary)
-ft <- fontsize(ft,size=10)
+ft <- flextable::fontsize(ft,size=10)
 ft<-autofit(ft)
 ft
 tabnumber <- tabnumber+1
 tabonlinesummary<-tabnumber
 
 ftbig<-flextable(onlinesummary)
-ftbig <- fontsize(ftbig,size=16)
+ftbig <- flextable::fontsize(ftbig,size=16)
 ftbig<-autofit(ftbig)
 
 tabnumber <- tabnumber+1
@@ -1377,24 +1385,24 @@ Table `r tabnumber`: _Descriptive statistics for LIz for three online laterality
 #NB Formatting of this figure needs to be tweaked to achieve good resolution and legibility, but we can do that when we know what format figures need to be created in. 
 
 
- mypath<-paste0(mydir,"/",figdir)
-  plotname<-paste0(mypath,'/beh_pirates.jpg')
-#  plotname<-'beh_pirates.jpg' #creating a version in project directory
-jpeg(plotname, width = 800, height = 500)
-
 bLIdat <- combdat %>% 
   dplyr::select(ID, Rhanded, DL.zlat,RDT.zlat,WC.zlat)
 colnames(bLIdat) <- c('ID','Handed','Dichotic','Rhyme','Comprehension')
-
 bLIdat$Handed <- as.factor(bLIdat$Handed)
 levels(bLIdat$Handed)<-c("L","R")
 longdata.b <- pivot_longer(data = bLIdat, cols = c(3:5), names_to = 'Task', values_to = 'LIz')
 longdata.b$Task<-as.factor(longdata.b$Task)
 longdata.b$Task <- factor(longdata.b$Task, levels = c('Dichotic', 'Rhyme', 'Comprehension'))
-pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1.5, cex.axis=1, cex.names=1.4,ylab='R hem bias <--- LIz ---> L hem bias')
 
+mypath<-paste0(mydir,"/",figdir)
+
+plotname<-paste0(mypath,'/beh_pirates.eps')
+setEPS()
+cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
+pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1, cex.axis=1, cex.names=1, ylab='R hem bias <--- LIz ---> L hem bias')
 
 abline(h=0)
+dev.off()
 
 
 fignumber<-fignumber+1
@@ -1402,7 +1410,7 @@ fignumber<-fignumber+1
 ```
 
 
-![Pirate plot distributions of LIz scores on online tasks](beh_pirates.jpg)  
+![Pirate plot distributions of LIz scores on online tasks](beh_pirates.eps)  
 
 
 
@@ -1456,11 +1464,11 @@ RD_WC_plot <- bivplot2(bivdat,name1,name2)
 
 #For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
 allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 1, nrow = 3,common.legend=TRUE)
-ggsave(paste0(mydir,"/",figdir,"allbiv.png"),width = 4, height = 12)
-ggsave('allbiv.png',width = 4, height = 12)
+ggsave(paste0(mydir,"/",figdir,"/allbiv.eps"),width = 9, height = 25, units="cm", dpi=300)
+ggsave('allbiv.eps', width = 9, height = 25, units="cm", dpi=300)
 fignumber<-fignumber+1
 ```
-![Bivariate distributions of LIs on behavioural tasks](allbiv.png) 
+![Bivariate distributions of LIs on behavioural tasks](allbiv.eps) 
 
 Figure `r fignumber` shows scatterplots of the bivariate relationships between the three variables. Spearman correlations are shown with 95% bootstrapped confidence intervals  estimated using the *spearman.ci()* function from the RVAideMemoire package (version 0.9-75; Hervé, 2020) with 1,000 iterations.  It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
 
@@ -1478,7 +1486,7 @@ We excluded `r n_excluded` participants who met our criteria for outliers on two
 
 <!-- Plot is created by fctd_task_plots.R-->
 
-```{r maketimecourse,echo=F,message=F}
+```{r maketimecourse,echo=F,message=F,warning=F}
 ## Based on ftcd_task_plots.R script to create fTCD timecourse plots for each of the 6 language tasks. ZW Feb 2022
 
 ## The script uses data produced during the fTCD preprocessing. 
@@ -1488,11 +1496,6 @@ We excluded `r n_excluded` participants who met our criteria for outliers on two
 ## The script reads in all of the data files and averages over all participants,
 ## to produce one grand mean plot for each task.
 
-
-#NB. I can't get this to use same y-axis scale for all 6 figures - once you add the 2ndary axis it defaults to fitting to largest number. 
-#Will need fiddling - I can thing of 2 ways of making it behave - a) add spurious large value , maybe if one is added that is outside xaxis range, this will affect y axis but not plot?
-## Otherwise, only solution seems to be to hand-craft the 2nd axis.
-## The yaxis scaling is fine provided you omit the 2ndary axis. 
 
 tasks <- c('WG','SG','PD','WC','SC','SD')
 longtasks<-c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
@@ -1564,6 +1567,9 @@ for (t in 1:ntasks){
   end_index <- which(mytime==24)
   xtime <- mytime[start_index:end_index]
   taskmean <- taskmean[start_index:end_index, ]
+  ntimes<-nrow(taskmean)
+  taskmean[(ntimes+1),1:6]<-108 #plots won't scale to same yaxis if 2nd axis is added, so this is a trick to make sure they do - I've added a spurious point with maximum value we want but it is outside the range of time values that display
+  
   taskmean_long <- pivot_longer(data=taskmean, cols=c(1:6), 
                                 names_to = 'Condition', values_to='Velocity')
   
@@ -1616,9 +1622,9 @@ for (t in 1:ntasks){
     geom_vline(xintercept = poiend, linetype = "dotted", alpha = 0.8) +  # End of POI
     ggtitle(longtasks[t])
   thisplot
-  ggsave(paste0('~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_grandmeanx_', tasks[t],'.png'),
-         width = 6,
-         height = 3,)
+  ggsave(paste0('~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_grandmeanx_', tasks[t],'.eps'),
+         width = 14,
+         height = 9, units="cm", dpi=300)
   d6<-thisplot
   if(t==1){d1<-thisplot}
   if(t==2){d2<-thisplot}
@@ -1628,9 +1634,9 @@ for (t in 1:ntasks){
   
 }
 alltimes <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
-ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.png",width = 7, height = 7)
+ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
 
-ggsave("alltimecourse.png",width = 7, height = 7)
+ggsave("alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
 
   # The POI ends earlier for WG and SG tasks, due to REPORT phase
 ```
@@ -1638,7 +1644,7 @@ ggsave("alltimecourse.png",width = 7, height = 7)
 ### 3.3.1 Cerebral Blood Flow Velocity 
 
 `r fignumber <- fignumber+1`
-![Timecourse of left and right hemisphere blood flow velocity (left axis) and L-R difference (right axis) for six tasks in left- and right-handers)](alltimecourse.png)
+![Timecourse of left and right hemisphere blood flow velocity (left axis) and L-R difference (right axis) for six tasks in left- and right-handers)](alltimecourse.eps)
 
 Figure `r fignumber` shows the mean time course of blood flow velocity on left and right channels for left- and right-handers. In addition, the difference between left and right channels is plotted in black, after adding 100 to the values so that they can be shown on the same plot (true scale is on right side axis). The laterality index is computed as the mean difference score (shown in black) over the period of interest. For Word Generation and Sentence Generation tasks, the LI is computed during a period corresponding to silent generation; the waveform peaks again after this period, corresponding to the activity from the subsequent spoken response. For the other tasks, a series of items is presented in each trial and no spoken response is required. The periodic fluctuations in the response correspond to the individual items that are responded to.  
 
@@ -1665,8 +1671,8 @@ for (i in 1:length(tasknames)){
   p2<-doscatterplus(myfile,tasknames[i],mycolnames,myrange)
   p2
    mypath<-paste0(mydir,"/",figdir)
-  plotname<-paste0(mypath,'/OddEven_',LETTERS[i],'.png')
-  ggsave(plotname,p2,width = 5, height = 4)
+  plotname<-paste0(mypath,'/OddEven_',LETTERS[i],'.eps')
+  ggsave(plotname,p2,width = 14, height = 14, units="cm", dpi=300, device=cairo_ps)
 
 }
 #THESE PLOTS NOT CURRENTLY USED
@@ -1719,35 +1725,36 @@ for (i in 1:6){
 vertpts <- rep(-5.5,6)
 vertpts[4:6]<-6
 
- mypath<-paste0(mydir,"/",figdir)
-  plotname<-paste0(mypath,'/ftcd_pirates.jpg')
- # plotname<-'ftcd_pirates.jpg' #comment out for creating file in Dropbox
-jpeg(plotname, width = 800, height = 500)
-
 LIdata <- ddat %>% 
   dplyr::select(ID, Rhanded,A_mean_LI,  B_mean_LI, C_mean_LI,D_mean_LI, E_mean_LI, F_mean_LI, )
 colnames(LIdata) <- c('ID','Handed','1A','2BV','3C','4D','5E','6F')
 LIdata$Handed <- as.factor(LIdata$Handed)
 levels(LIdata$Handed)<-c("L","R")
-
-
 longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', values_to = 'LI')
 longdata.d$Task <- as.factor(longdata.d$Task)
 levels(longdata.d$Task)<-c('A','B','C','D','E','F')
-pirateplot(data = longdata.d, LI ~ Handed * Task,ylim=c(-6,8))
+
+mypath<-paste0(mydir,"/",figdir)
+plotname<-paste0(mypath,'/ftcd_pirates.eps')
+ 
+setEPS()
+cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
+pirateplot(data = longdata.d, LI ~ Handed * Task, ylim=c(-6,8))
+
 abline(h=0)
 
 for (i in 1:6){
   text(horizpts[i], vertpts[i], tasknames2[i], #add label for task
-     cex = 1)
+     cex = .8)
 }
-#title(main=paste0('Distributions of LI Data \nN = ',length(LIdata$ID)))
+
+dev.off()
 
 fignumber<-fignumber+1
 piratenumber <- fignumber
 ```
 
-![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers.](ftcd_pirates.jpg)
+![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers.](ftcd_pirates.eps)
 
 
 ```{r doppler-ttests,echo=F}
@@ -1772,7 +1779,7 @@ ftcdsummary <- populate(ddat,mytask,ftcdsummary,writecolnum,'ftcd')
 #ftcdsummary <- ftcdsummary[1:(nrow(ftcdsummary)-1),]
 }
 ft<-flextable(ftcdsummary)
-ft <- fontsize(ft, size = 10)
+ft <- flextable::fontsize(ft, size = 10)
 ft<-fit_to_width(ft,8,inc=1L)
 ft
 tabnumber<-tabnumber+1
@@ -1824,7 +1831,7 @@ Our second preregistered prediction was: **_The data will fit a model where 'lan
  
 The analysis conducted by Woodhead et al (2019, 2020) used an exploratory bifactor model in which each task could load on each of two factors. Because there were two measures for each task (from test and retest sessions), this exploratory approach was adequately powered. In the current study, two tasks differed to Woodhead et al’s studies (list generation and semantic decision were removed, and word generation and Word Decision were added), and we only had one measurement occasion for each of the six measures. Accordingly, we used confirmatory factor analysis, using a prespecified two-factor model that constrains which indicators can load on two factors. This was compared to a unitary model, in which all tasks load on a single factor.  
 
-`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heat map. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task C (Phonological Decision) and task E (Sentence Decision), which is not predicted by the two-factor model. 
+`r fignumber <- fignumber+1`Figure `r fignumber` shows the pattern of correlations between LIs for the different tasks as a heatmap. The two-factor model predicts that correlations will form two clusters, with positive correlations within tests A-C, and within tests D-F, but weaker or absent correlations across these two clusters of measures. The heatmap shows moderate correlations within both clusters of measures, and generally lower correlations across clusters, but there are some exceptions. Notably, there is a moderate correlation between task C (Phonological Decision) and task E (Sentence Decision), which is not predicted by the two-factor model. 
 
 
 ```{r modelfit,echo=F,include=F}
@@ -1843,13 +1850,13 @@ w<-which(colnames(temp)%in%LIcols)
 colnames(temp)[w]<-tasknames
 myheatmap <- makeheatmap(temp,tasknames)
 
-ggsave(paste0(mydir,"/",figdir,"/ftcd-heatmap.png"),width = 6, height = 6)
-ggsave("ftcd-heatmap.png",width = 6, height = 6)
+ggsave(paste0(mydir,"/",figdir,"/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+ggsave("ftcd-heatmap.eps",width = 14, height = 14, units="cm", dpi=300)
 
 suppnum<-suppnum+1
 
 ```
-![Heatmap showing correlations between laterality indices from six fTCD tasks](ftcd-heatmap.png) 
+![Heatmap showing correlations between laterality indices from six fTCD tasks](ftcd-heatmap.eps) 
 
 
 #### 3.3.4.1 Structural Equation Modeling   
@@ -1860,7 +1867,7 @@ Structural equation modeling (Kline, 2011) is a method that allows a formal test
 The latent factors are shown in circles, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure `r fignumber` have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignumber-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
 
-![One-factor vs. two-factor structural equation models](bothF1F2.tiff)  
+![One-factor vs. two-factor structural equation models](bothF1F2.eps)  
 
 
 
@@ -1924,10 +1931,10 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
 pathfigname1<-paste0(mydir,"/",figdir,"/pathfigF1")
-mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Word\nDecision','Sentence\nDecision','Syntactic\nDecision','F1')
+mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonological\nDecision','Word\nDecision','Sentence\nDecision','Syntactic\nDecision','F1')
 
 semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,edge.color='black',nodeLabels=mynodes, filetype='tiff',filename=pathfigname1,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes, filetype='eps',filename=pathfigname1,width=8,height=6) #draws a path diagram
 
 fit2 <- cfa(model.2F, estimator="WLSMV",data=ddati)
 sfit2 <- makeSEMtab(fit2)
@@ -1937,7 +1944,7 @@ bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from 
 pathfigname2<-paste0(mydir,"/",figdir,"/pathfigF2")
 mynodes2<-c(mynodes,'F2')
 semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,edge.color='black',nodeLabels=mynodes2,filetype='tiff',filename=pathfigname2,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes2,filetype='eps',filename=pathfigname2,width=8,height=6) #draws a path diagram
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
 
 
@@ -1953,22 +1960,27 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 1
 ```{r boltfigstogether,echo=F}
 
 #read in the figures just created
-imageX<-image_read(paste0(pathfigname1,'.tiff'))
-imageY<-image_read(paste0(pathfigname2,'.tiff'))
-itemname<- paste0(alldir,'/bothF1F2.tiff')
-itemnamej<-paste0(alldir,'/bothF1F2.jpg')
+imageX<-image_read(paste0(pathfigname1,'.eps'),density=300)
+imageY<-image_read(paste0(pathfigname2,'.eps'),density=300)
+itemname<- paste0(alldir,'/bothF1F2.eps')
+itemnamej<-paste0(alldir,'/bothF1F2.eps')
 
-cropX <- image_crop(imageX, "800x+60")#crop out image of 800 pixels width starting at 60 from left
-cropY <- image_crop(imageY, "800x0+60")
-  
-  imgboth <- c(cropX,cropY)
-  imgboth <- image_append(imgboth)
+#cropX <- image_crop(imageX, "800x+60")#crop out image of 800 pixels width starting at 60 from left
+#cropY <- image_crop(imageY, "800x0+60")
+#imgboth <- c(cropX,cropY)
+
+imgboth <- c(imageX, imageY)
+  imgboth <- image_append(imgboth, stack=TRUE)
   imgboth<-image_trim(imgboth)
+  imgboth <- image_crop(imgboth)
  
-  tname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.tiff"
-  jname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.jpg"
-  image_write(imgboth, path=tname,format = "tiff")
-  image_write(imgboth, path=jname, format = "jpg")
+  #tname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.tiff"
+  #jname <- "~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/bothF1F2.eps"
+  #image_write(imgboth, path=tname,format = "tiff")
+  #image_write(imgboth, path=jname, format = "jpg")
+  
+  image_write(imgboth, path=paste0(mydir,"/",figdir,"/","bothF1F2.eps"), format = "eps")
+
 
 ```
 
@@ -2099,12 +2111,12 @@ anova(fit.2Fn,fit.2F)
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_revised")
 mynodes3<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Sentence\nCompr.','Word\nCompr.','Syntactic\nDecision','F1','F2')
 semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes3,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,nodeLabels=mynodes3,rotation=2,filetype='eps',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 #redo with save to current directory
 pathfigname<-"pathfigF2_revised"
 semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes3,filetype='tiff',filename=pathfigname,width=3,height=1.8) #draws a path diagram
+    sizeMan2 = 5,nodeLabels=mynodes3,filetype='eps',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 #look at residuals for diagnostics
 res<-resid(fit.2Fn, type = "cor") #large abs values (> .1) indicate relationships not well accounted for
@@ -2138,7 +2150,7 @@ We used the lavaan() package to perform the preregistered model comparison. To t
 
 Therefore, as planned, we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021). Fuller details of the analysis are given in Supplementary material.  Because we had data from a single session, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Decision and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was good. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignumber` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
 
-![Factor structure of best-fitting model.](pathfigF2_revised.jpg)
+![Factor structure of best-fitting model.](pathfigF2_revised.eps)
 **Evaluation of Prediction 2: Separable factors for receptive and production fTCD laterality measures **
 This prediction was not confirmed. The baseline hypothesis of a single laterality factor was also rejected. A modification of the two-factor model that allowed additional paths from Phonological Decision to Factor 2, and from Sentence Decision to Factor 1 gave a good fit. 
 
@@ -2431,8 +2443,8 @@ chitab<-matrix(c(sum(tabN[1:6,1]),sum(tabN[1:6,2]),tabN[7,1],tabN[7,2]),nrow=2)
 mychiN<-chisq.test(chitab)
 
 #KW suggested figure - I think table is better.
-mytab<-as.table(t(ntestL[,2:3]))
-bp<-barplot(t(mytab))
+# mytab<-as.table(t(ntestL[,2:3]))
+# bp<-barplot(t(mytab))
 
 
 #Some exploratory analyses folllow
@@ -2446,6 +2458,9 @@ chitab4<-matrix(c(sum(tabN4[1:4,1]),sum(tabN4[1:4,2]),tabN4[5,1],tabN4[5,2]),nro
 mychi4<-chisq.test(chitab4)
 
 
+# How many right/left handers are left lateralised for SG?
+SG_left_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==0)])/length(ddat$B_catlatL[which(ddat$Rhanded==0)])
+SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catlatL[which(ddat$Rhanded==1)])
 
 
 ```
@@ -2504,12 +2519,12 @@ w<-c(w,wx)
 colnames(temp)[w]<-c(behnames,tasknames)
 
 bigheatmap <- makeheatmap(temp,c(behnames,tasknames))
-ggsave(paste0(mydir,"/",figdir,"/bigheatmap.png"),width = 6, height = 6)
+ggsave(paste0(mydir,"/",figdir,"/bigheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 fignumber<-fignumber+1
 
 ```
 
-![Heatmap with behavioural and fTCD laterality indices](bigheatmap.png)  
+![Heatmap with behavioural and fTCD laterality indices](bigheatmap.eps)  
 
 We had preregistered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (Word Decision and phonological decision respectively).
 
@@ -2572,11 +2587,11 @@ tab.2Fny <- makeSEMtab(fit.2Fny)
 
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_bigA")
 semPaths(fit.2Fnx, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+    sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
 pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_bigB")
 semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
-    sizeMan2 = 5,filetype='jpg',filename=pathfigname,width=3,height=2) #draws a path diagram
+    sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
 
 #Looking at residuals : dichotic has high variability and big residuals - may be worth trying to scale it - or possibly just censor at a less extreme value
@@ -2636,10 +2651,23 @@ Overall, we can conclude that the current data suggest that there is no reason t
 These quantitative differences between laterality groups in handedness did not, however, translate into pronounced differences in proportions who were atypically lateralised on individual tasks, and most people had a mixture of left- and right-lateralisation across the whole fTCD battery.
 
 ## 4.3 Right Hemisphere Lateralisation for Word Comprehension  
-The finding of a slight bias to right hemisphere lateralisation for single word comprehension  is puzzling. The relatively low reliability of the task, in both behavioural and fTCD formats, indicates the need for caution in interpretation. Furthermore, this task was the easiest in the battery, with near-ceiling performance by all participants, and it could be that it was insufficiently challenging to engage lateralised language systems.  We might be tempted to dismiss the result as a fluke, except for the fact that the bias was found both in the online behavioural version of the task (see Table `r tabonlinesummary` and in the analogous Word Decision fTCD task (see Table `r ftcdtabnumber`). Furthermore, on the behavioural task, left-handers showed a stronger effect than right-handers, in line with their reduced left-hemisphere bias on other tasks. This consistent picture, however, is challenged by the fact that the correlation between LIs on the online and fTCD versions of the task was close to zero. Overall, the pattern of results is puzzling, and we may need more reliable measures of word comprehension to determine whether it is meaningful. 
+The finding of a slight bias to right hemisphere lateralisation for single word comprehension is unexpected.  Binder et al. (1996), using fMRI, reported that a single-word semantic decision task was highly effective in engaging left-hemisphere language areas; that task involved listening to animal names and deciding if they met specific semantic criteria (e.g. "native to the United States"). Woodhead et al. (2022), using fTCD, showed left lateralisation in right-handers for a semantic decision task that involved judging if two (unnamed) pictured items were semantically related.  Both of these tasks involved thinking explicitly about meaning, whereas our current task required only a direct matching of a spoken word to one of a pair of semantically-related pictures. This task was the easiest in the battery, with near-ceiling performance by all participants, and it could be that it was insufficiently challenging to engage lateralised language systems.  It might be tempting to suppose that right-hemisphere bias was induced by the viewing of pictured items, but if that were the case, we should also have seen this bias in other tasks in the battery such as Phonological Decision, and in the Semantic Decision task used by Woodhead et al. (2022).
+
+The relatively low reliability of the task, in both behavioural and fTCD formats, indicates the need for caution in interpretation. We might be tempted to dismiss the result, except for the fact that the bias was found both in the online behavioural version of the task (see Table `r tabonlinesummary` and in the analogous Word Decision fTCD task (see Table `r ftcdtabnumber`). Furthermore, on the behavioural task, left-handers showed a stronger effect than right-handers, in line with their reduced left-hemisphere bias on other tasks. This consistent picture, however, is challenged by the fact that the correlation between LIs on the online and fTCD versions of the task was close to zero. 
+
+Overall, the pattern of results is puzzling, and we may need more reliable measures of word comprehension to determine whether it is meaningful. It does raise the possibility that where semantic decision tasks are lateralised, this may relate to task demands that involve explicit reasoning about word meanings.
+
 
 ## 4.4 Differences Between Behavioural and fTCD Measures of Laterality  
-The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, we may note that even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. Both tasks are well-lateralised with good reliability. 
+The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. This is despite the fact that both tasks are well-lateralised with good reliability. Furthermore, the dichotic listening task showed a small but reliable difference in laterality for left- and right-handers, similar to that previously reported by Karlsson et al. (2019), who used in-person rather than online testing.  
+
+Several researchers have proposed that when optimal methods are used, dichotic listening and/or visual half-field methods can be useful indicators of language laterality (Van der Haegen et al., 2013; Westerhausen, 2019), and it would seem that, when the goal is to categorise individuals as left- or right-lateralised for language, strong lateralisation on such behavioural measures is usually a good indicator of laterality on brain measures. Nevertheless, many people do not show such strong lateralisation, and when studies have considered associations between laterality indices from dichotic listening and fMRI, correlations have been unimpressive; e.g. Bethmann et al (2007) reported a correlation of .38, finding that many individuals with a left-ear advantage on dichotic listening were left-lateralised for language on a synonym decision task. Data extracted from a scatterplot by Van der Haegen et al. (2012) gave a Spearman correlation between dichotic listening and fMRI (word generation) of .46 (N = 62), in a sample that excluded cases of ambiguous laterality on fMRI (those with absolute value of LI below .6). Hunt-Georgiadis et al. (2002) tested 17 left-handers and 17 right-handers and found Spearman correlation of 0.56 between laterality indices from dichotic listening and semantic encoding on fMRI (computed from data extracted from scatterplot). Gerrits et al. (2020) found that a laterality index from a visual half-field task had a Spearman correlation of .54 with laterality on word generation from fMRI. 
+
+It is well worth pursuing the goal of standardizing behavioural laterality measures and working towards optimising their reliability, as exemplified by work by Westerhausen and Samuelsen (2020). We suspect, however, that the lack of agreement between different kinds of laterality measure might not be resolved simply by improving reliability. If, as we propose, language laterality is not unitary, then the agreement between different measures will depend on the relative contribution of different lateralised systems. In this regard, it is worth noting that fMRI studies of dichotic listening indicate activation that extends well beyond the temporal lobes to include bilateral activity in frontal lobes, which seems in part dependent on the inhibitory demands of the task (Jäncke & Shah, 2002; Westerhausen et al., 2014).
+
+
+
+
 
 ## 4.5 Interpreting the Two-Factor Structure    
 
@@ -2649,7 +2677,7 @@ tasks <- read.csv(paste0(alldir[1],"/04-table-outputs/task_details.csv"))
 ftasks <- flextable(tasks[,1:7])
 
 ftasks<-fit_to_width(ftasks,8,inc=1L)
-ftasks <- fontsize(ftasks,size=9)
+ftasks <- flextable::fontsize(ftasks,size=9)
 ftasks
 tabnumber <- tabnumber+1
 ```
@@ -2658,7 +2686,7 @@ Table `r tabnumber`: _Characteristics of tasks_
 
 Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted, the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Decision on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
 
-Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task. While it is possible that participants might have rehearsed sentences to themselves when doing the task, the fast pace of the task made that unlikely, and furthermore, our previous study suggested that simple production of spoken output was not the key attribute of Factor 1 tasks; we and others have found that repeating overlearned sequences such as numbers or days of the week is not lateralised (Dhanjal et al., 2008;  Woodhead, Rutherford & Bishop, 2020).  The Sentence Decision task did, however, involve  using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
+Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task.  Unlike the other two receptive tasks, Sentence Decision involved using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
 
 ```{r densplotexplore,echo=F,include=F}
 
@@ -2671,12 +2699,12 @@ nuorder <- order(means,decreasing=T)
 nucols<-min(w)+nuorder-1
 plotlist<-NULL
 for (i in 1:6){
-  filename<-paste0(mydir,'/',figdir,'/densplot_',i,'.png')
+  filename<-paste0(mydir,'/',figdir,'/densplot_',i,'.eps')
   thiscol<-colnames(ddati)[nucols[i]]
   thisgroup<-'Handed'
   mylab<-latnames[nuorder[i]]
   thisplot <- densplots(ddati,thiscol,thisgroup,mylab)
-  ggsave(filename,width = 6, height = 3)
+  ggsave(filename,width = 9, height = 6, units="cm", dpi=300)
   #There should be a way to avoid the next bit of clunky code!
   d6<-thisplot
   if(i==1){d1<-thisplot}
@@ -2687,11 +2715,11 @@ for (i in 1:6){
 
 }
 alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 1, nrow = 6,common.legend=TRUE)
-ggsave(paste0(mydir,"/",figdir,"alldens.png"),width = 3, height = 7)
+ggsave(paste0(mydir,"/",figdir,"alldens.eps"),width = 9, height = 21, units="cm", dpi=300)
 
 ```
 
-<!---![Density plots showing LIz scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.png)
+<!---![Density plots showing LIz scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.eps)
 Nice density plots but they really just show same information as the pirate plots, so not so sure we need them here?-->
 In Figure `r piratenumber`, the six fTCD tasks are ordered according to the population bias to left-hemisphere processing, and it can be seen that the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
 
@@ -2701,7 +2729,7 @@ Second, we can rule out an explanation that treats the  non-lateralised tasks as
 
 To account for the observed pattern of results, we postulate two language centres, one lateralised at the population level (centre L), and the other centred on zero (centre Z). An individual's observed fTCD laterality on a task will depend on the extent to which these two centres are implicated in task performance, with Word Generation and Sentence Generation being largely dominated by centre L, Syntactic Decision and Word Decision by centre Z, and Phonological Decision and Sentence Decision implicating both centres. 
 
-To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same factor than for those loading on different factors, and furthermore, activation would only be lateralised for brain regions supporting Factor 1 tasks.  
+To some extent, this is less of an explanation than a redescription of the data, but it does yield novel predictions that can be tested using fMRI, which gives information on localisation of activation within a hemisphere. The prediction would be that there would be more overlap in brain regions activated by tasks that load on the same factor than for those loading on different factors, and furthermore, activation would be lateralised only for brain regions supporting Factor 1 tasks.  
 
 
 
@@ -2840,6 +2868,6 @@ fpf2
 
 ### Supplementary File `r suppdich`
 
-![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.png)
+![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.eps)
 
 
