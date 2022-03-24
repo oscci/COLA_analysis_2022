@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "23 Mar 2022"
+date: "24 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -1192,8 +1192,8 @@ DLsides <- ggplot(DLdat, aes(x=DL.L, y=DL.R, color=Handedness,shape=as.factor(DL
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-  annotate("text", x=50, y=100, label= "Above diagonal:\nR Ear Advantage",size=2.5) +
-    annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=2.5) + 
+  annotate("text", x=50, y=100, label= "Above diagonal:\nR Ear Advantage",size=2.8) +
+    annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
 ggsave(paste0(mydir,"/03-graphic-outputs/AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
@@ -1224,8 +1224,8 @@ RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-    annotate("text", x=6.6, y=7.25, label= "Above diagonal:\nLVF Advantage",size=2.5) +
-    annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.5) + 
+    annotate("text", x=6.6, y=7.25, label= "Above diagonal:\nLVF Advantage",size=2.8) +
+    annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
 ggsave(paste0(mydir,"/",figdir,"/AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
@@ -1253,8 +1253,8 @@ WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.f
                        labels=c("Left","Right"),
                        values=c("blue","red"))+
   geom_abline(intercept = 0, slope = 1)+
-      annotate("text", x=6.6, y=7, label= "Above diagonal:\nLVF Advantage",size=2.5) + 
-    annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.5) + 
+      annotate("text", x=6.6, y=7, label= "Above diagonal:\nLVF Advantage",size=2.8) + 
+    annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
 ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
@@ -1378,7 +1378,7 @@ tabnumber <- tabnumber+1
 tabonlinesummary<-tabnumber
 ```
 
-Table `r tabnumber`: _Descriptive statistics for LIz for three online laterality measures (LIz)_  
+Table `r tabnumber`: _Descriptive statistics for three online laterality measures (LIz)_  
 
 
 ```{r behpirates, echo=FALSE, warning=FALSE,message=F}
@@ -1402,7 +1402,7 @@ cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # con
 pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1, cex.axis=1, cex.names=1, ylab='R hem bias <--- LIz ---> L hem bias')
 
 abline(h=0)
-dev.off()
+
 
 
 fignumber<-fignumber+1
@@ -1748,7 +1748,7 @@ for (i in 1:6){
      cex = .8)
 }
 
-dev.off()
+
 
 fignumber<-fignumber+1
 piratenumber <- fignumber
@@ -1897,8 +1897,17 @@ return(bigsummary)
 }
 ```
 
-
-
+```{r doSemPaths,echo=F,warning=F,message=F}
+#Path diagram for SEM saved to file in .eps format
+doSemPath <- function(myfit,mytitle,mypathfigname,mynodes){
+setEPS()
+postscript(mypathfigname)
+semPaths(myfit, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 16, 
+    sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes,whatLabels='est',edge.label.cex = 1.1,width=9,height=6) #draws a path diagram
+title(mytitle, line=3)
+dev.off()
+}
+```
 
 
 ```{r factormodels,echo=F,include=F, warning=F,message=F}
@@ -1930,21 +1939,26 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #Creates a structural diagram for single factor model: nb does NOT include path estimates (these can be shown if we put 'par' rather than 'diagram', but it gets messy, and the parameters are shown instead in a table)
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
-pathfigname1<-paste0(mydir,"/",figdir,"/pathfigF1")
-mynodes<-c('Word\nGeneration','Sentence\nGeneration','Phonological\nDecision','Word\nDecision','Sentence\nDecision','Syntactic\nDecision','F1')
+pathfigname1<-paste0(mydir,"/",figdir,"/pathfigF1.eps")
+mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #attempt to add spaces to make all same size doesn't seem to work
 
-semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes, filetype='eps',filename=pathfigname1,width=8,height=6) #draws a path diagram
+# semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
+#     sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes,whatLabels='est',edge.label.cex = 1.1, filetype='eps',filename=pathfigname1,width=9,height=6) #draws a path diagram
 
+
+
+doSemPath(fit1,'Single Factor',pathfigname1,mynodes) #call function to draw path diagram
+  
 fit2 <- cfa(model.2F, estimator="WLSMV",data=ddati)
 sfit2 <- makeSEMtab(fit2)
 bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from this model written to col 3 of bigsummary
 
 #lavResiduals(fit2)
-pathfigname2<-paste0(mydir,"/",figdir,"/pathfigF2")
+pathfigname2<-paste0(mydir,"/",figdir,"/pathfigF2.eps")
 mynodes2<-c(mynodes,'F2')
-semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes2,filetype='eps',filename=pathfigname2,width=8,height=6) #draws a path diagram
+doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
+
+
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
 
 
@@ -1960,8 +1974,8 @@ semPaths(fit2, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 1
 ```{r boltfigstogether,echo=F}
 
 #read in the figures just created
-imageX<-image_read(paste0(pathfigname1,'.eps'),density=300)
-imageY<-image_read(paste0(pathfigname2,'.eps'),density=300)
+imageX<-image_read(paste0(pathfigname1),density=300)
+imageY<-image_read(paste0(pathfigname2),density=300)
 itemname<- paste0(alldir,'/bothF1F2.eps')
 itemnamej<-paste0(alldir,'/bothF1F2.eps')
 
@@ -2106,17 +2120,10 @@ fitmeasures(fit.2Fn,wantfits)
 bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summary from this model written to col 4 of bigsummary 
 anova(fit.2Fn,fit.2F)
 
+pathfigname2n<-paste0(mydir,"/",figdir,"/pathfigF2_revised.eps")
+mynodes2<-c(mynodes,'F2')
+doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
 
-
-pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_revised")
-mynodes3<-c('Word\nGeneration','Sentence\nGeneration','Phonolog.\nDecision','Sentence\nCompr.','Word\nCompr.','Syntactic\nDecision','F1','F2')
-semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes3,rotation=2,filetype='eps',filename=pathfigname,width=3,height=1.8) #draws a path diagram
-
-#redo with save to current directory
-pathfigname<-"pathfigF2_revised"
-semPaths(fit.2Fn, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-    sizeMan2 = 5,nodeLabels=mynodes3,filetype='eps',filename=pathfigname,width=3,height=1.8) #draws a path diagram
 
 #look at residuals for diagnostics
 res<-resid(fit.2Fn, type = "cor") #large abs values (> .1) indicate relationships not well accounted for
@@ -2138,7 +2145,7 @@ for (c in 2:4){
 w<-which(bigsummary[,c]=='NA [NA]')
 bigsummary[w,c]<-'-'
 }
-ftb<-flextable(bigsummary)
+ftb<-flextable(bigsummary[c(1,16:nrow(bigsummary)),])
 
 ftb<-autofit(ftb)
 ftb
@@ -2659,7 +2666,7 @@ Overall, the pattern of results is puzzling, and we may need more reliable measu
 
 
 ## 4.4 Differences Between Behavioural and fTCD Measures of Laterality  
-The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. This is despite the fact that both tasks are well-lateralised with good reliability. Furthermore, the dichotic listening task showed a small but reliable difference in laterality for left- and right-handers, similar to that previously reported by Karlsson et al. (2019), who used in-person rather than online testing.  
+The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. This is despite the fact that both tasks are well-lateralised with good reliability. Furthermore, validity of the online dichotic listening task is supported the fact that it showed a small but reliable difference in laterality for left- and right-handers, similar to that previously reported by Karlsson et al. (2019), who used in-person rather than online testing.  
 
 Several researchers have proposed that when optimal methods are used, dichotic listening and/or visual half-field methods can be useful indicators of language laterality (Van der Haegen et al., 2013; Westerhausen, 2019), and it would seem that, when the goal is to categorise individuals as left- or right-lateralised for language, strong lateralisation on such behavioural measures is usually a good indicator of laterality on brain measures. Nevertheless, many people do not show such strong lateralisation, and when studies have considered associations between laterality indices from dichotic listening and fMRI, correlations have been unimpressive; e.g. Bethmann et al (2007) reported a correlation of .38, finding that many individuals with a left-ear advantage on dichotic listening were left-lateralised for language on a synonym decision task. Data extracted from a scatterplot by Van der Haegen et al. (2012) gave a Spearman correlation between dichotic listening and fMRI (word generation) of .46 (N = 62), in a sample that excluded cases of ambiguous laterality on fMRI (those with absolute value of LI below .6). Hunt-Georgiadis et al. (2002) tested 17 left-handers and 17 right-handers and found Spearman correlation of 0.56 between laterality indices from dichotic listening and semantic encoding on fMRI (computed from data extracted from scatterplot). Gerrits et al. (2020) found that a laterality index from a visual half-field task had a Spearman correlation of .54 with laterality on word generation from fMRI. 
 
@@ -2684,9 +2691,11 @@ tabnumber <- tabnumber+1
 
 Table `r tabnumber`: _Characteristics of tasks_  
 
-Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. As predicted, the former loaded on Factor 1 and the latter on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Decision on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
+Table `r tabnumber` summarises the characteristics of the six fTCD tasks, grouped according to the factors they load on. The online Dichotic Listening task is also shown. The task battery had been designed to include three tasks that involved language generation, and three that involved receptive language. Note that, in contrast to most tasks used in fMRI studies, spoken language was used to present stimuli for the receptive tasks. For Syntactic Decision this was supplemented with written words, as the task was otherwise too difficult. As predicted, the language generation tasks loaded on Factor 1 and the receptive tasks on Factor 2, but in addition Phonological Decision loaded on Factor 2, and Sentence Decision on Factor 1. Phonological Decision, unlike the other tasks loading on Factor 2, did not involve auditory input, but did have in common the 2-choice response format of other Factor 2 tasks. 
 
-Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task.  Unlike the other two receptive tasks, Sentence Decision involved using syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the tasks that used single word stimuli. 
+Sentence Decision also behaved unexpectedly, in that it had significant loadings on Factor 1, despite being designed as a purely receptive task.  Unlike the other two receptive tasks, Sentence Decision requires the listener to use syntactic information to assign semantic roles and build meaning representations, and hence more linguistic computation than the receptive tasks that used single word stimuli (Word Comprehension) or meaningless material (Syntactic Decision). 
+
+
 
 ```{r densplotexplore,echo=F,include=F}
 
@@ -2721,7 +2730,7 @@ ggsave(paste0(mydir,"/",figdir,"alldens.eps"),width = 9, height = 21, units="cm"
 
 <!---![Density plots showing LIz scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.eps)
 Nice density plots but they really just show same information as the pirate plots, so not so sure we need them here?-->
-In Figure `r piratenumber`, the six fTCD tasks are ordered according to the population bias to left-hemisphere processing, and it can be seen that the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
+As seen in Figure `r piratenumber`, the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
 
 In interpreting this finding, we should first rule out two trivial explanations for the factor structure uncovered in SEM. First, this structure cannot be regarded as an artefact of including tasks differing in degree of laterality. This is because factor structure in SEM is computed solely on the basis of covariances between measures, and means do not affect it. Thus, we could add a constant to the LIs for tasks D and E to make them lateralised, and the factor solution would remain the same. 
 
