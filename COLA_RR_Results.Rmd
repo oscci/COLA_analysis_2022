@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "24 Mar 2022"
+date: "25 Mar 2022"
 output:
   word_document: default
   html_document:
@@ -704,11 +704,10 @@ lateralisation appears to be reduced or absent. This contrasting pattern raises 
 question of whether and how language laterality may fractionate within individuals.
 Building on our prior work, we postulated (a) that there can be dissociations in
 lateralisation of different components of language, and (b) these would be more common in
-left-handers. A subsidiary hypothesis was that laterality indices will cluster according to
-how far they involve generation of words or sentences, vs. receptive language (i.e., a two-factor model). 
+left-handers. A subsidiary hypothesis was that laterality indices will cluster according to two underlying factors corresponding to whether they involve generation of words or sentences, vs. receptive language. 
 _Methods_: We tested these predictions in two stages: At Step 1 an online laterality battery (Dichotic listening, Rhyme Decision and Word Comprehension) was given to `r sum(testtab)` individuals (`r round(100*sum(testtab[1,]/sum(testtab),0))`% left-handers); At Step 2, functional transcranial Doppler ultrasound (fTCD) was used with `r sum(testtab[,2])` of these individuals (`r round(100*testtab[1,2]/sum(testtab[,2],0))`% left
 handers), who completed three production and three receptive language tasks. 
-_Results_: Neither the online nor fTCD measures supported the notion of a single language laterality factor, but nor was there evidence for the predicted two-factor structure. In general, for both online and fTCD measures, tests of language production were left-lateralised. In contrast, the receptive tasks were at best weakly left-lateralised or, in the case of Word Comprehension, slightly right-lateralised. The online measures were only weakly correlated, if at all, with fTCD measures. Most of the fTCD measures had split-half reliabilities of at least .7, and showed a distinctive pattern of intercorrelation, supporting a modified two-factor model in which Phonological Decision (production) and Sentence Decision (reception) loaded on both the factors. The same factor structure fitted data from left- and right-handers, but mean scores on the two factors were lower (less left-lateralised) in left-handers. 
+_Results_: Neither the online nor fTCD measures supported the notion of a single language laterality factor. In general, for both online and fTCD measures, tests of language production were left-lateralised. In contrast, the receptive tasks were at best weakly left-lateralised or, in the case of Word Comprehension, slightly right-lateralised. The online measures were only weakly correlated, if at all, with fTCD measures. Most of the fTCD measures had split-half reliabilities of at least .7, and showed a distinctive pattern of intercorrelation, supporting a modified two-factor model in which Phonological Decision (production) and Sentence Decision (reception) loaded on both factors. The same factor structure fitted data from left- and right-handers, but mean scores on the two factors were lower (less left-lateralised) in left-handers. 
 _Conclusions_: There are at least two factors influencing language lateralization in individuals, but they do not correspond neatly to language production and comprehension. Future fMRI studies could help clarify how far they reflect activity in specific brain regions. 
 
 KEYWORDS: language laterality, handedness, dichotic listening, visual half-field,  
@@ -848,7 +847,7 @@ A version of the Porta test (Porac & Coren, 1976) that is suitable for online te
 The Lexical Test for Advanced Learners of English (LexTALE; Lemhöfer & Broersma, 2012) was used to assess level of English vocabulary knowledge. Participants judge the lexical status of 60 letter strings (word or non-word). Forty are real English words and 20 are non-words. To correct for the unequal proportion of words and non-words, LexTALE scores are calculated as ((number of words correct/40 x 100) + (number of nonwords correct/20 x 100))/2). _With hindsight, our preregistration was unclear in stating "following the norms provided by Lemhöfer & Broersma, those scoring below 80 would not be eligible for inclusion in the online testing or fTCD". In practice, we applied this criterion only to those who did not have English as a first language, as it had been our intent to use the test to exclude non-native speakers with inadequate English competence (see above re inclusion of non-native speakers)._  
 
 ### 2.3.5 Games With Words Test  
-The Games With Words test (Hartshorne, Tenenbaum, & Pinker, 2018) was used to screen participants for adequate understanding of English grammar. The first 8 items involve participants reading a sentence, such as “The dog was chased by the cat”, and deciding which of two pictures presented below the text matches the sentence. The two pictures in this example include a dog chasing a cat and a cat chasing a dog. Items 9-35 were four-alternative forced choice questions where participants select which of four sentences sounds most natural: e.g., (1) “What age are you?”, (2) “How age are you?”, (3) “How old are you?”, and (d) “What old are you?”. _Our preregistration stated that to be included as having native English speaker proficiency, participants needed to make no more than 3 errors on this test on the basis that Hartshorne et al. (2018) reported that most monolingual English-speakers performed close to ceiling and very few made more than 3 errors.  In practice we found many non-native speakers exceeded this cutoff, but so too did a large number of native English speakers. Accordingly we did further analysis using the original dataset provided by Hartshorne et al., and found that we had misinterpreted their account, and that it was common to find native speakers who made more than 3 errors on the original Games with Words items, making our original criterion for native speaker competence indefensible. Bishop (2022) identified a subset of 12 items where native English speakers from the Hartshorne et al. sample made very few errors and proposed a new cutoff on this subset (more than one error) for excluding non-native speakers with poor English competence. This new test set and cutoffs were substituted in the current study for the preregistered criteria (see below)._
+The Games With Words test (Hartshorne, Tenenbaum, & Pinker, 2018) was used to screen participants for adequate understanding of English grammar. The first 8 items involve participants reading a sentence, such as “The dog was chased by the cat”, and deciding which of two pictures presented below the text matches the sentence. The two pictures in this example include a dog chasing a cat and a cat chasing a dog. Items 9-35 were four-alternative forced choice questions where participants select which of four sentences sounds most natural: e.g., (1) “What age are you?”, (2) “How age are you?”, (3) “How old are you?”, and (d) “What old are you?”.
 
 ### 2.3.6 Rhyme Decision  
 A modified version of a rhyme decision visual half-field task reported by Parker et al. (2020) was administered to determine brain lateralisation for language production. This involved participants judging which of two parafoveal images rhymed with a foveally presented word. The laterality index from the original task had test-retest reliability of r = .63, and the overall lateralisation effect, though significant, was small. We modified the task from the original with the aim of improving its psychometric properties: first, we removed trials in which neither of the pictures rhymed with the target word, as these were potentially confusing. Second, we increased the distance between the centrally presented word and parafoveal images, to ensure the image is projected exclusively, at least initially, to the contralateral hemisphere. Pilot testing with 30 participants obtained split-half reliability of r = .74 with this version. _Note, however, lower reliability was found with our main sample, as reported in Results_.  
@@ -944,10 +943,7 @@ The analysis starts with presentation of descriptive data, including distributio
 
 ```{r makeflowchart,echo=F,message=F,warning=F}
 
-# require(DiagrammeR) #for participant recruitment flowchart
-# require(DiagrammeRsvg)
-# require(magrittr)
-# require(rsvg)
+
 
 #combdat<-read.csv('combdat.csv')
 mydir <- "~/Dropbox/COLA_RR_Analysis"
@@ -1045,17 +1041,18 @@ myflow<-grViz("digraph flowchart {
   [3]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
   [4]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
   [5]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
-  [6]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker, passed:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
-  [7]: paste0('M: Moderate proficiency','\\n','Non-native speaker:','\\n','a) Failed prereg only:','\\n', LH6c,' L-handed + ',RH6c,' R-handed','\\n','b) Failed new screen:','\\n', LH6d,' L-handed + ',RH6d,' R-handed','\\n')
+  [6]: paste0('H: High proficiency','\\n','Native speaker:','\\n', LH6a,' L-handed + ',RH6a,' R-handed','\\n','Non-native speaker','\\n', 'passed screen:','\\n', LH6b,' L-handed + ',RH6b,' R-handed')
+  [7]: paste0('M: Moderate proficiency','\\n','Non-native speaker','\\n', 'failed screen:','\\n', LH6c+LH6d,' L-handed + ',RH6c+RH6d,' R-handed')
 ")
 
-makefile<-0
+makefile<-1
 if(makefile==1){
   filename<-paste0(mydir,"/",figdir,"/","COLAflow.eps")
   #myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
   tmp <- export_svg(myflow)
   rsvg_eps(charToRaw(tmp), filename, width=3543) # Should be 9cm, 1000dpi
 }
+
 
 ```
 
@@ -1074,14 +1071,13 @@ Our original flowchart had stated there were four online behavioural laterality 
 
 Our plan had been to recruit 300 left-handers and 150 right-handers for the online behavioural battery, and from these to select 112 left-handers and 112 right-handers for in-person testing.  Because of the Covid pandemic, the time periods when it was possible to test in person were greatly restricted, and testing had to be carried out under strict conditions to ensure safety (researchers wearing full personal protective equipment in a ventilated space, and cleaning of equipment between participants). Furthermore, researchers and participants could become unavailable for testing at short notice because of a positive Covid test or notification of a contact with an infected person, and some participants were understandably reluctant to attend in-person testing.
 
-The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants, as we felt it was uncertain whether this would make any difference to laterality indices; rather than excluding potential participants, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
+The disruption due to these factors meant we did not meet our target numbers for in-person testing, despite over-recruiting for online testing. We decided to relax the criteria for language competence of participants; rather than excluding people, it seemed preferable to include at Step 2 any participant who had completed Step 1 and was willing to come for testing, and then check retrospectively to see whether inclusion of these participants had any impact on the results. This gives a larger sample, which gives more confidence that null results are truly null.  
 
 To justify this approach, we considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (See section 3.5 below and Supplementary file `r suppnum<-suppnum+1` `r suppnum`. `r suppcorr<-suppnum`).
 
 Figure `r fignumber` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r testtab[1,2] + testtab[1,1]` left-handers, `r testtab[1,2]` of whom were tested with fTCD, and `r testtab[2,2] + testtab[2,1]` right-handers, `r testtab[2,2]` of whom were tested with fTCD. 
 
-Figure `r fignumber` also shows the new rather than preregistered approach to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) is subdivided into subgroup (a), who failed the original Games with Words criterion, but passed the revised criterion, and subgroup (b), who failed the screen using the new, shorter test (making more than 1 error). In the original flowchart, the language screen was used to exclude those in group M prior to Step 2, whereas in the final study, we included these individuals. In Supplementary file 3 we compare the current results with those obtained using the original, stringent language cutoff (excluding all Group M), and show that differences are minimal.
-
+Figure `r fignumber` also shows the new rather than preregistered approach to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) failed the language screen. In the original flowchart, the language screen was used to exclude those in group M prior to Step 2, whereas in the final study, we included these individuals. In Supplementary file 3 we compare the current results with those obtained using the original, stringent language cutoff (excluding Group M), and show that differences are minimal.
 
 
 ### 3.1.2 Demographic Data  
@@ -1270,18 +1266,14 @@ fignumber<-fignumber+1
 
 ```
 
-![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.eps)
-  
-
-Visualisations of the raw data from which laterality indices were computed, colour-coded by handedness, are shown for the three behavioural tasks in Figure `r fignumber`. The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual. Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
-
-
 ```{r addsupp,echo=F}
 suppnum <- suppnum+1
 suppdich<-suppnum
 ```
 
-As is evident from the scatterplot in Supplementary file `r suppnum`, the LIz score is very highly correlated with the conventional LI, the principal difference being that the LIz follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure because of the censored scale). For subsequent analyses, we use LIz, as this allows us to compare different tasks on a common scale. 
+
+
+Visualisations of the raw data from which laterality indices were computed can be found in Supplementary file `suppdich`. This Supplement also shows a scatterplot showing how the LIz score relates to the conventional laterality index for dichotic listening. The principal difference is that the LIz follows the normal distribution, with a sigmoid shape at the extremes (truncated in the Figure S`suppdich`.2 because of the censored scale). For subsequent analyses, we use LIz, as this allows us to compare different tasks on a common scale. 
 
 In Rhyme Decision, the task was to judge which of two pictured items had a name that rhymed with a centrally-presented written word. The pictures were presented in the left or right periphery. This was an easy task, as the words used were common, and the participants were given a practice session where they were introduced to all the pictures and their names. We could therefore use accuracy as an index of engagement with the task, and we excluded `r length(intersect(which(combdat$excludeRDT==1),which(combdat$lang2exclude==0)))` participants with accuracy of less than 75% correct. 
 
@@ -1867,13 +1859,9 @@ Structural equation modeling (Kline, 2011) is a method that allows a formal test
 The latent factors are shown in circles, and the observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that the path diagrams shown in Figure `r fignumber` have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignumber-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
 
-![One-factor vs. two-factor structural equation models](bothF1F2.eps)  
-
-
-
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
 
-It may be noted that the path diagrams shown in Figure `r fignumber` include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
+Path diagrams are shown below in Figure `r fignumber`. These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
 There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
@@ -1908,6 +1896,9 @@ title(mytitle, line=3)
 dev.off()
 }
 ```
+
+
+![One-factor vs. two-factor structural equation models, showing standardized path coefficients obtained in the current analysis](bothF1F2.eps)  
 
 
 ```{r factormodels,echo=F,include=F, warning=F,message=F}
@@ -2137,7 +2128,7 @@ fignumber<-fignumber+1
 
 
 ```
-Table `r tabnumber`: _Path estimates and fit statistics for 1-factor, 2-factor and modified 2-factor models_
+Table `r tabnumber`: _Fit statistics for 1-factor, 2-factor and modified 2-factor models (N = 209)_
 
 ```{r formatbigsummary,echo=F}
 #bigsummary[,2:4]<-round(bigsummary[,2:4],2)
@@ -2814,7 +2805,7 @@ Wolf, E. J., Harrington, K. M., Clark, S. L., & Miller, M. W. (2013). Sample siz
 
 
 ## Acknowledgements
-This study is supported by an Advanced Grant from the European Research Council [694189]. We thank Melissa Gibbs and Hussein Mehmet for assistance with recruitment and data collection.  
+This study is supported by an Advanced Grant from the European Research Council [694189]. We thank Melissa Gibbs, Hussein Mehmet, Nahian Nur and Louis Pitsikas for assistance with recruitment and data collection.  
   
 ## Declaration of interest
 The authors declare no competing interests.
@@ -2829,7 +2820,13 @@ Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hu
 
 # Supplementary file `r suppcorr`
 
-Correlational analysis of Laterality Indices and (a) measures of task performance; (b) Games with Words score; (c) LexTALE scores. THe first table shows correlations with the raw laterality indices, and the second table shows correlations with absolute laterality indices (strength of laterality regardless of direction). A total 54 correlations is considered, giving Bonferroni-corrected alpha level of .0009. None of the correlations reached this level. 
+## Justification for ignoring pre-registered exclusionary criteria based on language tests.  
+
+In our pre-registration, we stated that we would include participants who had English as a second language, provided they met proficiency criteria on two language tests: LexTALE and Games with Words. As explained above, given difficulties recruiting participants, we decided to relax this criterion and consider retrospectively whether performance on the two language screeners affected results. An additional consideration was that we discovered that the inclusion criterion we had adopted for Games with Words (no more than 3 errors) was overly stringent, and based on a misinterpretation of Hartshorne et al. (2018). See Bishop (2022) for more details. 
+
+Table S`r suppcorr`.1  below confirms there was no relationship between language screen scores and laterality. See also Supplementary file 3 for SEM analyses conducted using the full sample vs. the restricted sample (excluding those who failed the language screen).
+
+Table S`r suppcorr`.1  shows correlational analysis of Laterality Indices and (a) measures of task performance; (b) Games with Words score; (c) LexTALE scores. THe first table shows correlations with the raw laterality indices, and the second table shows correlations with absolute laterality indices (strength of laterality regardless of direction). A total of 54 correlations is considered, giving Bonferroni-corrected alpha level of .0009. None of the correlations reached this level. 
 
 ```{r errs-vs-LI,echo=F,warning=F}
 LIs <- c('DL.zlat.ex','RDT.zlat.ex','WC.zlat.ex','A.LI.ex','B.LI.ex','C.LI.ex','D.LI.ex','E.LI.ex','F.LI.ex')
@@ -2877,6 +2874,14 @@ fpf2
 
 ### Supplementary File `r suppdich`
 
+Figure S`r suppdich`.1 shows the raw data from which laterality indices were computed, for the three behavioural tasks, colour-coded by handedness.  The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual.
+
+![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.eps)
+  
+Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
+
+
+Figure S`r suppdich`.2  
 ![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.eps)
 
 
