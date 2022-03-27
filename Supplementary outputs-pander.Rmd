@@ -1,8 +1,8 @@
 ---
-title: "Supplement 3: Full SEM output"
-author: "Dorothy Bishop"
-date: "16/03/2022"
+title: "Supplementary file 7: Full SEM output"
+date: "27/03/2022"
 output: word_document
+        toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +20,7 @@ usePackage("semTools")
 usePackage("lavaan")
 usePackage("semPlot")
 usePackage("pander")
+usePackage("semPlot")
 
 options(scipen=999)
 
@@ -49,19 +50,21 @@ pformat=function(myp){
 
 ```{r add-to-bigsummaryfunction,echo=F}
 #This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a $\chi$^2^  comparison with that model and put p value in final row.
-addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol){
+addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol,dich){
   colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
 ss<- summary(myfit,standardized=TRUE)$PE #get standardized coefficients from current model
 bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
 thisrow<-2 #initialise counter for factor loadings; starts row 3, after title
 #if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
 #If  no path in the model, it just skips it
+numobs<-6
+if (dich==1){numobs<-7} #need another row for dichotic
 for (f in 1:2){
-for (m in 1:6){
+for (m in 1:numobs){
   thisrow<-thisrow+1
   w<-which(ss$lhs==paste0('f',f))
   x<-which(substr(ss$rhs,1,1) == LETTERS[m])
-  myrow<-intersect(w,x)[1]
+  myrow<-intersect(w,x)[1] #row that contains both 'f' and this letter
   thisstring <- paste0(numformat(ss$est[myrow],2)," [",numformat(ss$se[myrow],2),"]")  #we use numformat function defined earlier to give tidy cols
   bigsummary[thisrow,writecol]<-thisstring
 }
@@ -133,6 +136,25 @@ bigsummary[3:15,1]<-
 'Fac 1 <-> Fac 2')
 
 
+if(dich==1){
+  bigsummary[3:17,1]<-
+  c('Fac 1 -> A_P1',
+'Fac 1 -> B_P2',
+'Fac 1 -> C_P3',
+'Fac 1 -> D_R1',
+'Fac 1 -> E_R2',
+'Fac 1 -> F_R3',
+'Fac 1 -> Dichotic',
+'Fac 2 -> A_P1',
+'Fac 2 -> B_P2',
+'Fac 2 -> C_P3',
+'Fac 2 -> D_R1',
+'Fac 2 -> E_R2',
+'Fac 2 -> F_R3',
+'Fac 2 -> Dichotic',
+'Fac 1 <-> Fac 2')
+}
+
 return(bigsummary)
 }
 ```
@@ -147,6 +169,16 @@ return(bigsummary)
 }
 ```
 
+```{r initialisebigsummary2,echo=F,include=F}
+#Initialise a table to show factors loadings and some other stuff (CFA, rmsea) for each model in a column, so we can compare them
+initbigsummary2 <- function(){
+bigsummary2 <- data.frame(matrix(NA,nrow=25,ncol=4))
+colnames(bigsummary2)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
+bigsummary2[,1]<-c('N participants','Stand. paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','G -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','G -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
+return(bigsummary2)
+}
+```
+
 ```{r modelspecification,echo=F}
 #This is definition of single factor model we will use here. A_P1 will be index variable with path of 1. 
 model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3' 
@@ -155,16 +187,40 @@ model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3'
 #2 factor production/reception model
 model.2F <- '
 f1 =~  A_P1 + B_P2+C_P3
-f2 =~  NA*D_R1 + E_R2 +F_R3 
-f2~~1*f2
+f2 =~  NA * D_R1 + E_R2 +F_R3  
+f2~~1 * f2
 
 '
 
 model.2Fn <- '
-f1 =~  B_P2+A_P1 +C_P3+ E_R2
-f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 
+f1 =~  A_P1 +B_P2+C_P3+ E_R2
+f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3 
 
-f2~~1*f2
+f2~~1 * f2
+'
+
+#Models including dichotic listening
+
+model.2Fnbase <- '
+f1 =~  A_P1 +B_P2+C_P3+ E_R2
+f2 =~  NA*D_R1+E_R2 +F_R3 + C_P3  +0 * G_R4  #2 factor model:
+
+f2~~1 * f2
+'
+
+#To help format output, for now the dichotic LIz is labelled as G_R4
+model.2Fnx <- '
+f1 =~  A_P1 +B_P2+C_P3+ E_R2
+f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3  +G_R4  #2 factor model with DL on factor 2:
+
+f2~~1 * f2
+'
+
+model.2Fny <- '
+f1 =~  A_P1 +B_P2+C_P3+ E_R2+G_R4
+f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3    #2 factor model with DL on factor 1:
+
+f2~~1 * f2
 '
 
 ```
@@ -174,13 +230,20 @@ f2~~1*f2
 
 ## Results from Structural Equation models, comparing output with different inclusion criteria.  
 
-In the numerical outputs, summary labels are used for the 6 fTCD variables, as follows:
+In the numerical outputs, summary labels are used for the six fTCD variables, as follows:
 A_P1: Word Generation  
 B_P2: Sentence Generation  
 C_P3: Phonological Decision  
 D_R1: Word Decision  
 E_R2: Sentence Decision  
 F_R3: Syntactic Decision
+
+In addition, for models including the behavioural tasks, these are specified as:  
+DL_z: LIz for Dichotic Listening  
+RDT_z: LIz for Rhyme Decision  
+WC_z: LIz for Word Comprehension  
+
+In addition, the DL_z variable is renamed G_R4 for SEM models.  
 
 ### Covariance and means matrix for raw data  
 
@@ -194,19 +257,19 @@ ddati <- read.csv('ddati.csv')
 ddatOB <- read.csv('ddati_origbaseline.csv')
 
 fit1A <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2)
+bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2,dich=0)
 
 rdat <- dplyr::filter(ddati,langgroup<3)
 rdatOB <-dplyr::filter(ddatOB,langgroup<3)
 
 fit1B <- cfa(model.1F, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1B,NA,'Model.1F',writecol=3)
+bigsumfit1<- addmodel(bigsumfit1,fit1B,NA,'Model.1F',writecol=3,dich=0)
 
 fit1C <- cfa(model.1F, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1C,NA,'Model.1F',writecol=4)
+bigsumfit1<- addmodel(bigsumfit1,fit1C,NA,'Model.1F',writecol=4,dich=0)
 
 fit1D <- cfa(model.1F, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit1<- addmodel(bigsumfit1,fit1D,NA,'Model.1F',writecol=5)
+bigsumfit1<- addmodel(bigsumfit1,fit1D,NA,'Model.1F',writecol=5,dich=0)
 
 colnames(bigsumfit1)[2:5]<-c('1 Factor: Full Sample','1 Factor: Selected Sample','1 Factor: Full Sample - Orig. baseline','1 Factor: Selected Sample - Orig. baseline')
 
@@ -219,16 +282,16 @@ bigsumfit2 <- initbigsummary()
 bigsumfit2$X<-NA #extra column
 
 fit2A <- cfa(model.2F, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2A,NA,'Model.2F',writecol=2)
+bigsumfit2<- addmodel(bigsumfit2,fit2A,NA,'Model.2F',writecol=2,dich=0)
 
 fit2B <- cfa(model.2F, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2B,NA,'Model.2F',writecol=3)
+bigsumfit2<- addmodel(bigsumfit2,fit2B,NA,'Model.2F',writecol=3,dich=0)
 
 fit2C <- cfa(model.2F, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2C,NA,'Model.2F',writecol=4)
+bigsumfit2<- addmodel(bigsumfit2,fit2C,NA,'Model.2F',writecol=4,dich=0)
 
 fit2D <- cfa(model.2F, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit2<- addmodel(bigsumfit2,fit2D,NA,'Model.2F',writecol=5)
+bigsumfit2<- addmodel(bigsumfit2,fit2D,NA,'Model.2F',writecol=5,dich=0)
 colnames(bigsumfit2)[2:5]<-c('2 Factor: Full Sample','2 Factor: Selected Sample','2 Factor: Full Sample - Orig. baseline','2 Factor: Selected Sample - Orig. baseline')
 bigsumfit2<-bigsumfit2[-(6:11),]
 
@@ -236,16 +299,16 @@ bigsumfit2<-bigsumfit2[-(6:11),]
 bigsumfit2n <- initbigsummary()
 bigsumfit2n$X<-NA #extra column
 fit2nA <- cfa(model.2Fn, estimator="WLSMV",data=ddati,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nA,NA,'Model.2Fn',writecol=2)
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nA,NA,'Model.2Fn',writecol=2,dich=0)
 
 fit2nB <- cfa(model.2Fn, estimator="WLSMV",data=rdat,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nB,NA,'Model.2Fn',writecol=3)
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nB,NA,'Model.2Fn',writecol=3,dich=0)
 
 fit2nC <- cfa(model.2Fn, estimator="WLSMV",data=ddatOB,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nC,NA,'Model.2Fn',writecol=4)
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nC,NA,'Model.2Fn',writecol=4,dich=0)
 
 fit2nD <- cfa(model.2Fn, estimator="WLSMV",data=rdatOB,test="robust") 
-bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5)
+bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5,dich=0)
 
 colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: \nFull Sample','Modified 2 Factor: \nSelected Sample','Modified 2 Factor: \nFull Sample - Orig. baseline','Modified 2 Factor: \nSelected Sample - Orig. baseline')
 bigsumfit2n<-bigsumfit2n[-c(2,6,8:10,16),]
@@ -257,7 +320,7 @@ This table shows the covariance and means matrix for the raw data for the full s
 ```{r covmatrix,echo=F}
 #Function to create covariance matrix with means in last row.
 docov<-function(mydata){
-  mycov<-cov(mydata[,5:10])
+  mycov<-cov(mydata[,5:13])
   mycov<-as.data.frame(mycov)
     mycov<- numformat(mycov,3)
   for (i in 1:ncol(mycov)){
@@ -265,7 +328,7 @@ docov<-function(mydata){
       mycov[j,i]<-'.'
     }
   }
-  mymeans<-numformat(colMeans(mydata[,5:10]),3)
+  mymeans<-numformat(colMeans(mydata[,5:13]),3)
   mycov[(ncol(mycov)+1),]<-mymeans
 
   row.names(mycov)[(ncol(mycov)+1)]<-'Means'
@@ -279,10 +342,10 @@ docov<-function(mydata){
 
 ```{r makemodellist,echo=F}
 fitlist <-c('fit1A','fit2A','fit2nA')
-namelist<-c('Single Factor Model','2 Factor Model','Modified 2 Factor Model')
+namelist<-c('Single Factor Model','Two Factor Model','Modified 2 Factor Model')
 modellist<-c('f1 =~ A_P1+B_P2+C_P3+D_R1+E_R2+F_R3',
-             'f1 =~ A_P1+B_P2+C_P3, f2 =~ NA*D_R1+E_R2+F_R3, f2~~1f2',
-             'f1 =~ A_P1+B_P2+C_P3 +E_R2, f2 =~ NA*F_R3+C_P3+D_R1+E_R2, f2~~1f2')
+             'f1 =~ A_P1+B_P2+C_P3, f2 =~ NA*D_R1+E_R2+F_R3, f2~~1*f2',
+             'f1 =~ A_P1+B_P2+C_P3 +E_R2, f2 =~ NA*D_R1+D_R1+E_R2+F_R3+C_P3, f2~~1*f2')
 
 ```
 
@@ -296,7 +359,7 @@ for (i in 1:length(namelist)){
 pandoc.header(namelist[i], level = 1)
 pandoc.p(paste("Summary output from the model is shown for the preregistered criteria (Selected sample with original baseline from -10 to 0 s) in column 4), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s) in column 1.") )
 pandoc.p("")
-pandoc.p(paste0("Model is specified in lavaan syntax as:",modellist[i] ))
+pandoc.p(paste0("Model is specified in lavaan syntax as: ",modellist[i] ))
 pandoc.p("")
 
 if(i==1){bigsum<- bigsumfit1
@@ -370,8 +433,8 @@ mygroup<-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 
 model.2FZWa <- '
-f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
-       a*A_o+a*A_e +
+f1 =~  NA*A_o+equal("f1=~A_o")*A_e+
+       b*B_o+b*B_e +
        c*C_o+c*C_e+
        e*E_o+e*E_e
 f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ 
@@ -402,15 +465,22 @@ mygroup <-2
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 fit.2FZWa.2 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
 
+#Path diagram
+setEPS()
+postscript('OddEvenSEM.eps')
+semPaths(fit.2FZWa.1, "diagram", weighted = FALSE,  shapeMan = "rectangle", 
+    rotation=4,edge.color='black',asize=2,whatLabels='est',bg='white',width=9,height=10) #draws a path diagram
+title('Result from exploratory 2-factor SEM with odd and even LIs (Random half sample)', line=3)
+dev.off()
 
 
 ```
 
 Exploratory analysis used a random half of the sample, and took mean LIs for odd and even trials to ensure model identification. We started with the bifactor model of Woodhead et al. (2021) and dropped nonsignificant paths, which gave the final modified two-factor model.  
-The model syntax was specified in lavaan:
+The model syntax was specified in lavaan, as follows:  
 
-f1 =~  NA * B_o + equal("f1=~B_o") * B_e+  
-       a * A_o + a * A_e +  
+f1 =~  NA * A_o + equal("f1=~A_o") * A_e+  
+       b * B_o + b * B_e +  
        c * C_o + c * C_e +  
        e * E_o + e * E_e  
 f2 =~  NA * D_o + equal("f2=~D_o") * D_e +   
@@ -435,14 +505,30 @@ F_e ~~ fv * F_e'
 
 Note that the _e and _o subscripts refer to laterality indices computed from odd and even trials for each task. The paths to the factors and the variances are equated across odd and even versions of each laterality index. Summary output with the initial test sample was as follows:
 
+![Modified two-factor model, derived from exploratory analysis on half the sample, showing standardized path coefficients. ](OddEvenSEM.eps) 
 
 
+```{r basicSEMout,echo=F,include=F}
+SEMout <- function(myfit,myfitmeasures){
 
-```{r oddevenout,echo=F}
+s<-summary(myfit)$PE
+s[,6:9]<-numformat(s[,6:9],3)
+
+fitmeas<-as.data.frame(numformat(fitmeasures(myfit,myfitmeasures),3))
+fitmeas<-add_rownames(fitmeas)
+colnames(fitmeas)<-c('Fit index','Value')
+fitmeas[,1]<-myfitmeasures
+semlist<-list(s,fitmeas)
+return(semlist)
+}
+
+```
+
+```{r oddevenout1,echo=F}
 myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') 
-
-summary(fit.2FZWa.2)
-fitmeasures(fit.2FZWa.2,myfitmeasures)
+semlist<-SEMout(fit.2FZWa.1 ,myfitmeasures)
+flextable(semlist[[1]])
+flextable(semlist[[2]])
 
 
 ```
@@ -450,10 +536,14 @@ fitmeasures(fit.2FZWa.2,myfitmeasures)
 The same model was then tested in the second random half of the sample. For this holdout sample, the summary was:
 
 ```{r oddevenout2,echo=F}
-summary(fit.2FZWa.2)
-fitmeasures(fit.2FZWa.2,myfitmeasures)
+
+semlist<-SEMout(fit.2FZWa.2 ,myfitmeasures)
+flextable(semlist[[1]])
+flextable(semlist[[2]])
+
 
 ```
+
 
 
 # Model equivalence for left- and right-handers 
@@ -499,3 +589,31 @@ autofit(ftabM4)
 
 
 ```
+
+## Fit of models including dichotic listening  
+As explained in the main text, only one behavioural measure, dichotic listening, met criteria to be included in SEM analysis with the fTCD measures. Here we present results for three models; a model where the path from Dichotic listening is set to zero for both factors, a model where a free path is specified to Factor 2 (predicted to give highest loading), and a model where a free path is specified to Factor 1 (exploratory analysis, which in practice gave best fit.)
+
+```{r dichoticmodels,echo=F,include=F}
+w<-which(colnames(ddati)=='DL_z')
+colnames(ddati)[w]<-'G_R4'
+fit2FN.base <- cfa(model.2Fnbase, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2 <- initbigsummary2()
+bigsumfit2<- addmodel(bigsumfit2,fit2FN.base,NA,'Dichotic=0',writecol=2,dich=1)
+
+fit2FNx <- cfa(model.2Fnx, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2FNx,NA,'F2->Dichotic',writecol=3,dich=1)
+
+fit2FNy <- cfa(model.2Fny, estimator="WLSMV",data=ddati,test="robust") 
+bigsumfit2<- addmodel(bigsumfit2,fit2FNy,NA,'F1->Dichotic',writecol=4,dich=1)
+bigsumfit2[9,2:3]<-'-'
+bigsumfit2[16,4]<-'-'
+bigsumfit2<-bigsumfit2[c(1:5,7,9,12:23),]
+
+```
+
+```{r printbigsumfit2,echo=F}
+autofit(flextable(bigsumfit2))
+
+```
+
+
