@@ -1,9 +1,13 @@
 ---
-title: "Supplementary file 7: Full SEM output"
+title: 'Supplementary file 7: Full SEM output'
 date: "27/03/2022"
-output: word_document
-        toc: true
+output:
+  word_document:
+    toc: true
+    toc_depth: 3
+    reference_docx: mystyle.docx
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -227,8 +231,7 @@ f2~~1 * f2
 
 
 
-
-## Results from Structural Equation models, comparing output with different inclusion criteria.  
+# Terminology  
 
 In the numerical outputs, summary labels are used for the six fTCD variables, as follows:
 A_P1: Word Generation  
@@ -245,7 +248,7 @@ WC_z: LIz for Word Comprehension
 
 In addition, the DL_z variable is renamed G_R4 for SEM models.  
 
-### Covariance and means matrix for raw data  
+# Covariance and means matrix for raw data  
 
 ```{r suppoutputs,echo=F,message=F,include=F}
 bigsumfit1 <- initbigsummary()
@@ -338,7 +341,12 @@ docov<-function(mydata){
 }
 ```
 
+```{r showcovs,echo=F}
+#Display covs and means
+docov(ddati)
+```
 
+# Results from Structural Equation models, comparing output with different inclusion criteria.  
 
 ```{r makemodellist,echo=F}
 fitlist <-c('fit1A','fit2A','fit2nA')
@@ -351,12 +359,11 @@ modellist<-c('f1 =~ A_P1+B_P2+C_P3+D_R1+E_R2+F_R3',
 
 ```{r tryloop,results='asis',echo=F}
 
-#Display covs and means
-docov(ddati)
+
 
 #using pander function with 'asis' allows looping over text as well as computions for each model.
 for (i in 1:length(namelist)){
-pandoc.header(namelist[i], level = 1)
+pandoc.header(namelist[i], level = 2)
 pandoc.p(paste("Summary output from the model is shown for the preregistered criteria (Selected sample with original baseline from -10 to 0 s) in column 4), and the modified criteria used in the main analysis (Full sample with baseline from -5 to 2 s) in column 1.") )
 pandoc.p("")
 pandoc.p(paste0("Model is specified in lavaan syntax as: ",modellist[i] ))
@@ -386,19 +393,19 @@ pandoc.p("")
 pandoc.p("The detailed fit statistics for this model, with the final criteria (Full sample with baseline -5 to 2s) are shown below.")
 pandoc.p("")
 
-pandoc.header("Unstandardized path estimates", level = 2) 
+pandoc.header("Unstandardized path estimates", level = 3) 
 ft_pe <- parameterEstimates(myfit)
 ft_pe[,4:9]<-numformat(ft_pe[,4:9],3)
 pandoc.table(ft_pe,justify='left')
 pandoc.p("")
 
-pandoc.header("Standardized path estimates", level = 2) 
+pandoc.header("Standardized path estimates", level = 3) 
 ft_se <- parameterEstimates(myfit)
 ft_se[,4:9]<-numformat(ft_se[,4:9],3)
 pandoc.table(ft_se,justify='left')
 pandoc.p("")
 
-pandoc.header("Model-implied fitted covariance matrix", level = 2) 
+pandoc.header("Model-implied fitted covariance matrix", level = 3) 
 ft_fit <- as.data.frame(fitted(myfit))
 ft_fit <- numformat(ft_fit,3)
 ft_fit <-tibble::rownames_to_column(ft_fit)
@@ -407,7 +414,7 @@ colnames(ft_fit)[1]<-'Variable'
 pandoc.table(ft_fit,justify='left')
 pandoc.p("")
 
-pandoc.header("Unstandardized residuals of fitted model", level = 2) 
+pandoc.header("Unstandardized residuals of fitted model", level = 3) 
 ft_res <- as.data.frame(residuals(myfit))
 ft_res<-ft_res[,-1] #get rid of 'type' column
 ft_res <- numformat(ft_res,3)
@@ -425,7 +432,9 @@ pandoc.p("")
 }
 ```
 
-## Exploratory analysis leading to modified two-factor model  
+# Exploratory analysis leading to modified two-factor model  
+  
+
 
 ```{r summaryofOE,echo=F}
 ddat_OE<-read.csv("ddat_OE.csv")
@@ -470,7 +479,7 @@ setEPS()
 postscript('OddEvenSEM.eps')
 semPaths(fit.2FZWa.1, "diagram", weighted = FALSE,  shapeMan = "rectangle", 
     rotation=4,edge.color='black',asize=2,whatLabels='est',bg='white',width=9,height=10) #draws a path diagram
-title('Result from exploratory 2-factor SEM with odd and even LIs (Random half sample)', line=3)
+
 dev.off()
 
 
@@ -505,10 +514,13 @@ F_e ~~ fv * F_e'
 
 Note that the _e and _o subscripts refer to laterality indices computed from odd and even trials for each task. The paths to the factors and the variances are equated across odd and even versions of each laterality index. Summary output with the initial test sample was as follows:
 
-![Modified two-factor model, derived from exploratory analysis on half the sample, showing standardized path coefficients. ](OddEvenSEM.eps) 
+## Result from exploratory 2-factor SEM with odd and even LIs (Random half sample) 
+
+![Modified two-factor model, derived from exploratory analysis on half the sample, showing standardized path coefficients. ](OddEvenSEM.eps)  
 
 
 ```{r basicSEMout,echo=F,include=F}
+myfitmeasures<- c('CFI','TLI','SRMR','rmsea','chisq','chisq.scaled','df','pvalue','pvalue.scaled')
 SEMout <- function(myfit,myfitmeasures){
 
 s<-summary(myfit)$PE
@@ -524,9 +536,15 @@ return(semlist)
 
 ```
 
-```{r oddevenout1,echo=F}
-myfitmeasures<-c('CFI','TLI','SRMR','rmsea','chisq','DF') 
+## Result from comfirmatory 2-factor SEM with odd and even LIs (Hold-out half sample)  
+
+```{r oddevenout1,echo=F,include=F}
+
 semlist<-SEMout(fit.2FZWa.1 ,myfitmeasures)
+#need to separate flextable so avoid printout all SEM output?
+```
+
+```{r showflextable1,echo=F}
 flextable(semlist[[1]])
 flextable(semlist[[2]])
 
@@ -535,9 +553,12 @@ flextable(semlist[[2]])
 
 The same model was then tested in the second random half of the sample. For this holdout sample, the summary was:
 
-```{r oddevenout2,echo=F}
+```{r oddevenout2,echo=F,include=F}
 
 semlist<-SEMout(fit.2FZWa.2 ,myfitmeasures)
+```
+
+```{r showflextable2,echo=F}
 flextable(semlist[[1]])
 flextable(semlist[[2]])
 
@@ -571,17 +592,21 @@ ftabM1<-flextable(tabM1)
 ftabM1 <- set_caption(ftabM1,"No equality constraints")
 autofit(ftabM1)
 pandoc.p("")
+pandoc.p("")
 ftabM2<-flextable(tabM2)
 ftabM2 <- set_caption(ftabM2,"Equal loadings")
 autofit(ftabM2)
+pandoc.p("")
 pandoc.p("")
 ftabM3<-flextable(tabM3)
 ftabM3 <- set_caption(ftabM3,"Equal loadings and intercepts")
 autofit(ftabM3)
 pandoc.p("")
+pandoc.p("")
 ftabM3a<-flextable(tabM3a)
 ftabM3a <- set_caption(ftabM3a,"Equal loadings, intercepts and factor covariance")
 autofit(ftabM3a)
+pandoc.p("")
 pandoc.p("")
 ftabM4<-flextable(tabM4)
 ftabM4 <- set_caption(ftabM4,"Equal loadings, intercepts, factor covariance and factor means")
@@ -590,7 +615,7 @@ autofit(ftabM4)
 
 ```
 
-## Fit of models including dichotic listening  
+# Fit of models including dichotic listening  
 As explained in the main text, only one behavioural measure, dichotic listening, met criteria to be included in SEM analysis with the fTCD measures. Here we present results for three models; a model where the path from Dichotic listening is set to zero for both factors, a model where a free path is specified to Factor 2 (predicted to give highest loading), and a model where a free path is specified to Factor 1 (exploratory analysis, which in practice gave best fit.)
 
 ```{r dichoticmodels,echo=F,include=F}
