@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "26 Mar 2022"
+date: "28 Mar 2022"
 output:
   word_document: default
   reference_docx: mystyle.docx
@@ -572,12 +572,14 @@ alldir <- c(mydir,"~/Dropbox/COLA_RR_Analysis/05-writeup/05.1-supplementary")
 
 figdir <-"03-graphic-outputs" 
 
-useorigbaseline <- 1 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
+useorigbaseline <- 0 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
 readfile<-paste0(alldir[1],"/02-data/combined_data.csv")
 if(useorigbaseline==1){
   readfile<-paste0(alldir[1],"/02-data/combined_data_origbaseline.csv")
 }
 combdat <- read.csv(readfile)
+
+combdat<-combdat[combdat$excludeviewport==0,]
 
 w<-which(combdat$No_signal==1)
 combdat$ftcd[w]<-9 #cases marked 9 were seen but did not have a signal
@@ -943,7 +945,7 @@ The standard error of the laterality index for each individual was computed from
 In the previous study by Woodhead et al. (2019) we excluded cases with fewer than 12 acceptable trials and then used the Hoaglin-Iglewicz (1987) criterion for outlier detection: this involves identifying cases that have values well outside the interquartile range for the group. This was used to identify individuals where the laterality index for a given task had an unusually large standard error, indicative of high trial-by-trial variation. However, we noted that some individuals had very low standard errors, despite having fewer than 12 usable trials, and so in the current study our preregistration specified a minimum number of 10 trials (out of 18 trials administered), while retaining the Hoaglin-Iglewicz method for removing data for a given subject and condition when the standard error of the laterality index was high.  
 
 ## 2.6 Sampling and Analysis Plan  
-The analysis starts with presentation of descriptive data, including distributions of scores by handedness, and split-half reliability of measures. The hypotheses are then tested, following the preregistration from table 1 of our original Stage 1 report. The preregistered text is presented with each analysis. All analyses are conducted with alpha = .02 and power .9. A Rmarkdown script to run analyses on simulated data is available on Open Science Framework: https://osf.io/9dbrg/?view_only=357994fa8f6b49ee83964f5108d82ee2.
+The analysis starts with presentation of descriptive data, including distributions of scores by handedness, and split-half reliability of measures. The hypotheses are then tested, following the preregistration from Table 1 of our original Stage 1 report. The preregistered text is presented with each analysis. All analyses are conducted with alpha = .02 and power .9. A Rmarkdown script to run analyses on simulated data is available on Open Science Framework: https://osf.io/9dbrg/?view_only=357994fa8f6b49ee83964f5108d82ee2.
 
 ```{r makeflowchart,echo=F,message=F,warning=F}
 
@@ -1146,7 +1148,7 @@ retest_date_diff_stats <- fivenum(sess3$date_diff)
 We had preregistered that we would do a test-retest reliability check on online behavioural tests for 50 participants. In practice, a subsample of `r nrow(sess3)` participants was retested on part of the online battery within `r ceiling(as.numeric(retest_date_diff_stats[5]) / 7)` weeks of the first session (median = `r retest_date_diff_stats[3]` days, range = `r retest_date_diff_stats[1]` to `r retest_date_diff_stats[5]` days). There were `r mtab[1,1]` left-handed females, `r mtab[2,1]` left-handed males, `r mtab[1,2]` right-handed females, and `r mtab[2,2]` right-handed males. The retest session included the Rhyme Decision and Word Comprehension tasks, which were new, but not Dichotic Listening, for which we had adequate evidence of test-retest reliability from the previous study by Parker et al (2021). 
 
 
-## 3.2 Step 1: Online Bahavioural Testing  
+## 3.2 Step 1: Online Behavioural Testing  
 
 ```{r behdataclean,echo=F}
 #table(combdat$DLsame.corr,combdat$excludeDL)
@@ -1347,19 +1349,26 @@ cor4<-spearman.ci(sess1$WC.zlat, sess3$WC.zlat, nrep = 1000, conf.level = 0.95)
 onlinesummary[12,4]<-paste0(round(cor4$estimate,2),' [',round(cor4$conf.int[1],2),', ',round(cor4$conf.int[2],2),']')
 
 
-ft<-flextable(onlinesummary)
-ft <- flextable::fontsize(ft,size=10)
-ft<-autofit(ft)
+ft<-flextable(onlinesummary)%>% 
+  flextable::compose(i=11, j='Statistic', value = as_paragraph('Split-half r', as_sub('s'), ' [95% CI]'), part = "body") %>% 
+  flextable::compose(i=12, j='Statistic', value = as_paragraph('Test-retest r', as_sub('s'), ' [95% CI] (N = 53)')) %>% 
+  flextable::compose(i=11, j='Dichotic', value = as_paragraph('r', as_sub('s'),' = ', onlinesummary[11,2]), part = 'body') %>% 
+  flextable::compose(i=11, j='Rhyme', value = as_paragraph('r', as_sub('s'),' = ', onlinesummary[11,3]), part = 'body') %>% 
+  flextable::compose(i=11, j='Comprehension', value = as_paragraph('r', as_sub('s'),' = ', onlinesummary[11,4]), part = 'body') %>% 
+  flextable::compose(i=12, j='Rhyme', value = as_paragraph('r', as_sub('s'),' = ', onlinesummary[12,3]), part = 'body') %>% 
+  flextable::compose(i=12, j='Comprehension', value = as_paragraph('r', as_sub('s'),' = ', onlinesummary[12,4]), part = 'body') %>% 
+  fontsize(size=10) %>% autofit
+
 ft
 tabnumber <- tabnumber+1
 tabonlinesummary<-tabnumber
 
-ftbig<-flextable(onlinesummary)
-ftbig <- flextable::fontsize(ftbig,size=16)
+ftbig <- ft %>% flextable::fontsize(size=16)
 ftbig<-autofit(ftbig)
 
-tabnumber <- tabnumber+1
-tabonlinesummary<-tabnumber
+# I don't think these lines are needed here, but I might be wrong...
+#tabnumber <- tabnumber+1
+#tabonlinesummary<-tabnumber
 ```
 
 Table `r tabnumber`: _Descriptive statistics for three online laterality measures (LIz)_  
@@ -1762,22 +1771,30 @@ writecolnum <- 1+t #column of online summary to write to for this task
 ftcdsummary <- populate(ddat,mytask,ftcdsummary,writecolnum,'ftcd')
 #ftcdsummary <- ftcdsummary[1:(nrow(ftcdsummary)-1),]
 }
-ft<-flextable(ftcdsummary)
-ft <- flextable::fontsize(ft, size = 10)
-ft<-fit_to_width(ft,8,inc=1L)
+ft<-flextable(ftcdsummary) %>% 
+  flextable::compose(i=11, j='Statistic', value = as_paragraph('Split-half r', as_sub('s'), ' [95% CI]'), part = "body") %>% 
+  flextable::compose(i=11, j='A', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,2]), part = 'body') %>% 
+  flextable::compose(i=11, j='B', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,3]), part = 'body') %>% 
+  flextable::compose(i=11, j='C', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,4]), part = 'body') %>% 
+    flextable::compose(i=11, j='D', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,5]), part = 'body') %>% 
+  flextable::compose(i=11, j='E', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,6]), part = 'body') %>% 
+  flextable::compose(i=11, j='F', value = as_paragraph('r', as_sub('s'),' = ', ftcdsummary[11,7]), part = 'body') %>% 
+
+  fontsize(size=10) %>% fit_to_width(8,inc=1L)
+
 ft
 tabnumber<-tabnumber+1
 ftcdtabnumber<-tabnumber #for later reference
 ```
 
-Table `r tabnumber`: _Descriptive statistics for six fTCD laterality indices.  
+Table `r tabnumber`: _Descriptive statistics for six fTCD laterality indices_  
 
 
 
 
 Table `r tabnumber` shows basic statistics for the fTCD laterality indices, in the same format as for the online tasks. Right-handers showed significant left-lateralisation on Word Generation, Sentence Generation, Phonological Decision, and Sentence Decision, but were not lateralised for Word Decision or Syntactic Decision.  Left-handers were significantly left-lateralised for Word Generation, Sentence Generation and Phonological Decision, were not lateralised for Sentence Decision or Syntactic Decision, and were significantly right-lateralised for Word Decision.  The direct comparison between left- and right-handers showed significantly greater left-lateralisation in right-handers on all tasks except Word Decision and Syntactic Decision, which showed only a trend in that direction.
 
-All tasks had split-half reliability coefficients of .74 or above, except for Word Decision, where the coefficient was only .61.
+All tasks had split-half reliability coefficients of .72 or above, except for Word Decision, where the coefficient was only .52.
 
 Shapiro Wilk tests revealed significant non-normality for Sentence Generation, Phonological Decision, Word Decision and Sentence Decision, though values of skewness and kurtosis were generally not extreme.
 
@@ -2880,12 +2897,19 @@ for (n in 1:ntest){
 
 
 
-fpf1 <- flextable(pairframe)
-fpf1 <- set_caption(fpf1,"Correlations (rho) with raw LIs: Performance measures and language competence measures")
+fpf1 <- flextable(pairframe) %>%
+  set_caption("Correlations with raw LIs: Performance measures and language competence measures") %>% 
+  flextable::compose(part = "header", j='rho: Performance', value = as_paragraph('r', as_sub('s'),': Performance')) %>% 
+  flextable::compose(part = 'header', j='rho: Lextale', value = as_paragraph('r', as_sub('s'),': LexTALE')) %>% fontsize(size=10) %>% autofit
+
 fpf1
 
-fpf2 <- flextable(pairframe)
-fpf2 <- set_caption(fpf2,"Correlations (rho) with absolute LIs: Performance measures and language competence measures")
+
+fpf2 <- flextable(pairframe.abs) %>% 
+  set_caption("Correlations (rho) with absolute LIs: Performance measures and language competence measures") %>% 
+  flextable::compose(part = "header", j='rho: Performance', value = as_paragraph('r', as_sub('s'),': Performance')) %>% 
+  flextable::compose(part = 'header', j='rho: Lextale', value = as_paragraph('r', as_sub('s'),': LexTALE')) %>% fontsize(size=10) %>% autofit  
+
 fpf2
 ```
 
