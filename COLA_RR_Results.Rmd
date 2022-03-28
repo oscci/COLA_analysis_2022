@@ -4,9 +4,7 @@ author: "COLA consortium*"
 date: "26 Mar 2022"
 output:
   word_document: default
-  html_document:
-    df_print: paged
-  pdf_document: default
+  reference_docx: mystyle.docx
 ---
 
 <!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
@@ -15,19 +13,20 @@ output:
 
 <!-- IF YOU RUN THE SUPPLEMENTARY OUTPUTS-PANDER.RMD SCRIPT BEFORE THIS ONE, YOU GET A CONFLICT BETWEEN PANDER AND FLEXTABLE, AND THIS SCRIPT CRASHES WITH ERROR MESSAGE WHEN FONT SIZE IS SET IN FLEXTABLE.  TO OVERCOME THIS, RESTART R BEFORE YOU RUN THIS SCRIPT-->
 
-*Adam J. Parker^1a^, Zoe V. J. Woodhead^1a^ , David P. Carey^2^, Margriet A. Groen^3^, Eva Gutierrez-Sigut^4,7^, Jessica Hodgson^5^, John Hudson^6^, Emma M. Karlsson^2^, Mairéad MacSweeney^7^, Heather Payne^7^, Nuala Simpson^1^, Paul A. Thompson^1^, Kate E. Watkins^1^, Ciara Egan^1,2^, Jack H. Grant^1,6^, Sophie Harte^1,7^, Brad T. Hudson^1,3^, Maria Sablik^1,2^, Nicholas A. Badcock^8^, Dorothy V. M. Bishop^1b^  
+*Adam J. Parker^a12^, Zoe V. J. Woodhead^a1^ , David P. Carey^b^, Margriet A. Groen^c^, Eva Gutierrez-Sigut^d,e^, Jessica Hodgson^f^, John Hudson^f^, Emma M. Karlsson^b^, Mairéad MacSweeney^e^, Heather Payne^e^, Nuala Simpson^a^, Paul A. Thompson^a^, Kate E. Watkins^a^, Ciara Egan^a,b^, Jack H. Grant^a,f^, Sophie Harte^a,e^, Brad T. Hudson^a,c^, Maria Sablik^a,b^, Nicholas A. Badcock^h^, Dorothy V. M. Bishop^a,3^  
 
-^a^ Joint first author  
-^b^ Corresponding author, <dorothy.bishop@psy.ox.ac.uk>    
+^1^ Joint first author  
+^2^ Current address: Department of Experimental Psychology, University College London, 26 Bedford Way, London WC1H 0AP.    
+^3^ Corresponding author, <dorothy.bishop@psy.ox.ac.uk>    
 
-^1^Department of Experimental Psychology, University of Oxford, UK  
-^2^School of Psychology, Bangor University, UK  
-^3^Department of Psychology, Lancaster University, UK  
-^4^Department of Psychology, University of Essex, UK  
-^5^Lincoln Medical School, University of Lincoln, UK  
-^6^School of Psychology, University of Lincoln, UK  
-^7^Deafness, Cognition and Language Research Centre, University College London, UK  
-^8^School of Psychological Sciences, University of Western Australia, Australia 
+^a^Department of Experimental Psychology, University of Oxford, UK  
+^b^School of Psychology, Bangor University, UK  
+^c^Department of Psychology, Lancaster University, UK  
+^d^Department of Psychology, University of Essex, UK  
+^e^Deafness, Cognition and Language Research Centre, University College London, UK 
+^f^Lincoln Medical School, University of Lincoln, UK  
+^g^School of Psychology, University of Lincoln, UK  
+^h^School of Psychological Sciences, University of Western Australia, Australia 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -348,7 +347,7 @@ myt<-t.test(myfile$All~myfile$Handed)
 myt2 <- t.test(myfile$All) #single group t-test
 text1 <- paste0('Mean diff from zero: \nt = ',round(myt2$statistic,2),"; ", pformat(myt2$p.value))
 text2 <- paste0('L vs. R handers \n(all trials):\n t = ',round(myt$statistic,2),"; ", pformat(myt$p.value))
-text3 <-paste0('Spearman rho: ',r)
+text3 <-paste0('Spearman $r_s$: ',r)
 p <- ggplot(myfile, aes_string('Odd','Even')) +
   aes_string(colour = 'Handed') +
   geom_point() + theme_bw(15)+
@@ -573,7 +572,7 @@ alldir <- c(mydir,"~/Dropbox/COLA_RR_Analysis/05-writeup/05.1-supplementary")
 
 figdir <-"03-graphic-outputs" 
 
-useorigbaseline <- 0 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
+useorigbaseline <- 1 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
 readfile<-paste0(alldir[1],"/02-data/combined_data.csv")
 if(useorigbaseline==1){
   readfile<-paste0(alldir[1],"/02-data/combined_data_origbaseline.csv")
@@ -1323,7 +1322,7 @@ Before testing specific predictions about interrelationships between measures, w
 
 onlinesummary <- data.frame(matrix(NA,nrow=12,ncol=4))
 colnames(onlinesummary)<-c('Statistic','Dichotic','Rhyme','Comprehension')
-onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD): L-hander','Mean (SD): R-hander','one-group t: L-hander','one-group t: R-hander','R-hander vs. L-hander t','Split-half rho [95% CI]','Test-retest rho [95% CI] (N = 53)')
+onlinesummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD): L-hander','Mean (SD): R-hander','one-group t: L-hander','one-group t: R-hander','R-hander vs. L-hander t','Split-half rho  [95% CI]','Test-retest rho [95% CI] (N = 53)')
 ```
 
 
@@ -1795,14 +1794,7 @@ thisdat.i <- mice(thisdat, m=1, maxit = 50, method = 'pmm', seed = 500,print=FAL
 ddati <-cbind(ddat[,c('ID','male','Handed','langgroup')],complete(thisdat.i,1))
 colnames(ddati)<-c('ID','male','Handed','langgroup',nunames)
 
-if(useorigbaseline==1){
-  write.csv(ddati,'ddati_origbaseline.csv',row.names=F)
-}
 
-#here we save the version with original baseline that will be used in supplement.
-if(useorigbaseline==0){
-  write.csv(ddati,'ddati.csv',row.names=F)
-}
 ```
 
 
@@ -2050,7 +2042,7 @@ fitmeasures(fit.2FZW.1,wantfits)
 #This gives matrix not positive definite
 
 #Paths suggest dropping nonsig paths from f1 to D and F 
-# and A from F2 (B is already missing as was excluded from model)
+# and A from F2 (B is already missing from f2 as was excluded from model)
 model.2FZWa <- '
 f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
        a*A_o+a*A_e +
@@ -2500,6 +2492,16 @@ for (i in 1:nrow(ddati)){
 nunames<-c('DL_z','RDT_z','WC_z')
 thisdat.j <- mice(ddati[,nunames], m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
 ddati <-cbind(ddati[,1:ncol],complete(thisdat.j,1))
+
+#We save the data frame, which will be used for the big Supplementary output file. 
+if(useorigbaseline==1){
+  write.csv(ddati,'ddati_origbaseline.csv',row.names=F)
+}
+
+#here we save the version with original baseline that will be used in supplement.
+if(useorigbaseline==0){
+  write.csv(ddati,'ddati.csv',row.names=F)
+}
 ```
 
 
@@ -2537,8 +2539,8 @@ We had predicted that Dichotic Listening, as a receptive task, should load on th
 #Base model: dichotic included but with path set to zero
 
 model.2Fnbase <- '
-f1 =~  B_P2+A_P1 +C_P3+ E_R2
-f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 +0*DL_z  #2 factor model:
+f1 =~  A_P1 +B_P2+C_P3+ E_R2
+f2 =~  NA*D_R1+ E_R2+F_R3 + C_P3 +0*DL_z  #2 factor model:
 
 f2~~1*f2
 '
@@ -2549,8 +2551,8 @@ wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fn,wantfits)
 
 model.2Fnx <- '
-f1 =~  B_P2+A_P1 +C_P3+ E_R2
-f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2 +DL_z  #2 factor model, dichotic on Fac2:
+f1 =~  A_P1+B_P2 +C_P3+ E_R2
+f2 =~  NA*D_R1+ E_R2+F_R3 + C_P3 +DL_z   #2 factor model, dichotic on Fac2:
 
 f2~~1*f2
 '
@@ -2564,8 +2566,8 @@ fitmeasures(fit.2Fnx,wantfits)
 
 
 model.2Fny <- '
-f1 =~  B_P2+A_P1 +C_P3+ E_R2+DL_z
-f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model, dichotic on Fac1:
+f1 =~  A_P1+B_P2 +C_P3+ E_R2+DL_z
+f2 =~  NA*D_R1++ E_R2+F_R3 + C_P3    #2 factor model, dichotic on Fac1:
 
 f2~~1*f2
 '
