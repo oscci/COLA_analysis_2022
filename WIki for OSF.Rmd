@@ -54,21 +54,67 @@ Data acquired at Lincoln use the 7 column format, and the columns used for the a
 
 Data acquired at UCL use the 18 column format, and the columns used for the analysis are 1, 2, 3, 4, 11.
 
+# Processed data  (https://osf.io/7hdc6/)  
+This component contains summary data as follows:  
+allsum.csv - this is summary data on demographics and the online behavioural tasks.  
+ftcd_data.csv - summary data from ftcd  
+combined_data.csv - combines allsum and ftcd_data, with subjects aligned. 
+sess1.csv - same as allsum.csv but session 1 data, just for those who also did session 3
+sess3.csv - same as allsum.csv but session 3 only, IDs aligned with sess1.csv
+
+Data dictionaries are provided for allsum and ftcd_data.  The column names are the same in combined_data.csv and so the same data dictionary can be used.  
+
+Note that for ftcd_data and combined_data there there are separate versions, depending on whether the LIs were computed using the original, preregistered baseline (-10 to 0 s), or the revised baseline (-5 to 2 s). These files are compared in Supplementary materials.  
+
 
 # R scripts  (https://osf.io/6zwye/)
 
-Processing Gorilla raw data  
+## Data Preprocssing  (https://osf.io/25jmz/)
+
+### Processing Gorilla raw data  
 
 The raw Gorilla data is crunched by the R markdown script:  
-__gorilla.Processing.Script_forOSF.rmd__  
+__gorilla.raw_processing.Rmd__ (https://osf.io/cv7d9/)
 
-This computes summary data and LI values, which are saved in:  
-__allsum.csv__  (see below)  
+The tasks and questionnaires processed within this script are:
+
+Questionnaires  
+(1) Demographics  
+(2) Edinburgh Handedness Inventory  
+(3) Porta Test of Ocular Dominance  
+(4) LexTale  
+(5) Grammar Quiz (Games with Words) 
+
+Behavioural language tasks
+(1) Dichotic Listening (DL)  
+(2) Rhyme Decision (RD)  
+(3) Word Comprehension (WC)  
+
+Additional tasks from Bangor team (not included in Registered Report)
+(1) Colour Scales (CS)   
+(2) Chimeric Faces (CF)  
+N.B. anyone wishing to analyse data from these two tasks should contact 
+david.carey@bangor.ac.uk or Emma.Karlsson@UGent.be to request permission.  
+
+As well as  __bothsess_dat.rds__  this script requires these additional files (stored at https://osf.io/6zwye/) when computing demographics:  
+ 
+  coded_demog.csv  
+  grammarScoring.csv  
+  grammarScoringshort.csv   
+
+It is recommended that the working directory be set to source file location, and these additional files are then stored in a folder in that directory called COLAbits.  
+
+
+The script computes summary data and LI values, which are saved as  
+__allsum.csv__  (see below)   
 N.B. The session 3 (retest) data are processed together with session 1 data, after creating a subject code that denotes the session by adding '1' or '3' at the start of the ID.  After processing, __allsum3.csv__ (with just session 3 data) is saved separately.  
 
-The script needs a scoring key for the Games with Words, which is called: grammarScoring.csv.  
-# Processing FTCD raw data  
-The file __ftcd_preprocessing.R__ generates a summary data file called __ftcd_data.csv__ with laterality indices for the 6 tasks computed from the raw data: 
+Two optional chunks at the end of the script are used to bolt the ftcd data on to the allsum file. 
+
+
+## Processing FTCD raw data  (https://osf.io/2bt7r/)  
+
+The script __ftcd_preprocessing.R__ generates a summary data file called __ftcd_data.csv__ with laterality indices for the 6 tasks computed from the raw data: 
 https://osf.io/2bt7r/  
 
 The data dictionary for the __ftcd_data.csv__ file is saved as __ftcd_data_dictionary.csv__.
@@ -77,27 +123,42 @@ To run this script, the script needs to be able to access the __ftcd_data.csv__ 
 
 Note that, as explained in the text, we initially specified a baseline period of -10 to 0 seconds, but switched to -5 to 2 s because the longer baseline was not stable. The results are computed with the original baseline for comparison and can be found in __ftcd_data_origbaseline.csv__.  
 
-# Combined processed data  
-The script __gorilla.Processing.Sript_forOSF.rmd__  aligns participants and combines __allsum.csv__ and __ftcd_data.csv__ in a file called __combined_data.csv__.  
-The data dictionary for __combined_data.xsv__ is avalable here: XXX.  
+ 
 
-# Generation of manuscript and results from combined data.  
+## Main Analysis for RR (https://osf.io/yc2r6/)
 
-The R markdown script __COLA_RR_Results.rmd__ reads in __combined_data.csv__ and computes all results.  This file can be knitted to create the manuscript, plus some of the supplements.  
-The main data frame used for SEM analysis is saved as RData in file XXX.
+The R markdown script __COLA_RR_Analysis.Rmd__ reads in __combined_data.csv__ (see https://osf.io/7hdc6/) and computes all results.  In theory, this file can be knitted to create the manuscript, plus some of the supplements, but we have found it to be temperamental, possibly because of issues with version control of the packages _table1_ and _flextable_. Thus even when all chunks run OK, you may get an error message on knitting to Word.  
 
-This script needs additional files to knit properly.
-Most of the figures are created from within the script and then saved to file, and re-read when the document is knitted.  They need to be saved in a folder called XXX.  
-Two images need to be available for reading in a pdf files:
-XXX and XXX
+As with the __gorilla_raw_processing.Rmd__ script, we have tested this by creating a new working directory, with a subdirectory in it called COLAbits, which is used for any ancillary files that are read in In addition, any file outputs (e.g. figures) will be written straight to the working directory. This is not optimal for organisation, but it allows the script to be tested without requiring a complex file structure.  
+
+The script will read from COLAbits __combined_data.csv__, and will also save a subset of the data as __ddati.csv__ for use in supplementary file creation.  
+
+It is also necessary to save the following file (see https://osf.io/yc2r6/) in COLAbits:  
+__task.details.csv__ 
+And these files should be saved in the working directory:  
+__WordCompDemo.pdf__  
+__tasktimings.pdf__  
+
+## Power analysis  
+This was used with the Stage 1 submission. 
+
+## Scripts for supplementary material  
+
+Supplementary material 6 and 7 are created at the end of the main R markdown script.
+The output of these are found here https://osf.io/rcysd/.  
+
+### Supplement8  (https://osf.io/bpna7/)
+
+This is a R markdown file that creates a long document containing details of SEM analyses, including those comparing the results with different subsets of participants.  
+It reads in:  
+  ddati.csv
+  ddati_origbaseline.csv  
+  ddati_OE.csv  
+  
+These should all be found in the working directory after running COLA_RR_Analysis.Rmd. In addition, you need to copy   __mystyle.docx__, into the working directory: this controls pagination.  
 
 
 
-
-# Generation of main SEM results supplement.  
-The R markdown script _Supplement7.rmd__ creates the large supplement with SEM results. This reads the file created by COLA_RR_Results called xxxx. 
-
-The supplementary materials are stored on OSF in the Registered Report component (https://osf.io/rcysd/).
 
 # Materials.  
 
@@ -105,7 +166,7 @@ The materials for the online tasks are available on Gorilla (https://gorilla.sc/
 The materials for the fTCD tasks are available on OSF (https://osf.io/g3qms/).
 
 
-
+Gorilla link is here: https://app.gorilla.sc/admin/project/29613
 
 
 
