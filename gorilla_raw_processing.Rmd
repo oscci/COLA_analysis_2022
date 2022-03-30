@@ -1,0 +1,1692 @@
+---
+title: "Data Processing for Gorilla tasks"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+date: "29th March 2022"
+---
+
+Modified script based on Adam Parker's original.
+Updated 7/2/22 to just make name format of dichotic odd/even zlat files consistent with other tasks.
+Updated ZW 10/2/22 to add date, so can compute interval for sess1 vs sess3
+Updated DB 25/2/22 to ensure laterality index for Rhyme Decision and Word Comprehension is using log RT , as this was specified in prereg. 
+--------------------------------------------------------------------------------------------------------------------------------
+Script now reads raw Gorilla data from .Rdata files - these were created from the OSF.csv files. 
+The .Rdata files are available on OSF - they are much smaller than .csv so easier to work with.
+
+Before running this script, need to download __bothsess_dat.rds__ (https://osf.io/5twkh/).
+
+For testing the script, we have made a folder on the desktop called 'testscript', containing a folder called 'COLAbits'. The former acts our working directory and the latter contains all files that are read or written to by the script. You should set up your paths to fit this structure. The names can be changed if you wish. 
+
+You need to start by copying these files to COLAbits:  
+  bothsess_dat.rds  
+  coded_demog.csv  
+  grammarScoring.csv  
+  grammarScoringshort.csv  
+  
+The latter two files are found in https://osf.io/25jmz/.  
+
+N.B. This file generates a few tables and plots as sanity checks, but these are not used in the main analysis.  
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+The tasks and questionnaires processed within this notebook are:
+
+Questionnaires
+(1) Demographics
+(2) Edinburgh Handedness Inventory
+(3) Porta Test of Ocular Dominance
+(4) LexTale
+(5) Grammar Quiz
+
+Behavioural language tasks
+(1) Dichotic Listening (DL)
+(2) Rhyme Decision (RD)
+(3) Word Comprehension (WC)
+
+Additional tasks from Bangor team (not included in Registered Report)
+(1) Colour Scales (CS)  
+(2) Chimeric Faces (CF)  
+N.B. anyone wishing to analyse data from these two tasks should contact 
+david.carey@bangor.ac.uk or Emma.Karlsson@UGent.be to request permission.  
+
+
+In addition to calculating LIs for all tasks, this script calculates split half LIs from odd/even items, and test-retest reliability for the subset of people who did session 3 as well as session 1.
+
+**Throughout, laterality indices are computed so that a POSITIVE LI corresponds to LEFT-HEMISPHERE advantage.**
+
+
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+# first check the packages exist. 
+# If the package is not installed, install it. If it is installed, load it.
+usePackage <- function(p) {
+    if (!is.element(p, installed.packages()[,1]))
+        install.packages(p, dep = TRUE)
+    require(p, character.only = TRUE)
+}
+usePackage('dplyr')
+usePackage('tidyr')
+usePackage('ggplot2')
+usePackage('yarrr') #for pirate plots
+#usePackage("osfr") #for reading files from OSF
+usePackage("stringr")
+usePackage("table1") #useful for making simple tables of demographic etc
+```
+
+We first read in all the files containing data and combine into a single mega file. This means that we won't have to edit the file names within the script when pushing new versions. 
+
+```{r read}
+# get the data
+# Currently set up to read from Rdata files.
+# This is much quicker than reading original .csv files, but still long enough for you to go away and make a cup of coffee while it happens
+
+mydir <- "~/Desktop/testscript"  #working directory
+datdir<-paste0(mydir,"/COLAbits/") #folder in working directory that contains all ancillary files that are read from or written to
+madeboth <- 1 #set to zero to start with separate files for session1 and 3
+if(madeboth==0){
+all_dat_1 <- readRDS(paste0(datdir,'all_dat.rds'))
+all_dat_3 <- readRDS(paste0(datdir,'all_dat_3.rds'))
+}
+if(madeboth==1){
+all_dat <- readRDS(paste0(datdir,'bothsess_dat.rds'))
+}
+# Original OSF command for all_dat_3
+##osf_retrieve_file("https://osf.io/gmhwb/?view_only=a6c36957ffba4bc39232d9265ea13dd8") %>% osf_download(conflicts = "skip")
+```
+
+## Note on files
+all_dat_1 is main data file;   
+all_dat_3 is file for subset who did retest.  
+
+Columns are the same, except that some columns from all_dat_1 are absent in all_dat_3 (randomiser cols and cols for optional tasks).  
+
+To facilitate processing, we will bolt the two files together by rows, adding a column to indicate which session, and adding a new subject prefix 1 or 3, that allows us to analyse the two sessions separately (as if separate subjects).  
+
+Once this is done we save bothsess_dat.rds as combined file, so we do not need to redo this stepl
+
+NB To match them up use the __Participant.Private.ID__ from session 1 and the __Participant.Public.ID__ from session 3. This is saved as variable *id*.
+
+```{r combine files}
+#Create columns for session and new subject code, as well as common subject code
+if(madeboth==0){ #only need do this when first running script - results will be saved to bothsess_dat.rds and can be read from there
+marksession<-function(myfile,sess,addon){
+#We don't need LocalTimestamp, so will repurpose it to denote session 1 or 3.
+myfile$Local.Timestamp<-sess
+w<-which(colnames(myfile)=='Local.Timestamp')
+colnames(myfile)[w]<-'session'
+
+#We don't need Local.Date, so we'll use it for a subject code that is unique to the session  we just add session number as initial digit
+w<-which(colnames(myfile)=='Local.Date')
+colnames(myfile)[w] <- 'subject'
+myfile$subject<-NA #seem to need to do this to get away from Date format?
+if(sess==3){
+  myfile$subject <- addon+as.numeric(myfile$Participant.Public.ID)
+}
+if(sess==1){
+myfile$subject <- addon+as.numeric(myfile$Participant.Private.ID)
+}
+#Initial DIGIT NOW DENOTES SESSION
+return(myfile)
+}
+
+#Task.Name is different in dat_3, so do some recoding
+all_dat_3$Task.Name<-as.numeric(all_dat_3$Task.Name) #for unknown reason it was a factor
+all_dat_3$Task.Name[all_dat_3$Task.Name==2]<-'Demographics'
+all_dat_3$Task.Name[all_dat_3$Task.Name==3]<-'Edinburgh Handedness Inventory'
+all_dat_3$Task.Name[all_dat_3$Task.Name==4]<-'Grammar Quiz'
+all_dat_3$Task.Name[all_dat_3$Task.Name==5]<-'lexTALE'
+all_dat_3$Task.Name[all_dat_3$Task.Name==6]<-'Porta Test'
+all_dat_3$Task.Name[all_dat_3$Task.Name==7]<-'Rhyme Decision Task'
+all_dat_3$Task.Name[all_dat_3$Task.Name==8]<-'Simple Sequencing Task'
+all_dat_3$Task.Name[all_dat_3$Task.Name==9]<-'Simple Sequencing Midline Task'
+
+all_dat_3$Task.Name[all_dat_3$Task.Name==12]<-'Verbal VHF'
+all_dat_3$Task.Name[all_dat_3$Task.Name==14]<-'Word Comprehension Task'
+
+all_dat_1<-marksession(all_dat_1,1,1e+07)
+all_dat_3<-marksession(all_dat_3,3,3e+07)
+
+#Reuse col for 'repeat.key' to record unique ID _ same number for sess 1 and 3
+w<-which(colnames(all_dat_1)=='Repeat.Key')
+colnames(all_dat_1)[w]<-'ID'
+all_dat_1$ID <-all_dat_1$Participant.Private.ID
+w<-which(colnames(all_dat_3)=='Repeat.Key')
+colnames(all_dat_3)[w]<-'ID'
+all_dat_3$ID <-all_dat_3$Participant.Public.ID
+
+#Looks like one person did not enter code correctly
+w<-which(all_dat_3$ID=="5f50df740cd9d52780816cca")
+if(length(w)>0){ #if this is fixed in base file, won't need this}
+all_dat_3$ID[w]<- 3878982
+all_dat_3$ID<-as.integer(all_dat_3$ID)
+all_dat_3$subject[w]<-33878982
+}
+
+nstart<-nrow(all_dat_1)+1
+nend<-nrow(all_dat_1)+nrow(all_dat_3)
+
+all_dat<-all_dat_1 #just make a copy as starting point
+all_dat[nstart:nend,]<-NA #create blank rows to add session 3
+
+#To be sure everything is aligned, will add session 3 data column by column
+
+for( c in 1:ncol(all_dat)){
+  w<-which(colnames(all_dat_3)==colnames(all_dat)[c])
+  if(length(w)>0){
+    all_dat[nstart:nend,c]<-all_dat_3[,w]
+ }
+}
+
+
+saveRDS(all_dat, file = paste0(datdir,"bothsess_dat.rds"))
+}
+
+```
+
+```{r initialwrangling}
+      all_dat$RT <- as.numeric(all_dat$Reaction.Time)
+      all_dat$Task.Name <- as.factor(all_dat$Task.Name)
+
+```
+
+## Questionnaires
+
+### (1) Demographics
+Questionnaire as follows:
+
+Age (in years)
+
+Gender
+ - Male
+ - Female
+ - Prefer not to say
+ - Other (please specify)
+
+Which is your preferred foot to kick a ball?
+ - Left
+ - Right
+ - No preference
+
+Which is your writing hand?
+ - Left
+ - Right
+ - No preference
+
+Which of these is the highest level of education you have completed?
+ - No formal qualifications
+ - Secondary education (e.g. GED/GCSE)
+ - High school diploma/A-levels
+ - Technical/community college
+ - Undergraduate degree (BA/BSc/other)
+ - Graduate degree (MA/MSc/MPhil/other)
+ - Doctorate degree (PhD/other)
+ - Don't know / not applicable
+
+Do you regard yourself as bilingual?
+ - No
+ - Yes
+
+If you regard yourself as bilingual, please state here what languages you are proficient in. (If you are not bilingual, please do not answer this question).
+
+If you regard yourself as bilingual, how old were you when you first learned English? (If you are not bilingual, please do not answer this question).
+
+Please answer the following questions about handedness in your biological relatives, with regard to writing hand:
+
+Is your mother left-handed?
+ - Yes
+ - No
+ - Don't know
+
+Is your father left-handed?
+ - Yes
+ - No
+ - Don't know
+
+How many biological siblings (brothers and sisters with same parents), above the age of 5 years, do you have, where you know for sure if they are right- or left-handed?
+
+Of those siblings how many are left-handed
+
+
+For each subject, we loop through and write information to a summary file, **allsum**.  Variables will be added to allsum as we progress through the notebook.
+
+```{r demographics, echo=F}
+
+allsub <- unique(all_dat$subject) #list of subjects
+allsub<-allsub[!is.na(allsub)]
+nsub <-length(allsub) 
+allsum <- data.frame(matrix(ncol = 17, nrow = nsub))  # create data frame to write to
+
+
+#where possible code variables numerically
+colnames(allsum) <- 
+  c("subject", "session","ID","age", "male", "Rfooted", "Rhanded", "education", "bilingual", "languages", "AoA.English",
+    "mother.LH", "father.LH", "siblings", "siblings.LH", "centre", "date") #centre is testing location
+
+#select rows with Demographic data . 
+demo_dat <- all_dat[all_dat$Task.Name== "Demographics",]
+
+
+
+educlist <-c('No formal qualifications','Secondary education (e.g. GED/GCSE','High school diploma/A-levels','Technical/community college','Undergraduate degree (BA/BSc/other)','Graduate degree (MA/MSc/MPhil/other)','Doctorate degree (PhD/other)')
+
+genderlist <- c('Female','Male') #other responses treated as NA
+
+for (i in 1:nsub) { # loop through subjects in serial order
+  subname <- allsub[i] # find subject
+ # allsum$subject[i] <-subname # Removed as duplicated below
+  
+  myrows <- which(demo_dat$subject==subname) # select rows for this subject
+  if(length(myrows)>0){ #no rows for session 3, so skip this
+    tmp <- data.frame(demo_dat[myrows,])
+  
+    # start looping through variables
+    allsum$subject[i] <- subname # subject name
+    allsum$ID[i] <- tmp$ID[1]
+    allsum$session[i]<-tmp$session[1]
+    c <- tmp[tmp$Question.Key == "Age",]$Response # subject age
+    #age sometimes entered in yr and mo, so need to correct to just have yrs
+    allsum$age[i] <- as.numeric(substring(c,1,2)) # select 1st 2 digits
+    
+    mf <- tmp[tmp$Question.Key == "Gender",]$Response
+    allsum$male[i] <-  match(mf,genderlist)-1 #code Male =1 , Fem=0
+    
+    allsum$Rfooted[i] <- 1
+    foot<-tmp[tmp$Question.Key == "footedness",]$Response # subject footedness
+    if(foot=='Left'){allsum$Rfooted[i] <-0}
+    if(foot=='No Preference'){allsum$Rfooted[i] <-0}
+    
+    allsum$Rhanded[i] <- 1
+    hand<-tmp[tmp$Question.Key == "categorical_hand",]$Response # 
+    if(hand=='Left'){allsum$Rhanded[i] <-0}
+    if(hand=='No preference'){allsum$Rhanded[i] <-0}
+    
+    educ <- tmp[tmp$Question.Key == "education",]$Response
+    allsum$education[i] <- match(educ,educlist) # subject education as numeric code
+    allsum$bilingual[i] <- tmp[tmp$Question.Key == "bilingual",]$Response # bilingualism
+    allsum$languages[i] <- tmp[tmp$Question.Key == "languages.spoken",]$Response # languages spoken
+    allsum$AoA.English[i] <- tmp[tmp$Question.Key == "AoA.English",]$Response # English AoA
+    allsum$mother.LH[i] <- tmp[tmp$Question.Key == "mother.left.handed",]$Response # Mother handedness
+    allsum$father.LH[i] <- tmp[tmp$Question.Key == "father.left.handed",]$Response # Father handedness
+    allsum$siblings[i] <- tmp[tmp$Question.Key == "sibling.number",]$Response # number of siblings
+    allsum$siblings.LH[i] <- tmp[tmp$Question.Key == "siblings.left.handed",]$Response # sibling handedness
+    allsum$centre[i] <- tmp[tmp$Question.Key == "siblings.left.handed",]$branch.phr3
+    
+    allsum$date[i] <- tmp$UTC.Date[1]
+  }
+}
+
+```
+### Familial sinistrality
+To create an index of familial sinistrality, we need to export the demographics file and do manual coding of free text responses.
+Method is: 
+Corey, D., & Foundas, A. (2010). Measuring familial sinistrality: Problems with dichotomous classification. Laterality, 10(4), 321-335. doi:10.1080/13576500442000111
+This focuses just on family members whose handedness is known; the proportion of those family members who are L handed is computed, with .5 awarded for ambidextrous
+
+### Language learning background
+Some recoding of text responses done. People self-categorised as Bilingual or not; were asked about other languages and about age of acquisition of English. On this basis, Age of Acquisition was coded in years, and a new category of Native English Speaker was added for those whose AoA was zero.
+
+```{r readrecoded, echo=F}
+#Read in manually recoded data on familial sinistrality and bilingualism.
+coded_demog<- read.csv(paste0(datdir,'coded_demog.csv'))
+#ensure both files have cases in same order
+allsum<-allsum[order(allsum$subject),]
+coded_demog<-coded_demog[order(coded_demog$subject),]
+n1<-nrow(coded_demog)
+nall<-nrow(allsum)
+coded_demog[(n1+1):nall,]<-NA #blank rows for session 3
+#before combining, remove the original columns for relative handedness, and AoA, which were coded in mixture of text and numbers
+w<-which(colnames(allsum) %in% c('AoA.English','mother.LH','father.LH','siblings','siblings.LH'))
+
+allsum <- cbind(allsum[,-w],coded_demog[,-1])
+
+# Familial sinistrality data
+allsum$famsin <- round(allsum$NLHrelative/  allsum$Nhandknown,2)
+
+
+```
+
+### (2) Edinburgh Handedness Inventory
+
+Here we score and plot the Edinburgh handedness inventory (Oldfield, 1971) in its short form.  
+For each of 10 items, person responds whether strong RH (1), RH (2), no pref(3), LH (4) or strong LH (5).  
+Scoring involves giving separate totals for L and R hand, with strong = 2 points, and moderate = 1 point. A point awarded to each hand if 'either' checked. Then laterality index computed by usual formula of (R-L)/(R+L).  
+Note we aimed to recruit high proportion L Handers.  Distribution of EHI is plotted in relation to self-reported handedness for writing - options were left/right/no preference (this was part of initial Demographic questionnaire - also asked about footedness for kicking a ball).  
+
+```{r EHI.echo=F}
+
+    # start by selecting the right rows
+    EHI <- all_dat[all_dat$Task.Name== "Edinburgh Handedness Inventory",]
+    # select only responses
+    myitems<-paste0('response-',2:11,'-quantised')
+    #on quantised scale, 1 = R hand strong, 2 = R hand, 3 = no pref, 4 = L  hand, 5 = L hand strong
+    
+    EHI <- EHI[which(EHI$Question.Key %in% myitems),]
+    # reduce data
+    # new data
+    meaningful <- c("subject", "Question.Key", "Response") # select wanted columns
+    c<-which(names(EHI) %in% meaningful) #find col numbers of wanted
+    EHI <-EHI[,c] #remove unwanted columns
+    
+    # score responses according to the original scoring method in Oldfield (1971)
+    EHI$right_hand <- 0
+    EHI$left_hand <- 0
+    for (r in 1:nrow(EHI)) {
+      if(EHI$Response[r] == 1){
+        EHI$right_hand[r]= 2 
+      } else {
+        if(EHI$Response[r] == 2){
+          EHI$right_hand[r]= 1
+        } else {
+          if(EHI$Response[r] == 4){
+            EHI$left_hand[r]= 1
+          } else {
+            if(EHI$Response[r] == 5){
+              EHI$left_hand[r]= 2 
+            } else {
+              (EHI$right_hand[r]= 1) & (EHI$left_hand[r]= 1)
+            }
+          }
+        }
+      }
+    }
+    myag <- aggregate(EHI[,4:5],by=list(EHI$subject),FUN=sum) #hand totals by subject
+    colnames(myag)[1]<-'subject'
+    myag$EHI.LI <- 100*(myag$right_hand-myag$left_hand)/(myag$right_hand+myag$left_hand)
+  
+
+    nsub <-length(levels(myag$subject))
+
+    #NB need to subdivided by session and also check agreement between sessions
+    # merge with allsum - do by rows to check IDs are the same
+    allsum$EHI.LI <- NA #initialise
+    for (i in 1:nrow(allsum)){
+      thissub <- allsum$subject[i]
+      w<-which(myag$subject==thissub)
+      if(length(w)>0){
+     allsum$EHI.LI[i] <- myag$EHI.LI[w]
+      }
+    }
+    par(mfrow=c(2,1))
+    hist(allsum$EHI.LI[allsum$Rhanded==1],breaks=20,xlab='EHI.LI',main='R handers') 
+    hist(allsum$EHI.LI[allsum$Rhanded==0],breaks=20,xlab='EHI.LI',main="L handers")  #Sanity check on data
+ 
+```
+
+### (3) Porta Test of Ocular Dominance
+This is a variant of Miles test: The observer extends one arm, then with both eyes open aligns the thumb or index finger with a distant object. The observer then alternates closing the eyes or slowly draws the thumb/finger back to the head to determine which eye is viewing the object (i.e. the dominant eye).  
+We loop through subjects and append them straight to all_sum.
+
+```{r Porta}
+# start by selecting the right rows
+porta_dat <- filter(all_dat,Task.Name== "Porta Test",Question.Key=='response-2')
+# count and print subjects
+nsub<- nrow(allsum)
+#allsum$eyedness<-NA #This can be removed - not in use
+for (i in 1:nsub) { # loop through subjects
+  subname <- allsum$subject[i] # find subject 
+  portabit <- filter(porta_dat,subject==subname)
+  myrows <- which(porta_dat$subject==subname) # select rows for this subject
+  if(length(myrows)>0){
+  allsum$Reyed[i] <- NA
+  if(portabit$Response =='Right'){allsum$Reyed[i]<-1}
+  if(portabit$Response =='Left'){allsum$Reyed[i]<-0}
+  #many are DK - these coded NA
+  }
+}
+```
+
+### (4) LexTale
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3356522/
+
+The Lexical Test for Advanced Learners of English (LexTALE; Lemhöfer & Broersma, 2012) used to assess level of English vocabulary knowledge. Participants judge the lexical status of 60 letter strings (word or non-word). Forty are real English words and 20 are non-words. To correct for the unequal proportion of words and non-words, LexTALE scores are calculated as ((number of words correct/40 x 100) + (number of nonwords correct/20 x 100))/2). Following the norms provided by Lemhöfer & Broersma, those scoring below 80 will not be eligible for inclusion in the online testing or fTCD.
+
+Now process the LexTALE and append to allsum. 
+
+```{r lexTALE}
+    allsum$lexTALE <- NA #initialise
+
+    # start by selecting the right rows
+    lexTALE <- all_dat[all_dat$Task.Name== "lexTALE",]
+    lexTALE <- lexTALE[which(lexTALE$Attempt == 1),]
+    lexTALE <- lexTALE[which(lexTALE$display == "Task"),]
+    # rename variables
+    lexTALE$accuracy <- lexTALE$Correct
+    lexTALE$condition <- as.factor(lexTALE$ANSWER)
+    levels(lexTALE$condition) <- c("non-word", "word")
+    # create data frame
+    lexTale_score <- data.frame(matrix(ncol = 4, nrow = nsub))
+    colnames(lexTale_score) <- c("subject", "Word", "nonWord", "lexTALE")
+    # start loop
+    
+    for (i in 1:length(allsub)) { # loop through subjects
+      subname <- allsub[i] # find subject 
+      myrows <- which(lexTALE$subject==subname) # select rows for this subject
+      if (length(myrows)>0){
+      tmp <- data.frame(lexTALE[myrows,])
+      
+      # write to lexTALE df.
+      lexTale_score$subject[i] <- subname
+      lexTale_score$Word[i] <- sum(tmp[which(tmp$condition == "word"),]$accuracy)
+      lexTale_score$nonWord[i] <- sum(tmp[which(tmp$condition == "non-word"),]$accuracy)
+      lexTale_score$lexTALE[i] <- ((sum(tmp[tmp$condition == "word",]$accuracy)/40*100) + (sum(tmp[tmp$condition == "non-word",]$accuracy)/20*100)) / 2
+      }
+    
+      # Add result to allsum
+      myrow <- which(allsum$subject==subname) # select rows for this subject
+      allsum$lexTALE[myrow] <- lexTale_score$lexTALE[i]
+      }
+
+    # mark those with lexTALE < 60
+    allsum <- allsum %>% dplyr::mutate(lexExclude= if_else(lexTALE < 60, 1, 0),
+                                lexCode= if_else(lexTALE < 60, "!Excluded", if_else(lexTALE >= 80, "Advanced", "Upper intermediate")))   
+
+
+
+ 
+```
+
+### (5) Grammar Quiz
+
+The Games With Words test (Hartshorne, Tenenbaum, & Pinker, 2018) used to screen participants for adequate understanding of English grammar. The first 8 items involve participants reading a sentence, such as “the dog was chased by the cat”, and deciding which of two pictures presented below the text matches the sentence. The two pictures in this example include a dog chasing a cat and a cat chasing a dog. Items 9-35 are four-alternative forced choice questions where participants select which of four sentences sounds most natural: e.g., (1) “what age are you?”, (2) “How age are you?”, (3) “How old are you?”, and (d) “what old are you?”. To be included as having native English speaker proficiency, participants need to make no more than 3 errors on this test: Hartshorne et al. (2018) reported that most monolingual English-speakers performed close to ceiling and very few made more than 3 errors.
+
+While there are a number of items, only 95 of these 'critical items' in the scoring portion of the supplemental materials. The scoring treats each response option as a separate item - see "grammarScoring.csv" which is taken from Supplementary materials of Hartshorne et al. 
+
+(N.B. Jan 2022: QUERIES ABOUT SOME ITEMS - NOTHING DONE ABOUT THESE EXCEPT WHERE TYPOS INVOLVED. Correspondence with Hartshorne did not elicit any response).  
+one response, 27a, had been omitted; now added to grammarScoring.csv.  
+Item 10 had been mistyped in the original from Hartshorne et al to wrongly give option c as incorrect; this should be option d. Now corrected.
+
+##################################################################################
+Update based on reanalysis of Hartshorne et al data:  
+https://pubpeer.com/publications/65D8CABE6926D45A1A8195C9799F81#2
+
+This showed that more than one error on short form could be used. Here we compute both long and short form errors. In practice, we don't use these - see Registered Report. 
+
+
+```{r Grammar}
+
+    # start by selecting the right rows
+    grammar_dat <- all_dat[all_dat$Task.Name== "Grammar Quiz",]
+    # first, let's gather correctly answered pictures
+    grammar.pics <- grammar_dat[grammar_dat$display== "picture",]
+    grammar.pics <- grammar.pics[grammar.pics$Item!= 4,] #items 4 and 8 are excluded
+    grammar.pics <- grammar.pics[grammar.pics$Item!= 8,]
+    grammar.pics <- grammar.pics[grammar.pics$Correct!= 0,]
+    # now, create a count per picture
+   pic.dat<-aggregate(grammar.pics$Correct,by=list(grammar.pics$subject),FUN=sum)
+   colnames(pic.dat)<-c('subject','score')
+    pic.dat$error <- 6-pic.dat$score
+    pic.dat<-pic.dat[order(pic.dat$subject),]  #ensure in numeric order for later merging
+    # next, we need to crunch the sentence items
+    grammar.general <- dplyr::select(grammar_dat, subject, Item, display, Response, Zone.Type)
+    grammar.general <- grammar.general[grammar.general$display!="picture",]
+    grammar.general <- grammar.general[grammar.general$Zone.Type== "response_button_text",]
+    grammar.general <- grammar.general[!is.na(grammar.general$display),]
+    # add lookup code
+    grammar.general$code <-  paste0(grammar.general$Item,"_",grammar.general$Response)
+    # now load scoring guide (so we don't have to hard code it)
+    grammar.score <- read.csv(paste0(datdir,"grammarScoring.csv"))
+    grammar.score12 <- read.csv(paste0(datdir,"grammarScoringshort.csv")) #short version
+    
+    mygram<-grammar.general[,c(1,2,4)]
+    mygram$code<-paste0(mygram$Item,'_',mygram$Response)
+    mygram$correct <- NA #initialise
+    for (i in 1:nrow(grammar.score)){
+      w<- which (mygram$code==grammar.score$code[i])
+      if(length(w)>0){
+        mygram$correct[w]<-grammar.score$score[i]
+      }
+    }
+    mygram$error<-NA
+    mygram$error[mygram$correct== -1]<-1
+    gramag <- aggregate(mygram$error,by=list(mygram$subject),FUN=sum,na.rm=T)
+    colnames(gramag)<-c('subject','gramerrs')
+    
+    gramag<-gramag[order(gramag$subject),] #ensure in numeric order
+    gramag$picerr<-pic.dat$error
+    gramag$totgramerr <- gramag$gramerrs+gramag$picerr
+    
+    # Add results to allsum
+    allsum$gramerrs <- NA # initialise
+    for (i in 1:length(allsub)){
+      subname <- allsum$subject[i]
+      myrow <- which(allsum$subject==subname) # select rows for this subject
+      mygramrow <- which(gramag$subject==subname)
+      allsum$gramerrs[myrow] <- gramag$totgramerr[mygramrow]
+    }
+    
+  #redo for short form
+    mygram$correct12 <- NA #initialise
+    for (i in 1:nrow(grammar.score12)){
+      w<- which (mygram$code==grammar.score12$code[i])
+      if(length(w)>0){
+        mygram$correct12[w]<-grammar.score12$score[i]
+      }
+    }
+    mygram$error12<-NA
+    mygram$error12[mygram$correct12== -1]<-1
+    gramag12 <- aggregate(mygram$error12,by=list(mygram$subject),FUN=sum,na.rm=T)
+    colnames(gramag12)<-c('subject','gramerr12')
+    
+    # Add results to allsum
+    allsum$gramerr12 <- NA # initialise
+    for (i in 1:length(allsub)){
+      subname <- allsum$subject[i]
+      myrow <- which(allsum$subject==subname) # select rows for this subject
+      mygramrow <- which(gramag12$subject==subname)
+      allsum$gramerr12[myrow] <- gramag12$gramerr12[mygramrow]
+    }
+    
+
+```
+
+## Behavioural tasks
+
+Here we process our laterality tasks. 
+
+### Functions
+
+The following functions are applied to all tasks in the battery.
+
+This is a function that can apply to all tasks; user specifies the original file to start from, the wanted columns, and the specific task to select.
+
+```{r genericprocessing} 
+# This function just returns a subfile with just the necessary rows/cols
+procdata <- function(origfile,wanted,task,disp){
+  nufile <- origfile[origfile$Task.Name==task,] #restrict consideration to this task
+  nufile <- nufile[nufile$display==disp,] #restrict consideration to the correct display
+  c<-which(names(nufile) %in% wanted) #find colnumbers of wanted
+  #NB beware that the columns may not be in the same order as in the wanted list
+  nufile <- nufile[,c]#select only wanted columns
+  nufile <- na.omit(nufile) # remove NAs
+  return(nufile)
+}
+```
+
+The Hoaglin-Iglewicz function is used to remove outliers. We create an 'outlier' column that codes anticipations as 2, and long RT outliers as 1. All else is zero. The original RT is saved as allRT, and the RT column has NA for outliers, so they will be automatically excluded henceforth.
+
+*Outlier* removal put in separate function, which can be applied to different task RTs.
+*Origdat* is the dataframe with data for outlier removal.
+*mycolname* is name of variable.
+*lowcut* is a cutoff value below which data excluded (typically v fast responses that are implausible, e.g. 201 ms for RT) and 
+*zcut* is the constant in Hoaglin-Iglewicz method (usually 2.2).
+
+Here the focus is on just one tail of the distribution (slow RTs) so we use 1.65 as zcut.
+  
+```{r RToutlierfunction}
+detect.outliers <- function(origdat,lowcut,zcut){
+# NB this function returns origdat with outlier rows marked, rather than removed
+# This makes it easier to record the N outliers per subject.
+# NB FUNCTION ASSUMES THAT THERE IS ARE COLUMNS CALLED subject, Correct and RT IN origfile.
+# Outliers are computed by subject - NB contrary to previous version, these are defined
+# across all trials, rather than separately for L and R.
+allsub<-unique(origdat$subject)
+nsub<-length(allsub)
+origdat$allRT <- origdat$RT #we save a copy of RT, as we will be altering RT so that outliers become NA
+origdat$outlier<-0
+origdat$outlier[origdat$RT<lowcut] <- 2 # outlier col is coded 2 for anticipations
+origdat$RT[origdat$RT<lowcut]<-NA #we exclude anticipations when computing quantiles
+#Now extract correct RTs for each subject to compute limits for outliers
+for (i in 1:nsub) { # loop through subjects
+  subname <- allsub[i]# find subject 
+  myrows <- which(origdat$subject==subname) # select rows for this subject
+  #NB myrows is NOT a consecutive series, because done in blocks
+  firstrow <-min(myrows)
+  tmp <- data.frame(origdat[myrows,])
+  RTcorr <-tmp$RT[tmp$Correct==1] #list of correct RTs for this subject as a vector
+  # Identify 25th and 75th quartiles, and the difference between them
+  lower_quartile <- quantile(RTcorr, probs=0.25, na.rm="TRUE")
+  upper_quartile <- quantile(RTcorr, probs=0.75, na.rm="TRUE")
+  quartile_diff <- upper_quartile - lower_quartile
+  # Outliers are defined as being below or above 2.2 times the quartile difference
+  lower_limit <- lower_quartile - zcut*quartile_diff
+  upper_limit <- upper_quartile + zcut*quartile_diff
+  # create outlier variable
+  w1 <- which(origdat$RT[myrows]>upper_limit) #rows with outlier, nb RELATIVE to myrows range
+  origdat$outlier[myrows[w1]]<-1
+  
+}
+#For RT we just remove slow outliers, so ignore lower_limit
+origdat$RT[origdat$outlier>0]<-NA #RT variable now has outliers excluded as NA
+return(origdat)
+}
+```
+
+
+A generic function that can be used for different tasks to make a laterality index and write it to the allsum file.
+
+```{r makeLIs}
+# This function modifies a copy of the allsum file and returns it
+# User selects whether accuracy or RT by specifying col X1 in origdat when calling the function
+# Polarity is -1 or 1 and can be set to keep all LIs positive if in a given direction
+# We will ensure LI is positive if L hem is superior.
+# Cutoff will create NA if level of performance is outside predetermined limits
+makeLI <- function(allsum,origdat,task,mycolname,polarity,mycutoff){
+# we do this for accuracy first
+# reformat data frame so left and right are side by side
+keeps <- c("subject", "side", "X1") #X1 holds either accuracy or RT
+Lsubjectf <- origdat[keeps]
+Lsubjectf <- spread(Lsubjectf, side, X1)
+# calculate each participants' lat index
+Lsubjectf$thisLI <- 100*(Lsubjectf$Right - Lsubjectf$Left)/(Lsubjectf$Right + Lsubjectf$Left)
+Lsubjectf$LI <- Lsubjectf$thisLI*polarity #polarity can be set to reverse sign - eg for RT a large score is bad, whereas for acc it is good, so can have opp polarity
+# check if accuracy or RT level is outside acceptable cutoff.
+# Do this based on average for left and right
+# LI will be set to NA for those outside limits
+Lsubjectf$avg <- (Lsubjectf$Left+Lsubjectf$Right)/2
+w<-which(Lsubjectf$avg<mycutoff)
+if(length(w)>0){
+Lsubjectf$LI[w] <- NA}
+# now create a data frame for lat index 
+Lsubjectf <- dplyr::select(Lsubjectf, "subject", "LI")
+# now merge with allsum
+# First check if this column already exists and delete it if so
+w<-which(colnames(allsum)==mycolname)
+if(length(w)>0){
+allsum<-allsum[,-w]}
+#now add this LI
+allsum <- merge(allsum, Lsubjectf, by= "subject",all.x=T)
+#Need all.x = T to retain all original subjects from allsum, even if no match
+lastcol<-length(colnames(allsum))
+colnames(allsum)[lastcol]<-mycolname
+return(allsum)
+}
+```
+
+Make Z score LI.
+NB this is NOT a conventional z-score based on whole sample, but rather is an individual-based z-score that indicates whether the person's L-R difference is significantly different from chance.
+So you either compare their L-sided RTs and their R-sided RTs, or the proportions correct on L vs proportion correct on R, to see if there is bias away from zero in that individual.
+Note that this in effect adjusts for any overall differences in accuracy and RT, as the person is compared with themselves.
+
+```{r makeZ}
+# This function modifies a copy of the allsum file and returns it
+# User selects the measure by specifying col X1 in origdat when calling the function
+# Polarity is -1 or 1 and can be set to keep all LIs positive if in a given direction
+# Cutoff will create NA if level of performance is outside predetermined limits
+makeZ <- function(allsum,origdat,task,mycolname,polarity,mycutoff){
+# we do this for accuracy first
+# reformat data frame
+keeps <- c("subject", "side", "X1") #X1 holds either accuracy or RT
+Zdf <- origdat[keeps]
+Zdf <- spread(Zdf,key=side, value=X1)
+# calculate each participants' z score for laterality 
+Zdf <- 
+  Zdf %>% 
+  group_by(subject) %>%
+  mutate(n= Left + Right, 
+         pR= Right/n,
+         pL= Left/n,
+         Z= (pR-.5)/sqrt(pR*pL/n))
+# remove infinite results
+is.na(Zdf) <- do.call(cbind,lapply(Zdf, is.infinite))
+Zdf <- na.omit(Zdf)
+Zdf$Z <- Zdf$Z*polarity #polarity can be set to reverse sign - eg for RT a large score is bad, whereas for acc it is good, so can have opp polarity
+# now create a data frame for lat index 
+Zdf <- dplyr::select(Zdf, "subject", "Z")
+# now merge with allsum
+# First check if this column already exists and delete it if so
+w<-which(colnames(allsum)==mycolname)
+if(length(w)>0){
+allsum<-allsum[,-w]} #delete cols that already exist with that name
+allsum <- merge(allsum, Zdf, by= "subject",all.x=T)
+lastcol<-length(colnames(allsum))
+colnames(allsum)[lastcol]<-mycolname
+return(allsum)
+}
+```
+
+  
+```{r processRTdata,echo=F}
+RTprocess<-function(file.in,allsum,colprefix){
+  colnames.out<- c("pcorr","Lmean","Lsd","LN","Rmean","Rsd","RN","LI","se","zlat")
+  #We will add the prefix to these names at the end of this function
+
+  # get overall acc
+  allsum[,colnames.out]<-NA #add the new columns to allsum; need 9 cols, one for p.correct and then mean, sd and N for L then R; then cols for regular LI and zlat.
+  col1<-which(colnames(allsum) ==colnames.out[1]) #find number for first new column
+  
+  accdata <- aggregate(data= file.in, FUN=mean, Correct~ subject)
+
+  #for RTs just use correct responses
+  allcorr<-file.in[file.in$Correct==1,]
+   
+  meanRT <- aggregate(data= allcorr, FUN=mean, na.rm=T,logRT~ subject+Response)
+  sdRT <- aggregate(data= allcorr, FUN=sd, na.rm=T,logRT~ subject+Response)
+  NRT <- aggregate(data= allcorr, FUN=length, logRT~ subject+Response)
+
+  for (i in 1:nrow(allsum)){
+    mysub <- allsum$subject[i]
+     allsum$pcorr[i]<-accdata$Correct[accdata$subject==mysub]
+    allsum$Lmean[i]<-meanRT$logRT[meanRT$Response=='left' & meanRT$subject==mysub]
+    allsum$Lsd[i]<-sdRT$logRT[sdRT$Response=='left' & sdRT$subject==mysub]
+    allsum$LN[i]<-NRT$logRT[NRT$Response=='left' & NRT$subject==mysub]
+    allsum$Rmean[i]<-meanRT$logRT[meanRT$Response=='right' & meanRT$subject==mysub]
+    allsum$Rsd[i]<-sdRT$logRT[sdRT$Response=='right' & sdRT$subject==mysub]
+    allsum$RN[i]<-NRT$logRT[NRT$Response=='right' & NRT$subject==mysub]
+  }
+  
+  
+  allsum$LI <- round(100*(allsum$Lmean-allsum$Rmean)/(allsum$Lmean+allsum$Rmean),1)
+  allsum$se <- sqrt( (1/allsum$LN + 1/allsum$RN) * ((allsum$LN-1)*allsum$Lsd^2 + (allsum$RN)*allsum$Rsd^2)/(allsum$LN+allsum$RN-2) ) 
+allsum$zlat <- (allsum$Lmean-allsum$Rmean)/allsum$se
+
+newcolnames<-paste0(colprefix,'.',colnames.out)
+colnames(allsum)[col1:(col1+length(colnames.out)-1)]<-newcolnames
+return(allsum)   
+}
+```
+
+```{r LIdensityplot,echo=F}
+#generic density plot, subsetted by handedness or another categorical variable
+#includes line showing zero point.
+#takes as input allsum; temp and cattemp are dummy columns that are assigned prior to call to the function
+doLIplot <- function(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange){
+LI.plot <- ggplot(myfile, aes(x=temp, color=as.factor(cattemp))) +
+  geom_density()+
+  xlab(xlabel)+
+  geom_vline(xintercept = 0,lty=3)+
+  xlim(xrange)+
+  scale_color_manual(name=mysubsetname,
+                       labels=mysubsetlabels,
+                       values=c("blue","red"))
+
+
+return(LI.plot)
+}
+```
+### (1) Dichotic listening
+
+This part of the notebook processes the 'Dichotic listening task' implemented online via Gorilla.sc which assesses the lateralisation of receptive language. In the task, participants hear a different CV syllable in each ear. Participants report the syllable they heard clearest.
+
+N.B. We already had test-retest on Dichotic so it was not given in Session 3.
+
+We read in the data and mark whether a trial was correct or incorrect.
+For 'same' trials, we measure % correct, and exclude those who score less than 75% correct: this is the cutoff used by Parker et al (2021).
+
+```{r headphonecheck,echo=F}
+h1<-all_dat[all_dat$Task.Name=="headphone check",]
+h1<-h1[h1$ANSWER %in% c('First','Second','Third'),]
+h1$head1correct <-0
+w<-which(h1$ANSWER==h1$Response)
+h1$head1correct[w]<-1
+h.agg<-aggregate(h1$head1correct,by=list(h1$subject),FUN=sum)
+
+h2<-all_dat[all_dat$Task.Name=="headphone check (2)",]
+h2<-h2[h2$ANSWER %in% c('First','Second','Third'),]
+h2$head2correct <-0
+w<-which(h2$ANSWER==h2$Response)
+h2$head2correct[w]<-1
+h.agg2<-aggregate(h2$head2correct,by=list(h2$subject),FUN=sum)
+
+allsum$head1corr<-NA
+allsum$head2corr<-NA
+
+
+for (i in 1:nrow(allsum)){
+    subj <- allsum$subject[i]
+    w<-which(h.agg$Group.1==subj)
+    if(length(w)>0)
+     {allsum$head1corr[i]<-h.agg$x[w]}
+      w<-which(h.agg2$Group.1==subj)
+    if(length(w)>0){
+     allsum$head2corr[i]<-h.agg2$x[w]
+    }
+}
+allsum$headfail<-0
+w<-which(allsum$head1corr<4)
+allsum$headfail[w]<-1
+w<-which(allsum$head2corr<4)
+allsum$headfail[w]<-1
+  
+#table(allsum$headfail) -not run, confirms all those included here passed headphone check
+
+```
+
+
+```{r read_dichotic_dat, warning=FALSE,echo=F}
+task <- "Dichotic Listening"
+wanted <- c("subject",  "Response", "RT", "left_channel", "right_channel", "Spreadsheet.Name") # select wanted columns
+disp <- "e_task"
+dichotic_all <- procdata(all_dat,wanted,task,disp) #use generic function (see above) to read in relevant columns
+
+# lowercase for responses
+dichotic_all$left_channel <- tolower(dichotic_all$left_channel)
+dichotic_all$right_channel <- tolower(dichotic_all$right_channel)
+
+# make meaningful stimuli name
+ #dichotic_all$stimuli <- paste0(dichotic_all$left_channel, "-", dichotic_all$right_channel)
+
+
+dichotic_all <- dichotic_all[dichotic_all$Response != "AUDIO STARTED" & dichotic_all$Response != "AUDIO PLAY REQUESTED",]
+dichotic_all$CorrectL <- 0 #default is error
+dichotic_all$CorrectR <- 0 #default is error
+dichotic_all$samestim <-0
+w<-which(dichotic_all$Response==dichotic_all$left_channel)
+dichotic_all$CorrectL[w]<-1
+w<-which(dichotic_all$Response==dichotic_all$right_channel)
+dichotic_all$CorrectR[w]<-1
+w<-which(dichotic_all$left_channel==dichotic_all$right_channel)
+dichotic_all$samestim[w]<-1
+
+#Compute proportion correct in 'same' pairs - this is used as exclusion criterion
+samesounds <- dichotic_all[dichotic_all$samestim==1,]
+samecorr<-aggregate(samesounds$CorrectL,by=list(samesounds$subject),FUN=mean)
+colnames(samecorr) <- c('subject','score')
+
+# Add results to allsum
+allsum$DLsame.corr <- NA # initialise
+for (i in 1:length(allsub)){
+  subname <- allsum$subject[i]
+  if (subname < 30000000){# Only for session 1
+    myrow <- which(allsum$subject==subname) # select rows for this subject
+    myDLrow <- which(samecorr$subject==subname)
+    allsum$DLsame.corr[myrow] <- round(samecorr$score[myDLrow], 2)
+  }
+}
+
+# Mark as excluded those with accuracy <75% on correct trials
+allsum$excludeDL<- NA
+w<-which(allsum$DLsame.corr < .75)
+allsum$excludeDL[w]<-1
+w<-which(allsum$DLsame.corr > .749)
+allsum$excludeDL[w]<-0
+print('Exclude from DL')
+table(allsum$excludeDL)
+
+#Now remove 'same' pairs
+dichotic_LR <- dichotic_all[dichotic_all$samestim==0,]
+
+print(paste0('total Error (0) and Correct(1)'))
+print('Left Ear')
+print(table(dichotic_LR$CorrectL))
+print('Right Ear')
+print(table(dichotic_LR$CorrectR)) #confirms more correct on R than L ear overall
+
+
+
+```
+
+Now identify unusually rapid responses or v slow responses using outlier function.
+
+```{r dichotic.outliers}
+dichotic_LR$Correct <- dichotic_LR$CorrectL+dichotic_LR$CorrectR #pick up if either side correct
+dichotic_LR <- detect.outliers(dichotic_LR,200,1.65) #use generic outlier removal function
+outliertable<-table(dichotic_LR$subject,dichotic_LR$outlier)
+outbit<-as.data.frame(cbind(outliertable[,1],outliertable[,2]))
+outbit2<-outbit[outbit$V2>0,]
+colnames(outbit2)<-c('Non-outlier','Outlier')
+print('Subjects with any outliers on dichotic RT')
+outbit2
+
+#new version with outliers removed - this does not remove participants, but it removes trials where responses are very fast or very slow.
+dichotic_LRx <- dichotic_LR[dichotic_LR$outlier==0,]
+print(paste0('total Error (0) and Correct(1) after RT exclusions'))
+print('Left Ear')
+print(table(dichotic_LRx$CorrectL))
+print('Right Ear')
+print(table(dichotic_LRx$CorrectR))
+
+dichotic_LRx_odd <- dichotic_LRx[seq(1,nrow(dichotic_LRx),2),]
+dichotic_LRx_even <- dichotic_LRx[seq(2,nrow(dichotic_LRx),2),]
+
+DL.aggL <- aggregate(dichotic_LRx$CorrectL,by=list(dichotic_LRx$subject),FUN=sum)
+DL.aggR <- aggregate(dichotic_LRx$CorrectR,by=list(dichotic_LRx$subject),FUN=sum)
+DL.aggL.odd <- aggregate(dichotic_LRx_odd$CorrectL,by=list(dichotic_LRx_odd$subject),FUN=sum)
+DL.aggR.odd <- aggregate(dichotic_LRx_odd$CorrectR,by=list(dichotic_LRx_odd$subject),FUN=sum)
+DL.aggL.even <- aggregate(dichotic_LRx_even$CorrectL,by=list(dichotic_LRx_even$subject),FUN=sum)
+DL.aggR.even <- aggregate(dichotic_LRx_even$CorrectR,by=list(dichotic_LRx_even$subject),FUN=sum)
+ncases <- nrow(DL.aggL)
+allsum$DL.odd.R<-allsum$DL.even.R<-allsum$DL.odd.L<-allsum$DL.even.L<-allsum$DL.R <- allsum$DL.L <- NA #initialise columns
+for(i in 1:ncases){  #doing row by row to ensure properly aligned
+  mysub<-DL.aggL$Group.1[i]
+  w<-which(allsum$subject==mysub)
+  allsum$DL.L[w] <- DL.aggL[i,2]
+   allsum$DL.R[w] <- DL.aggR[i,2]
+  allsum$DL.odd.R[w] <- DL.aggR.odd[i,2]
+   allsum$DL.odd.L[w] <- DL.aggL.odd[i,2]
+  allsum$DL.even.R[w] <- DL.aggR.even[i,2]
+   allsum$DL.even.L[w] <- DL.aggL.even[i,2]
+ 
+}
+```
+
+
+Make traditional LI.
+
+Where LI = (R_ear_score - L_ear_score) / (R_ear_score + L_ear_score)
+
+POSITIVE LIs indicate better scores in Right ear (i.e., left hemisphere dominance)
+NEGATIVE LIs indicate better scores in Left ear (i.e., right hemisphere dominance)
+
+```{r makeLI_DL}
+allsum$DL.LI <-round(100*(allsum$DL.R-allsum$DL.L)/(allsum$DL.R+allsum$DL.L),1)
+allsum$DL.odd.LI<-round(100*(allsum$DL.odd.R-allsum$DL.odd.L)/(allsum$DL.odd.R+allsum$DL.odd.L),1)
+allsum$DL.even.LI<-round(100*(allsum$DL.even.R-allsum$DL.even.L)/(allsum$DL.even.R+allsum$DL.even.L),1)
+
+#Use generic density plot function to show distribution of L and R handers
+#allsum$temp<-allsum$DL.LI #ZW: moved these columns into myfile
+#allsum$cattemp<-allsum$Rhanded
+myfile <- filter(allsum,allsum$excludeDL==0,gramerr12<2,lexExclude==0)
+myfile$temp<-myfile$DL.LI
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Dichotic Listening LI'
+xrange<-c(-100,100)
+DL.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+DL.LI.plot
+
+#look at odd even agreement
+mycor=cor.test(myfile$DL.odd.LI,myfile$DL.even.LI)
+mycor
+plot(myfile$DL.odd.LI,myfile$DL.even.LI,col=(1+myfile$Rhanded))
+legend('bottomright', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-70, y=70, labels = paste0('R = ', round(mycor$estimate,3)))
+
+```
+
+Here the Z score LI is computed. This is an individualized score that directly indicates whether or not the person is reliably lateralised on one test occasion.
+
+```{r domakeZ_DL}
+#This chunk modified 6 Feb 2022 to include computation of zlat for odd and even.
+#Also changed the value to censor scores at to 10, as this is used in later analysis to avoid extreme values.
+for (i in 1:3){
+  cR <- which(colnames(allsum)=='DL.R')
+  cL <- which(colnames(allsum)=='DL.L')
+  if (i==1){
+  cR <- which(colnames(allsum)=='DL.odd.R')
+  cL <- which(colnames(allsum)=='DL.odd.L')
+  }
+    if (i==2){
+  cR <- which(colnames(allsum)=='DL.even.R')
+  cL <- which(colnames(allsum)=='DL.even.L')
+  }
+allsum$DL.n <- allsum[,cR]+allsum[,cL] # Total number of correct DL trials
+allsum$DL.zlat <- ((allsum[,cR]/allsum$DL.n)-.5)/sqrt((allsum[,cR]/allsum$DL.n)*(allsum[,cL]/allsum$DL.n)/allsum$DL.n)
+w<-which(allsum$DL.zlat>10)
+allsum$DL.zlat[w]<-10 #set ceiling value to 10
+w<-which(allsum$DL.zlat< -10)
+allsum$DL.zlat[w]<- -10 #set floor value to -10
+nc <- which(colnames(allsum)=='DL.n')
+if (i==1){
+  colnames(allsum)[nc:(nc+1)]<-c('DL.odd.n','DL.odd.zlat')
+}
+if (i==2){
+  colnames(allsum)[nc:(nc+1)]<-c('DL.even.n','DL.even.zlat')
+}
+#if i is 3 we have value based on all the trials, so name is retained
+}
+
+#Use generic density sum plot
+
+myfile <- filter(allsum,allsum$excludeDL==0,gramerr12<2,lexExclude==0)
+myfile$temp<-myfile$DL.zlat
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Dichotic Listening z.LI'
+xrange<-c(-10,10) #x axis truncated - a few values go way out to extremes
+
+DL.LIz.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+DL.LIz.plot <- DL.LIz.plot +
+  geom_vline(xintercept = -1.65,lty=2,col='grey')+
+  geom_vline(xintercept = 1.65,lty=2,col='grey')+
+  annotate("text", x=-6, y=.18, label="Scores less than -1.65\n or greater than 1.65 \nare significantly lateralised")
+DL.LIz.plot
+
+cor.test(allsum$DL.zlat,allsum$DL.LI)#check agreement between 2 methods of computing laterality
+```
+
+### (2) Rhyme Decision Task
+
+The 'Rhyme Decision Task' implemented online via Gorilla.sc, is a new task devised for this project that is designed to assess laterality of language production. This was developed from a previous version reported in Parker et al (2021). 
+The current version involves participants judging which of two parafoveal images rhyme with a foveally presented word. The laterality index from the original task had test-retest reliability of r = .63, and the overall lateralisation effect, though significant, was small. We have modified the task from the original with the aim of improving its psychometric properties: first, we removed trials in which neither of the pictures rhymed with the target word, as these were potentially confusing. Second, we increased the distance between the centrally presented word and parafoveal images, to ensure the image is projected exclusively, at least initially, to the contralateral hemisphere.  
+The logic of the task is that to perform one must generate the phonology of a pictured word's name, which is a classic left-hemisphere task - it is assumed this will be easier for pictures that are projected directly to the left hemisphere (ie RVF). 
+
+We start by reading the data and cutting out unwanted information. Here we are including item-specific information as it may be used for later analysis.
+
+```{r read_dat_RDT, warning=FALSE,echo=F}
+
+  task <- "Rhyme Decision Task"
+  disp <- "Task"
+  # new data
+  wanted <- c("Trial","subject", "Participant.Private.ID", "Correct","Local.Timestamp", "RT", "ANSWER","Response","word","Left_image","Right_image", "Spreadsheet.Name") # select wanted columns
+
+  RDT_dat <- procdata(all_dat,wanted,task,disp) #Here we reuse the procdata function - just does some generic processing
+  RDT_dat$word <- str_sub(RDT_dat$word,66,69) # Removes unneccesary characters from word string
+  
+    #occasional trials where Response shows 'Could not set screen ...' These were coded as errors, so need removing
+  s <- "Could not set image to requested size.  Either the participants screen or the containing zone is too small."
+  w<-which (RDT_dat$Response==s)
+  #Remove these trials
+  RDT_dat <- RDT_dat[-w,]
+  
+```
+
+Now use generic function to remove outliers.
+
+```{r rdt_outliers}
+# NB calls the detect.outliers function, which returns origdat with RT outlier rows marked, rather than removed
+# This makes it easier to record the N outliers per subject.
+# NB FUNCTION ASSUMES THAT THERE IS ARE COLUMNS CALLED subject, Correct and RT IN origfile.
+# Outliers are computed by subject
+  RDT_dat$RT <- as.numeric(RDT_dat$RT)
+  RDT_dat<-detect.outliers(RDT_dat,200,1.65) #numbers specify min RT and zscore for Hoaglin-Iglewicz respectively
+  outliertable<-table(RDT_dat$subject,RDT_dat$outlier)
+  
+  #remove outliers
+  w<-which(RDT_dat$outlier>0)
+  RDT_dat <- RDT_dat[-w,]
+  
+```
+  
+  
+```{r processRT_RDT,echo=F}
+  RDT_dat$logRT<-log(RDT_dat$RT) #new step to use logs as in prereg.
+  allsum <- RTprocess(RDT_dat,allsum,'RDT')
+  allsum$excludeRDT<-0
+  allsum$excludeRDT[allsum$RDT.pcorr<.75]<-1 # Exclude people with less than 75% correct on this task
+ 
+  # Also calculate odd and even accuracy for split half reliability
+  allsum <- RTprocess(RDT_dat[seq(1,nrow(RDT_dat),2),],allsum,'RDT.odd')
+  allsum <- RTprocess(RDT_dat[seq(2,nrow(RDT_dat),2),],allsum,'RDT.even')
+  
+ 
+```
+
+```{r RDT.LI.plot,echo=F}
+ #Use generic density sum plot
+
+myfile <- filter(allsum,allsum$excludeRDT==0,gramerr12<2,lexExclude==0)
+myfile$temp<-myfile$RDT.LI
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Rhyme Judgement.LI'
+xrange<-c(-10,10)
+
+RDT.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+RDT.LI.plot
+
+ #Use generic density sum plot for zlat
+
+myfile <- filter(allsum,allsum$excludeRDT==0,gramerr12<2,lexExclude==0,session==1)
+myfile$temp<-myfile$RDT.zlat
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Rhyme Judgement z.LI'
+xrange<-c(-10,10) 
+
+RDT.LIz.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+RDT.LIz.plot <- RDT.LIz.plot +
+  geom_vline(xintercept = -1.65,lty=2,col='grey')+
+  geom_vline(xintercept = 1.65,lty=2,col='grey')+
+  annotate("text", x=-6, y=.18, label="Scores less than -1.65\n or greater than 1.65 \nare significantly lateralised")
+RDT.LIz.plot
+
+
+#Now compare odds and evens
+mycor <- cor.test(myfile$RDT.odd.LI,myfile$RDT.even.LI)
+mycor
+plot(myfile$RDT.odd.LI,myfile$RDT.even.LI,col=(1+myfile$Rhanded))
+legend('bottomright', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-10, y=10, labels = paste0('R = ', round(mycor$estimate,3)))
+
+mycor <- cor.test(myfile$RDT.odd.zlat,myfile$RDT.even.zlat)
+mycor
+plot(myfile$RDT.odd.zlat,myfile$RDT.even.zlat,col=(1+myfile$Rhanded))
+legend('topleft', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-5, y=2, labels = paste0('R = ', round(mycor$estimate,3)))
+
+```
+
+
+### (3) Word Comprehension
+
+THis task involves hearing a spoken word while viewing 2 pictures, one to left and one to right of a fixation point. Task is simply to select the named picture. The items in the pictures are semantically related but easy to discriminate.
+
+```{r read_WC, warning=FALSE}
+  # choose task
+  task <- "Word Comprehension Task"
+
+  # filter the data and remove audio starting
+  myfile <- all_dat[all_dat$Task.Name == task, ]
+  myfile <- myfile[myfile$Response!= "Could not set image to requested size. Either the participants screen or the containing zone is too small.", ]
+  myfile <- myfile[myfile$Response!= "AUDIO STARTED",]
+  myfile <- myfile[myfile$Response!= "AUDIO PLAY REQUESTED",]
+  # choose columns
+  wanted <- c(c("subject", "Correct", "RT", "ANSWER","Response","sound","image1","image2")) 
+  # choose display
+  disp <- "Trial"
+
+  # make data
+  WC_all <- procdata(myfile,wanted,task,disp) #use generic function (see above) to read in relevant columns
+ 
+  colnames(WC_all)[1] <- "subject"
+
+ 
+```
+
+Now use generic function to remove outliers.
+
+```{r WC_outliers}
+
+  WC_dat<-detect.outliers(WC_all,200,1.65) #numbers specify min RT and zscore for Hoaglin-Iglewicz respectively
+  outliertable<-table(WC_dat$subject,WC_dat$outlier)
+    
+  # get overall acc
+  WC_acc <- aggregate(data= WC_dat, FUN=mean, Correct~ subject)
+  colnames(WC_acc)<-c("subject", "WC_pCorr")
+  # Add results to allsum
+  allsum <- merge(allsum,WC_acc,by="subject")
+  # Exclude participants with less than 75% correct
+  allsum$excludeWC <-0
+  allsum$excludeWC[allsum$WC_pCorr<.75]<-1
+  
+```
+
+Now we summarise for LI computation.
+
+```{r makelat_WC}
+# Process RT results
+WC_dat$logRT<-log(WC_dat$RT)
+  allsum <- RTprocess(WC_dat,allsum,'WC')
+# Also compute odd and even results for split half reliability
+  allsum <- RTprocess(WC_dat[seq(1,nrow(WC_dat),2),],allsum,'WC.odd')
+  allsum <- RTprocess(WC_dat[seq(2,nrow(WC_dat),2),],allsum,'WC.even')
+ 
+ #Use generic density sum plot
+myfile <- filter(allsum,allsum$excludeWC==0,gramerr12<2,lexExclude==0) #Ignore excluded participants
+myfile$temp<-myfile$WC.LI
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Word Comprehension.LI'
+xrange<-c(-10,10)
+
+WC.LI.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+WC.LI.plot
+
+#Now compare odds and evens
+mycor <- cor.test(myfile$WC.odd.LI,myfile$WC.even.LI)
+mycor
+plot(myfile$WC.odd.LI,myfile$WC.even.LI,col=(1+myfile$Rhanded))
+legend('topleft', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-8, y=3, labels = paste0('R = ', round(mycor$estimate,3)))
+
+#Use generic density sum plot for zlat
+
+myfile <- filter(allsum,allsum$excludeWC==0,gramerr12<2,lexExclude==0,session==1)
+myfile$temp<-myfile$WC.zlat
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Word Comprehension z.LI'
+xrange<-c(-10,10) 
+
+WC.LIz.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+WC.LIz.plot <- WC.LIz.plot +
+  geom_vline(xintercept = -1.65,lty=2,col='grey')+
+  geom_vline(xintercept = 1.65,lty=2,col='grey')+
+  annotate("text", x=-6, y=.18, label="Scores less than -1.65\n or greater than 1.65 \nare significantly lateralised")
+WC.LIz.plot
+
+#Now compare odds and evens
+mycor <- cor.test(myfile$WC.odd.zlat,myfile$WC.even.zlat)
+mycor
+plot(myfile$WC.odd.zlat,myfile$WC.even.zlat,col=(1+myfile$Rhanded))
+legend('topleft', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-6, y=2, labels = paste0('R = ', round(mycor$estimate,3)))
+```
+
+
+ 
+
+
+
+
+
+## Additional tasks
+
+Here we process the chimeric faces and colour scales. These are specific to the Bangor team and are not included in the Registered Report.  
+
+### (1) Colour Scales
+
+Here we score and assess the relibility of the colour scales task. First thing to do is read the data and mark the right or left bias associated with the response. 
+
+Once the data is ready, just get a count for LI calculation. 
+
+```{r read_scales_dat, warning=FALSE,echo=F}
+  task <- "Colour Scales"
+  myfile <- all_dat[all_dat$Task.Name == task, ]
+  myfile <- subset(myfile, Response!= "Could not set image to requested size. Either the participants screen or the containing zone is too small.")
+  
+  wanted <- c("subject","Response", "RT", "top_bias", "bottom_bias") # select wanted columns
+  disp <- "Task"
+  scales_all <- procdata(myfile,wanted,task,disp) #use generic function (see above) to read in relevant columns
+  # now mark response as a left or right bias
+  scales_all <- scales_all %>% 
+    mutate(side = if_else(Response== "Top", top_bias, bottom_bias))
+  # generate smaller df
+  # DB - had trouble with 'count' function - possibly a clash?
+  scales_df <- scales_all %>% dplyr::count(subject, side)
+
+
+```
+
+Add the raw counts to allsum.
+
+```{r add.colourScales.raw}
+
+  CSdatL<-dplyr::select(filter(scales_df,side=='left'),subject,n)
+  CSdatR<-dplyr::select(filter(scales_df,side=='right'),subject,n)
+  #Add to allsum
+  allsum <- merge(allsum,CSdatL,by="subject",all=TRUE)
+  allsum <- merge(allsum,CSdatR,by="subject",all=TRUE)
+  myn <-ncol(allsum)
+  colnames(allsum)[(myn-1):myn] <- c('colourScales.L','colourScales.R')
+
+```
+
+Here we make the Z score and LI version. 
+
+```{r domakeZ_scales}
+
+  # code as left or right usings caps for later function
+  scales_df <- scales_df %>% 
+    mutate(side = if_else(side== "left", "Left", "Right"))
+  #We add colour scales
+  origdat<-scales_df
+  origdat$X1 <- origdat$n
+  mycolname<-"colourScales.LI"
+  mycutoff <- 0 #NB! need to check against prereg. I think this is N correct, rather than percentage. People with avg scores below this value will be excluded.
+  polarity<- (1)#so LI is positive if L
+  mycolname<-"colourScales_zlat"
+  allsum <- makeZ(allsum,origdat,task,mycolname,polarity,mycutoff)
+  
+    #Use generic density sum plot for zlat
+
+myfile <- filter(allsum,gramerr12<2,lexExclude==0,session==1)
+myfile$temp<-myfile$colourScales_zlat
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Colour Scales z.LI'
+xrange<-c(-10,10) 
+
+CS.LIz.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+CS.LIz.plot <- CS.LIz.plot +
+  geom_vline(xintercept = -1.65,lty=2,col='grey')+
+  geom_vline(xintercept = 1.65,lty=2,col='grey')+
+  annotate("text", x=-6, y=.18, label="Scores less than -1.65\n or greater than 1.65 \nare significantly lateralised")
+CS.LIz.plot
+
+
+```
+
+### (2) Chimeric faces
+
+This part of the notebook processes the "Chimeric Face Task' implmented online via Gorilla.sc which aims to assess the lateralisation of emotion recognition in a face processing task. In the task, participants are shown a chimeric face. Participants then respond by indicating the emotion that they felt was most strong expressed. 
+
+```{r read_face_dat, warning=FALSE}
+task <- "Chimeric faces"
+myfile <- all_dat[all_dat$Task.Name== task,]
+myfile <- subset(myfile, Response!= "Could not set image to requested size. Either the participants screen or the containing zone is too small.")
+
+  
+wanted <- c("subject", "stimuli", "Response", "RT", "l_hemiface", "r_hemiface","Correct") # select wanted columns - nb added Correct here
+disp <- "e_Task"
+CF_dat_all <- procdata(myfile,wanted,task,disp) #use generic function (see above) to read in relevant columns
+
+#Before detecting outliers need to add a column indicating if response was correct. Although we read in 'Correct' it is not accurate!
+w<-union(which(CF_dat_all$Response==CF_dat_all$l_hemiface),which(CF_dat_all$Response==CF_dat_all$r_hemiface))
+CF_dat_all$Correct[w]<-1
+  
+  
+# count subjects
+nsub <-length(unique(CF_dat_all$subject)) #previously we used the ID code and had to count levels of the factor; now with numbers we just use unique
+# now create data frames for same and different emotion hemifaces
+CF_same <- CF_dat_all[CF_dat_all$l_hemiface == CF_dat_all$r_hemiface,] # create data frame for non-chimeras
+CF_dat <- CF_dat_all[CF_dat_all$l_hemiface != CF_dat_all$r_hemiface,] # create df for chimeras: remove items where same expression in both hemifaces
+
+```
+
+Determine outliers.
+
+```{r CFoutliers}
+
+  CF_dat <- detect.outliers(CF_dat,200,1.65) #use generic outlier detection function. 
+  outliertable<-table(CF_dat$subject,CF_dat$outlier)
+  CF_dat <- CF_dat[CF_dat$outlier==0,]
+
+```
+
+First, we judge participants' ability to correctly identify emotions using the "CF_same" data frame. Participants are flagged if their performance is below 75% as this indicates poor ability to identify emotions, which will inevitably influence performance on the Chimeric Face Task.
+
+```{r emotions, warning=FALSE,message=FALSE}
+
+  # this will mark correct responses as 1 or 0. It will be important for removing participants later on. 
+  # NB we loop through same process for day1 and day2
+  # calculate participants average
+  #update: do this for chimeric as well as Same trials
+  emot_corr_Same <- aggregate(FUN= mean, data= CF_same, Correct~ subject)
+  # add this to allsum 
+  colnames(emot_corr_Same)[2]<-'Emot_corr_same'
+  allsum <- merge(allsum, emot_corr_Same, by= "subject", all = TRUE)
+  CF_diff <- CF_dat
+  emot_corr_Diff <- aggregate(FUN= mean, data= CF_diff, Correct~ subject)
+  # add this to allsum 
+  colnames(emot_corr_Diff)[2]<-'Emot_corr_diff'
+  allsum <- merge(allsum, emot_corr_Diff, by= "subject",all=TRUE)
+  
+  w<-which(colnames(allsum) %in% c("Emot.corr.same","Emot.corr.diff"))
+  if (length(w)>0){
+    allsum<-allsum[,-w] #remove any columns already created with these names
+  }
+
+```
+
+```{r excludelowCFacc}
+
+  #db modified to mark rather than drop cases with scores < .75
+  allsum$exCF <- 0 #default is to include
+  # mark the cases where there is less than 75% for identical stimuli
+  #w <- union(which(allsum$Emot.corr.same1 < .75),which(allsum$Emot.corr.same2 < .75)) #ZW modified because these columns don't exist
+w <- which(allsum$Emot_corr_same < .75)
+  allsum$exCF[w]<-1 #code exclude = 1 if excluded because poor emot recog
+  w <- which(allsum$Emot.corr.diff1 ==0) #also exclude if no correct response on one side
+  allsum$exCF[w]<-2 #code exclude = 2 if excluded because no response one side
+
+```
+
+In this section, we mark whether the correct answers were in the left or right hemiface. 
+
+```{r mark_face_correct_face, warning=FALSE}
+
+# this will mark the side responded to. NB to allow for generic functions for all tasks, we use the label 'side' rather than hemiface
+CF_dat <- 
+    CF_dat %>% 
+    mutate(side= ifelse(as.character(Response) == as.character(l_hemiface) & Correct == 1, "Left",
+                         ifelse(as.character(Response) == as.character(r_hemiface) & Correct == 1, "Right", NA)))
+#Added coding of 'X' for responses of emotion not shown in either side
+CF_dat$side[which(is.na(CF_dat$side))] <- 'X'
+# code side as factor
+CF_dat$side <- as.factor(CF_dat$side)
+
+```
+
+Now the data is ready, create an empty data frame and populate this. It includes columns for the participant identifier, side, and count of accurate responses for each side.
+
+```{r makedataframe, warning=F}
+
+#We create chim_dat files for day1 and day 2
+varlist <-   c("subject", "side", "accurate", "RT") #need to be in this order, ie sub, side, acc and RR
+latlist <- c("Left","Right") #names of factor levels
+nloop=2 #same as levels of latlist
+# chuck out those who didn't complete
+CF_dat$subject <- factor(CF_dat$subject)
+origdat <- CF_dat
+# Rename 'Correct' column 'accurate' so the function works correctly
+w <- which(colnames(origdat) == 'Correct')
+colnames(origdat)[w] <- 'accurate'
+# chim_dat <- make.df(origdat,varlist,latlist,nloop) #ZW this is not working
+
+chim_dat <- data.frame(matrix(ncol = 4, nrow = nsub*nloop))
+colnames(chim_dat) <- varlist
+myrow <- 0 # start row counter
+ss <- as.character(unique(origdat$subject))
+for (i in 1:nsub) { # loop through subjects; nb ss is a list, so i take value of subs
+  subname <- ss[i] # find subject 
+  myrows <- which(origdat$subject==subname) # select rows for this subject
+  latcol <- which(colnames(origdat) == varlist[2])
+  RTcol <- which(colnames(origdat) == varlist[4])
+  tmp <- data.frame(origdat[myrows,]) #all trials from this subject
+  for (j in 1:nloop) { #make row for means for each side for this subject
+    myrow <- myrow+1
+    w<- which(tmp[,latcol]== latlist[j]) # match on laterality
+    tmp1 <- tmp[w,]
+    tmp2 <- tmp1[tmp1$accurate == 1,]
+    chim_dat$subject[myrow] <- subname # add row for subject
+    chim_dat$side[myrow] <- latlist[j] # add row for sIDe
+    chim_dat$accurate[myrow] <- sum(tmp1$accurate,na.rm=TRUE) # add row for N accurate response
+    chim_dat$p.corr[myrow] <- 100*mean(tmp1$accurate,na.rm=TRUE) # add row for %accurate responses - NB for chimeric only error is wrong emotion - measure is just a measure of choice. For dichotic, error is wrong sound - again, measure is just choice. For RDT, can make error of selecting wrong side, so % correct is meaningful
+    chim_dat$RT[myrow] <- mean(as.numeric(tmp2$RT),na.rm=TRUE) # add row for mean RT
+    #NB for RDT task, also looked at medians, but it did not make much difference, presumably because v slow responses already omitted via outlier routine
+    chim_dat$N[myrow] <- length(tmp1$RT) # add count of rows for this subject
+  }
+}
+chim_dat$subject <- as.factor(chim_dat$subject)
+  
+```
+
+```{r addCF}
+
+  # include raw accuracy L and R in the allsum dataframe
+  chimdatL<-dplyr::select(filter(chim_dat,side=='Left'),subject,accurate)
+  colnames(chimdatL)[which(colnames(chimdatL) == 'accurate')] <- 'CF.L'
+  chimdatR<-dplyr::select(filter(chim_dat,side=='Right'),subject,accurate)
+  colnames(chimdatR)[which(colnames(chimdatR) == 'accurate')] <- 'CF.R'
+  # add to allsum
+  allsum <- merge(allsum,chimdatL,by="subject",all=TRUE)
+  allsum <- merge(allsum,chimdatR,by="subject",all=TRUE)
+
+```
+
+Next, a laterality index is calculated and plotted based on the equation [(L-R)/(R+L)] x 100, where L= left hemisphere (right side of faces) and R= right hemisphere (left side of faces).
+
+If the index is negative, emotion recognition is lateralised in the right hemisphere (i.e. better for the left side of faces). 
+If the index is positive, emotion recognition is lateralised in the left hemisphere (i.e. better for the left side of faces)
+
+Here, a .csv is written for the chimeric face LI.
+
+```{r domakeLI}
+
+  #We add Chimeric faces LIs to allsum for day 1 and then day2
+  task<-'Chimeric faces'
+  origdat<-chim_dat
+  origdat$X1 <- origdat$accurate
+  mycolname<-"CF.LI"
+  mycutoff <- 0 #NB! need to check against prereg. I think this is N correct, rather than percentage. People with avg scores below this value will be excluded.
+  polarity<- (1)#so LI is positive in predicted direction
+  allsum <- makeLI(allsum,origdat,task,mycolname,polarity,mycutoff)
+
+```
+
+Here we use the Z score version. This computes for each subject whether they have a different proportion correct for L and R
+
+```{r domakeZ}
+
+  #We add Chimeric faces LIs to allsum for day 1 and then day2
+  task<-'Chimeric faces'
+  origdat<-chim_dat
+  origdat$X1 <- origdat$N
+  mycolname<-"CF.zlat"
+  mycutoff <- 10 #NB! need to check against prereg. I think this is N correct, rather than percentage. People with avg scores below this value will be excluded.
+  polarity<- (1)#so LI is positive in predicted direction
+  allsum <- makeZ(allsum,origdat,task,mycolname,polarity,mycutoff)
+
+  
+  #Use generic density sum plot for zlat
+
+myfile <- filter(allsum,allsum$exCF==0,gramerr12<2,lexExclude==0,session==1)
+myfile$temp<-myfile$CF.zlat
+myfile$cattemp<-myfile$Rhanded
+mytab<- table(myfile$cattemp)
+mysubsetname<-'Handedness'
+mysubsetlabels<-c(paste('Left\nN=',mytab[1]),paste('Right\nN=',mytab[2]))
+xlabel <-'Chimeric faces z.LI'
+xrange<-c(-10,10) 
+
+CF.LIz.plot <- doLIplot(myfile,temp,cattemp,mysubsetname,mysubsetlabels,xlabel,xrange)
+CF.LIz.plot <- CF.LIz.plot +
+  geom_vline(xintercept = -1.65,lty=2,col='grey')+
+  geom_vline(xintercept = 1.65,lty=2,col='grey')+
+  annotate("text", x=-6, y=.18, label="Scores less than -1.65\n or greater than 1.65 \nare significantly lateralised")
+CF.LIz.plot
+```
+
+
+
+
+# Retest element 
+
+A subset of around 50 participants were invited to repeat the online tasks at session 3 to allow us to establish test-retest reliability.
+
+
+```{r lineupsessions,echo=F}
+#First ensure subjects are in numeric order
+allsum<-allsum[order(allsum$subject),]
+sess1<-allsum[allsum$session==1,]
+sess3<-allsum[allsum$session==3,]
+subs3<-sess3$ID
+sess1<-sess1[sess1$ID %in% subs3,]
+#Ns are not the same! do backward check for subject with missing data at time 1
+subs1<-sess1$ID
+sess3<-sess3[sess3$ID %in% subs1,]
+
+#We can now compute test-retest reliability on all variables
+
+excludeallRDT<-union(which(sess1$excludeRDT==1),which(sess3$excludeRDT==1))
+
+mycor <- cor.test(sess1$RDT.zlat[-excludeallRDT],sess3$RDT.zlat[-excludeallRDT])
+plot(sess1$RDT.zlat[-excludeallRDT],sess3$RDT.zlat[-excludeallRDT],col=as.factor(sess1$Rhanded[-excludeallRDT]))
+legend('topleft', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-2, y=3, labels = paste0('R = ', round(mycor$estimate,3)))
+
+
+excludeallWC<-union(which(sess1$excludeWC==1),which(sess3$excludeWC==1))
+#as it turns out, none of those in retest session were excluded, so we ignore this
+mycor <- cor.test(sess1$WC.zlat,sess3$WC.zlat)
+plot(sess1$WC.zlat,sess3$WC.zlat,col=as.factor(sess1$Rhanded))
+legend('topleft', legend = c('Left Handed','Right Handed'), col = 1:2, pch = 1)
+abline(h=0)
+abline(v=0)
+text(x=-6, y=1, labels = paste0('R = ', round(mycor$estimate,3)))
+
+#NB Dichotic listening, colourScales and Chimeric faces were not done in sess 3.
+
+writedir<-paste0(mydir,"/02-data/02.1_gorilla/")
+write.csv(sess1,paste0(writedir,'sess1.csv'),row.names=F)
+write.csv(sess3,paste0(writedir,'sess3.csv'),row.names=F)
+```
+
+```{r writeallsum,echo=F}
+writedir <- datdir
+write.csv(allsum,paste0(writedir,'allsum.csv'),row.names=F)
+
+```
+
+
+
+Now bolting on the Doppler data.
+A. Word Generation.
+B. Sentence Generation. 
+C. Phonological Decision. 
+D. Word Comprehension.
+E. Sentence Comprehension.
+F. Syntactic Decision.
+
+```{r read.and.combine,echo=F}
+#This chunk redone line by line to ensure we do have the file correctly aligned.
+allsum<-read.csv(paste0(datdir,"allsum.csv"))
+
+combsum <-allsum[allsum$session==1,]
+dopsum <- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data.csv")
+dopsumorig<- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data_origbaseline.csv") #create alternative combined dataset with original baseline for supplement
+colnames(dopsum)[1]<-'IDdop'
+
+nucols<-colnames(dopsum)
+combsum[,nucols]<-NA
+for (i in 1:nrow(combsum)){
+  w<-which(dopsum$ID==combsum$ID[i])
+  if(length(w)>0){
+    combsum[i,nucols]<-dopsum[w,nucols]
+  }
+    
+}
+
+colnames(dopsumorig)[1]<-'IDdop'
+combsumo<-combsum 
+nucols<-colnames(dopsumorig)
+combsumo[,nucols]<-NA
+for (i in 1:nrow(combsumo)){
+  w<-which(dopsumorig$ID==combsumo$ID[i])
+  if(length(w)>0){
+    combsumo[i,nucols]<-dopsumorig[w,nucols]
+  }
+    
+}
+
+#original merge command - gives same result
+#combsum <-merge(combsum, dopsum, by= "ID",all.x=T)
+
+```
+
+
+Check exclusions
+
+```{r checkexclude,echo=F}
+
+#for each laterality measure, create a duplicate column where excluded on that measure are NA; makes it possible to analyse together with appropriate exclusions for each measure 
+for (f in 1:2){
+  if(f==2)
+    {combsum<-combsumo} #original baseline version
+combsum$DL.zlat.ex<-combsum$DL.zlat
+combsum$DL.zlat.ex[combsum$excludeDL==1]<-NA
+combsum$RDT.zlat.ex<-combsum$RDT.zlat
+combsum$RDT.zlat.ex[combsum$excludeRDT==1]<-NA
+combsum$WC.zlat.ex<-combsum$WC.zlat
+combsum$WC.zlat.ex[combsum$excludeWC==1]<-NA
+
+combsum$A.LI.ex<-combsum$A_mean_LI
+combsum$A.LI.ex[combsum$A_exclude==1]<-NA
+combsum$B.LI.ex<-combsum$B_mean_LI
+combsum$B.LI.ex[combsum$B_exclude==1]<-NA
+combsum$C.LI.ex<-combsum$C_mean_LI
+combsum$C.LI.ex[combsum$C_exclude==1]<-NA
+combsum$D.LI.ex<-combsum$D_mean_LI
+combsum$D.LI.ex[combsum$D_exclude==1]<-NA
+combsum$E.LI.ex<-combsum$E_mean_LI
+combsum$E.LI.ex[combsum$E_exclude==1]<-NA
+combsum$F.LI.ex<-combsum$F_mean_LI
+combsum$F.LI.ex[combsum$F_exclude==1]<-NA
+
+
+combsum$ftcd <- 0
+combsum$ftcd[!is.na(combsum$A1)]<-1 #column that marks whether ftcd data for this ID
+
+writedir<-paste0(mydir,"/02-data/combined_data.csv")
+if(f==2){
+writedir<-paste0(mydir,"/02-data/combined_data_origbaseline.csv")
+}
+
+write.csv(combsum,writedir,row.names=F)
+}
+
+
+```
