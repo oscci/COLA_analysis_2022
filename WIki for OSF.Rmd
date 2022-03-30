@@ -1,0 +1,122 @@
+---
+title: "Main Wiki for COLA RR"
+output:
+  pdf_document: default
+  word_document: default
+  html_notebook: default
+---
+Files are saved in the project CANDICE COLA: The brain basis of inconsistent language lateralisation:
+https://osf.io/g9tqh/
+
+# Online data component (https://osf.io/rkywv/)  
+## Data log  
+
+The date-stamped log for original data can be found in the component Online data:  
+__log Gorilla participants sess1.xlsx__  (https://osf.io/tgv26/)
+and for the subset who did the retest online session:  
+__log Gorilla participants sess3.xlsx__  (https://osf.io/t5gxa/)
+
+## Gorilla online behavioural data  
+The raw output from Gorilla is also in the Online data component, in a huge csv file called:  
+__osf_dat.csv__  (https://osf.io/ztaq7/)
+with the session 3 (retest data) in  
+__osf_dat_session3.csv__  (https://osf.io/gmhwb/)
+  
+  
+These .csv files contain details of stimuli and responses for every screen and every participant. They are enormous and take many minutes to load. They can be read more quickly (though still not quickly!) into R by loading:  
+__bothsess_dat.rds__  
+
+For more general details on organisation of gorilla files see: https://emljames.github.io/GorillaR/GorillaR_Part1.html  
+
+A data dictionary, __gorilla_data_dictionary.xls__ can be found in the Online data component.  
+
+Most of the columns in the raw data file are concerned with specifying information that determines how Gorilla presents the task to the participant.  
+Many Gorilla options are irrelevant and hence columns are NA. 
+Columns that are used in analysis are highlighted  
+
+The script gorilla_processing.rmd takes this file as input and creates a manageable summary file with just the information we need (see below).
+
+
+# FTCD data  (https://osf.io/sfv6w/)
+
+This contains raw and processed fTCD data files
+
+The raw, anonymised fTCD data files are stored in .exp format, and zipped together into the __ftcd_raw_data.zip__ file. Within each file, each row represents a time sample. The data were acquired at 100 Hz. Depending on the site where the data was acquired, there are either 7, 9 or 18 columns of data. The columns used in the analysis are:
+
+Time (when the sample was acquired)
+Sample (the sequential numbering of the samples)
+Gate 1 To Probe Env. (the envelope value for the left probe)
+Gate 2 To Probe Env. (the envelope value for the right probe)
+Trigger / Analog 1 / PortB_1 (the value of the 'trigger' channel, indicating when each trial began).
+Data acquired at Bangor, Lancaster, Oxford or UWA use the 9 column format, and the columns used for the analysis are 1, 2, 3, 4 and 9.
+
+Data acquired at Lincoln use the 7 column format, and the columns used for the analysis are 1, 2, 3, 4, 7.
+
+Data acquired at UCL use the 18 column format, and the columns used for the analysis are 1, 2, 3, 4, 11.
+
+
+# R scripts  (https://osf.io/6zwye/)
+
+Processing Gorilla raw data  
+
+The raw Gorilla data is crunched by the R markdown script:  
+__gorilla.Processing.Script_forOSF.rmd__  
+
+This computes summary data and LI values, which are saved in:  
+__allsum.csv__  (see below)  
+N.B. The session 3 (retest) data are processed together with session 1 data, after creating a subject code that denotes the session by adding '1' or '3' at the start of the ID.  After processing, __allsum3.csv__ (with just session 3 data) is saved separately.  
+
+The script needs a scoring key for the Games with Words, which is called: grammarScoring.csv.  
+# Processing FTCD raw data  
+The file __ftcd_preprocessing.R__ generates a summary data file called __ftcd_data.csv__ with laterality indices for the 6 tasks computed from the raw data: 
+https://osf.io/2bt7r/  
+
+The data dictionary for the __ftcd_data.csv__ file is saved as __ftcd_data_dictionary.csv__.
+
+To run this script, the script needs to be able to access the __ftcd_data.csv__ file, so please download this file and update the filepaths on lines 15, 17 and 21. The script will use the trial inclusion/exclusion information as listed in ftcd_data.csv, and will calculate laterality statistics for all tasks and all participants. However, the task can also be modified to allow you to check each trial manually, or to analyse individual participants rather than the whole group. The results are saved in __ftcd_data.csv__. The script also creates plots of the average response for each task (which will be stored in the 'ftcd_LI_plots' directory) and a .csv file for each task with the timecourse of the averaged response (stored in the 'ftcd_task_means' directory).
+
+Note that, as explained in the text, we initially specified a baseline period of -10 to 0 seconds, but switched to -5 to 2 s because the longer baseline was not stable. The results are computed with the original baseline for comparison and can be found in __ftcd_data_origbaseline.csv__.  
+
+# Combined processed data  
+The script __gorilla.Processing.Sript_forOSF.rmd__  aligns participants and combines __allsum.csv__ and __ftcd_data.csv__ in a file called __combined_data.csv__.  
+The data dictionary for __combined_data.xsv__ is avalable here: XXX.  
+
+# Generation of manuscript and results from combined data.  
+
+The R markdown script __COLA_RR_Results.rmd__ reads in __combined_data.csv__ and computes all results.  This file can be knitted to create the manuscript, plus some of the supplements.  
+The main data frame used for SEM analysis is saved as RData in file XXX.
+
+This script needs additional files to knit properly.
+Most of the figures are created from within the script and then saved to file, and re-read when the document is knitted.  They need to be saved in a folder called XXX.  
+Two images need to be available for reading in a pdf files:
+XXX and XXX
+
+
+
+
+# Generation of main SEM results supplement.  
+The R markdown script _Supplement7.rmd__ creates the large supplement with SEM results. This reads the file created by COLA_RR_Results called xxxx. 
+
+The supplementary materials are stored on OSF in the Registered Report component (https://osf.io/rcysd/).
+
+# Materials.  
+
+The materials for the online tasks are available on Gorilla (https://gorilla.sc/openmaterials/104636).
+The materials for the fTCD tasks are available on OSF (https://osf.io/g3qms/).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Raw data 
+
