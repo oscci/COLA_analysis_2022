@@ -1097,7 +1097,10 @@ mycomb$Handedness <- factor(mycomb$Rhanded,levels=c(0,1),labels=c("Left-Handed",
 mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FTCD data"))
 
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
-ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
+write.csv(demog.table,"demogs.csv",row.names=F)
+ftab<-read.csv("demogs.csv")
+#ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc - tried saving and reading in again to avoid crash on knitting, but this still happens
+ftab<-flextable(ftab)
 ftab<- fit_to_width(ftab,8)
 #ftab #line removed to enable knitting
 tabnumber<-tabnumber+1
@@ -2116,7 +2119,9 @@ bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summar
 anova(fit.2Fn,fit.2F)
 
 pathfigname2n<-paste0(mydir,"/",figdir,"/pathfigF2_revised.eps")
-mynodes2<-c(mynodes,'F2')
+mynodes2<-c(mynodes,'F2') #see next line: need to reorder for correct designation
+mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision",  "   Syntactic  \n  Decision","   Word   \n  Decision"  ,   "   Sentence  \n  Decision","F1","F2")
+
 doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
 
 
