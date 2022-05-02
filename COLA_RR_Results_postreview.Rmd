@@ -392,8 +392,7 @@ return(mySEMout)
 ```{r makeSEMtab2function,echo=F}
 #Table for SEM output side by side for 2 groups
 makeSEMtab2 <- function(myfit,mygroups){
-#ss<- summary(myfit,standardized=TRUE)$PE   #! this does NOT give standardized estimates!
-ss<-standardizedsolution(myfit)#get the standardized parameter estimates
+ss<- summary(myfit)$PE   #! unstandardized estimates used here
 wantcols<-c("lhs", "op","rhs" ,  "est" ,"se" )
 ss<-ss[,wantcols]
 ss[,4:5]<-numformat(ss[,4:5],2)
@@ -1084,7 +1083,7 @@ Figure `r fignum` also shows the new rather than preregistered approach to the l
 ### 3.1.2 Demographic Data  
 
 ```{r makedemog.table,echo=F}
-#We'll use the table1 package to create a nice-looking summary table for demographics; this excludes those excluded on language tests, but otherwise includes everyone given the online testing.
+#We'll use the table1 package to create a nice-looking summary table for demographics; 
 
 mycomb <- combdat #this is a hangover from previuos - we now exclude by langgroup early on in the script, so combdat has correct people excluded on Lextale or Grammar task
 
@@ -1100,7 +1099,7 @@ mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FT
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
 ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
 ftab<- fit_to_width(ftab,8)
-ftab
+#ftab #line removed to enable knitting
 tabnumber<-tabnumber+1
 
 # Calculate delay between session 1 and session 2 (fTCD)
