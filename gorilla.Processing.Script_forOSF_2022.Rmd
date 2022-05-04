@@ -1775,6 +1775,33 @@ write.csv(allsum,paste0(writedir,'allsum.csv'),row.names=F)
 
 ```
 
+
+```{r checkviewport, echo=F}
+#When doing data dictionary, noted some extreme values for viewport.
+#Should be excluded.
+
+ allsum$viewport1<-NA
+ allsum$viewport2<-NA
+for (i in 1:nrow(allsum)){
+  id <- allsum$ID[i]
+  w<-which(all_dat$Participant.Private.ID==id)[1]
+  myviewport<-all_dat$Participant.Viewport.Size[w]
+  allsum$viewport1[i]<-as.numeric(unlist(strsplit(myviewport,'x'))[1])
+ allsum$viewport2[i]<-as.numeric(unlist(strsplit(myviewport,'x'))[2])
+}
+allsum$excludeviewport<-0
+w<-which(allsum$viewport1<1000)
+allsum$excludeviewport[w]<-1
+w<-which(allsum$viewport2<550)
+allsum$excludeviewport[w]<-1
+w<-which(allsum$viewport1>2500)
+allsum$excludeviewport[w]<-1
+
+t.test(abs(allsum$RDT.LI)~allsum$excludeviewport)
+t.test(abs(allsum$WC.LI)~allsum$excludeviewport)
+
+```
+
 Now bolting on the Doppler data.
 A. Word Generation.
 B. Sentence Generation. 
@@ -1790,6 +1817,11 @@ allsum<-read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.1_gorilla/online_summary
 combsum <-allsum[allsum$session==1,]
 dopsum <- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data.csv")
 dopsumorig<- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data_origbaseline.csv") #create alternative combined dataset with original baseline for supplement
+
+dopsum$ftcdOK<-1
+w<-which(is.na(dopsum$A1)) #these are cases with no signal
+dopsum$ftcdOK[w]<-0
+dopsumorig$ftcdOK<-dopsum$ftcdOK
 colnames(dopsum)[1]<-'IDdop'
 
 nucols<-colnames(dopsum)
@@ -1818,6 +1850,7 @@ for (i in 1:nrow(combsumo)){
 #combsum <-merge(combsum, dopsum, by= "ID",all.x=T)
 
 ```
+
 
 Check exclusions
 
