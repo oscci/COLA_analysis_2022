@@ -1,17 +1,24 @@
 ---
-title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
+title: Inconsistent language lateralisation -  testing the dissociable language laterality
+  hypothesis using behaviour and lateralised cerebral blood flow
 author: "COLA consortium*"
-date: "28 Mar 2022"
+date: "5 May 2022"
 output:
   word_document: default
   reference_docx: mystyle.docx
+  html_document:
+    df_print: paged
 ---
 
+<!--- modified May 5 after comparison with submitted--->
 <!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
 
-<!-- to make a reproducible version see https://workflowr.github.io/workflowr/ and groundhog package-->
+<!-- This script will create output files in the working directory. It needs to have these files available in a subdirectory, currently called COLAbits:
+task_details.csv  
+combined_data.csv  
+-->
 
-<!-- IF YOU RUN THE SUPPLEMENTARY OUTPUTS-PANDER.RMD SCRIPT BEFORE THIS ONE, YOU GET A CONFLICT BETWEEN PANDER AND FLEXTABLE, AND THIS SCRIPT CRASHES WITH ERROR MESSAGE WHEN FONT SIZE IS SET IN FLEXTABLE.  TO OVERCOME THIS, RESTART R BEFORE YOU RUN THIS SCRIPT-->
+<!-- IF YOU RUN THE SUPPLEMENTARY OUTPUTS-PANDER.RMD SCRIPT BEFORE THIS ONE, YOU MAY GET A CONFLICT BETWEEN PANDER AND FLEXTABLE, AND THIS SCRIPT CRASHES WITH ERROR MESSAGE WHEN FONT SIZE IS SET IN FLEXTABLE.  TO OVERCOME THIS, RESTART R BEFORE YOU RUN THIS SCRIPT-->
 
 *Adam J. Parker^a12^, Zoe V. J. Woodhead^a1^ , David P. Carey^b^, Margriet A. Groen^c^, Eva Gutierrez-Sigut^d,e^, Jessica Hodgson^f^, John Hudson^f^, Emma M. Karlsson^b^, Mairéad MacSweeney^e^, Heather Payne^e^, Nuala Simpson^a^, Paul A. Thompson^a^, Kate E. Watkins^a^, Ciara Egan^a,b^, Jack H. Grant^a,f^, Sophie Harte^a,e^, Brad T. Hudson^a,c^, Maria Sablik^a,b^, Nicholas A. Badcock^h^, Dorothy V. M. Bishop^a,3^  
 
@@ -20,7 +27,7 @@ output:
 ^3^ Corresponding author, <dorothy.bishop@psy.ox.ac.uk>    
 
 ^a^Department of Experimental Psychology, University of Oxford, UK  
-^b^School of Psychology, Bangor University, UK  
+^b^School of Human and Behavioural Sciences, Bangor University, UK  
 ^c^Department of Psychology, Lancaster University, UK  
 ^d^Department of Psychology, University of Essex, UK  
 ^e^Deafness, Cognition and Language Research Centre, University College London, UK 
@@ -142,50 +149,6 @@ return(LI.plot)
 }
 ```
 
-
-```{r densfunction,echo=F}
-#Function to do a density plot for specified file coded by group
-#(Not sure if output differs from previous function! - need to check)
-
-dodensity <- function(mydat,myx,myy,mygroup,namex,namey,namegroup,grouplabels,mylines,mytitle){
-  
- 
-scatterdens <- ggplot(mydat,aes(x = myx, y = myy,col=mygroup)) + 
-  geom_point(shape = 4,  size = 1)+
-  scale_color_manual(name=namegroup,
-                       labels=grouplabels,
-                       values=c("blue","red"))+
-  labs(x = namex,y=namey)+
-  ggtitle(mytitle) 
-if (mylines==1){
-   scatterdens<-scatterdens+geom_abline(intercept = 0, slope = 1)
-}
-if (mylines==2){
-   scatterdens<-scatterdens+geom_hline(yintercept = 0,linetype="dashed")+
-   geom_vline(xintercept = 0,linetype="dashed")
-}
-
- 
-dens1 <- ggplot(mydat, aes(x = myx, fill = mygroup)) + 
-  geom_density(alpha = 0.4) + 
-  geom_vline(xintercept = 0, linetype="dotted")+
-  theme_void() + 
-  theme(legend.position = "none")
-
-dens2 <- ggplot(mydat, aes(x = myy, fill = mygroup)) + 
-  geom_density(alpha = 0.4) + 
-  geom_vline(xintercept = 0, linetype="dotted")+
-  theme_void() + 
-  theme(legend.position = "none") + 
-  coord_flip()
-
-alldens<-dens1 + plot_spacer() + scatterdens + dens2 + 
-  plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
-
-#ggsave(paste0(mydir,"/",figdir,"/",plotname,".png"),width = 5, height = 4)
-return(alldens)
-}
-```
 
 ```{r filltable,echo=F,warning=F}
 #Generate function to populate summary data frame - same steps for all online tasks
@@ -532,7 +495,7 @@ if(length(w)>0){
 
 plotf1f2 <- myscatter(thisdat$Factor1,thisdat$Factor2,xlabel='Factor1',ylabel='Factor2',thisdat)
 
-plotname <- paste0(mydir,"/",figdir,"/factors_",fitname,".png")
+plotname <- paste0("/factors_",fitname,".png")
 
 ggsave(plotname,width = 5, height = 3)
 return(thisdat)
@@ -563,19 +526,25 @@ densplots<-function(mydat,thiscol,thisgroup,mylab){
 
  
 ```{r readcombined,echo=F}
+#Script is set up so you can run the whole script with different subsets of participants. If you want to do that, you need to make a folder within your working directory called 'supplementary' where alternative outputs will be stored. 
+wdir<-getwd()
+wdir<-"/Users/dorothybishop/Dropbox/COLA_RR_Analysis" #really need to sort out 'here' - this is not satisfactory
+mydir <- paste0(wdir,"/")
+alldir <- c(mydir,paste0(mydir,"supplementary"))
 
-mydir <- "~/Dropbox/COLA_RR_Analysis"
-alldir <- c(mydir,"~/Dropbox/COLA_RR_Analysis/05-writeup/05.1-supplementary")
-
-figdir <-"03-graphic-outputs" 
+dir2 <-"02-data/" 
 
 useorigbaseline <- 0 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
-readfile<-paste0(alldir[1],"/02-data/combined_data.csv")
+readfile<-paste0(alldir[1],dir2,"combined_data.csv")
 if(useorigbaseline==1){
-  readfile<-paste0(alldir[1],"/02-data/combined_data_origbaseline.csv")
+  readfile<-paste0(alldir[1],dir2,"combined_data_origbaseline.csv")
 }
 combdat <- read.csv(readfile)
 
+#Create a code for handedness based on EHI
+combdat$selfrep_Rhand<-combdat$Rhanded #this is self-report
+combdat$Rhanded<-0
+combdat$Rhanded[combdat$EHI.LI>0]<-1
 
 w<-which(combdat$No_signal==1)
 combdat$ftcd[w]<-9 #cases marked 9 were seen but did not have a signal
@@ -586,7 +555,6 @@ supplementary <- 0 #set this to zero for the main paper. With other values we ca
 
 if(supplementary==1){
   mydir <- alldir[2]
-  figdir <- "05.1-graphic.outputs"
 }
 
 #We will create a code that divides people into 4 groups. 
@@ -606,6 +574,7 @@ combdat$lang2exclude[w]<-10
 }
 w<- which(combdat$lexTALE<80)
 combdat$lang2exclude[w]<-combdat$lang2exclude[w]+1
+
 #We now use langgroup to determine specific exclusions, depending on setting of supplementary
 
 combdat$langpreregexclude<-0
@@ -641,7 +610,7 @@ myftcd <- filter(ftcd.dat) #we'll do analysis on myftcd
 
 
 ```
- 
+
 
 
 ``` {r dataqual, echo=FALSE, warning=FALSE}
@@ -804,7 +773,7 @@ The exclusion criteria were as follows:
 
 `r suppnum<-suppnum+1`
 
-The initial screening questionnaire was administered on the Gorilla platform (www.gorilla.sc; Anwyl-Irvine, Massonnié, Flitton, Kirkham & Evershed, 2020), and is provided in Suppelementary Material `r suppnum`. Note that we did not exclude those who speak more than one language, provided they met our stringent criteria for native-level competence in English (see below). We also gathered information on bilingualism/multilingualism in the initial demographic questionnaire, so it would be possible to determine if this had any impact on results. Participants were told that this test was part of a multistage study and they might be invited back for in-person testing. Although there was no obligation on them to do so, if they were in principle willing, they had the opportunity to provide contact details.  
+The initial screening questionnaire was administered on the Gorilla platform (www.gorilla.sc; Anwyl-Irvine, Massonnié, Flitton, Kirkham & Evershed, 2020), and is provided in Supplementary Material `r suppnum`. Note that we did not exclude those who speak more than one language, provided they met our stringent criteria for native-level competence in English (see below). We also gathered information on bilingualism/multilingualism in the initial demographic questionnaire, so it would be possible to determine if this had any impact on results. Participants were told that this test was part of a multistage study and they might be invited back for in-person testing. Although there was no obligation on them to do so, if they were in principle willing, they had the opportunity to provide contact details.  
 
 Although this study did not include fMRI, we prioritised participants who were likely to be eligible for fMRI in a future phase of the research. The initial screening questionnaire checked whether participants were in principle willing to return for an MRI scan, and whether they were aware of any contraindications to being scanned.  
 
@@ -941,29 +910,20 @@ The standard error of the laterality index for each individual was computed from
 In the previous study by Woodhead et al. (2019) we excluded cases with fewer than 12 acceptable trials and then used the Hoaglin-Iglewicz (1987) criterion for outlier detection: this involves identifying cases that have values well outside the interquartile range for the group. This was used to identify individuals where the laterality index for a given task had an unusually large standard error, indicative of high trial-by-trial variation. However, we noted that some individuals had very low standard errors, despite having fewer than 12 usable trials, and so in the current study our preregistration specified a minimum number of 10 trials (out of 18 trials administered), while retaining the Hoaglin-Iglewicz method for removing data for a given subject and condition when the standard error of the laterality index was high.  
 
 ## 2.6 Sampling and Analysis Plan  
-The analysis starts with presentation of descriptive data, including distributions of scores by handedness, and split-half reliability of measures. The hypotheses are then tested, following the preregistration from Table 1 of our original Stage 1 report. The preregistered text is presented with each analysis. All analyses are conducted with alpha = .02 and power .9. A Rmarkdown script to run analyses on simulated data is available on Open Science Framework: https://osf.io/9dbrg/?view_only=357994fa8f6b49ee83964f5108d82ee2.
+The analysis starts with presentation of descriptive data, including distributions of scores by handedness, and split-half reliability of measures. The hypotheses are then tested, following the preregistration from Table 1 of our original Stage 1 report. The preregistered text is presented with each analysis. All analyses are conducted with alpha = .02 and power .9. A Rmarkdown script to run analyses on simulated data is available on Open Science Framework: https://osf.io/9dbrg/?view_only=357994fa8f6b49ee83964f5108d82ee2.  
+
+We report how we determined our sample size, all data exclusions, all inclusion/exclusion criteria, whether inclusion/exclusion criteria were established prior to data analysis, all manipulations, and all measures in the study.
 
 ```{r makeflowchart,echo=F,message=F,warning=F}
-
-
-
-#combdat<-read.csv('combdat.csv')
-mydir <- "~/Dropbox/COLA_RR_Analysis"
-figdir <-"03-graphic-outputs" 
-
 
 testtab <- table(combdat$Rhanded,combdat$ftcd)
 
 rownames(testtab)<-c('Left-handed','Right-handed')
 
 
-
 LH1 <- testtab[1,1]+testtab[1,2]+testtab[1,3]
 RH1 <-testtab[2,1]+testtab[2,2]+testtab[2,3]
 
-#Need to divide into Group 1 and 2 according to language
-#Group 1 has native speakers and non-native who passed screen
-#Group 2 has (a) nonnative who failed prereg only and (b) nonnative who failed new screen
 
 langtab<-table(combdat$Rhanded,combdat$langgroup)
 
@@ -979,7 +939,7 @@ RH1d <-langtab[2,4]
 
 thisdat<-combdat[combdat$ftcd>0,] #all with 1 or 9 for ftcd
 w<-which(thisdat$ftcd==9)
-thisdat$DopExclude[w]<-9
+thisdat$DopExclude[w]<-9 #need to exclude those with poor quality data at this next step
 testtab2<-table(thisdat$Rhanded,thisdat$DopExclude)
 
 LH2 <- testtab2[1,1]+testtab2[1,3] #here we include those who had unusable data
@@ -996,6 +956,7 @@ RH4 <- testtab2[2,1]
 RH5 <- testtab2[2,3]
 RH5a <- testtab2[2,2]
 
+dopdat<-dopdat[dopdat$DopExclude==0,] #remove those with poor quality ata
 langtab<-table(dopdat$Rhanded,dopdat$langgroup)
 
 LH6a <- langtab[1,1]
@@ -1049,7 +1010,7 @@ myflow<-grViz("digraph flowchart {
 
 makefile<-1
 if(makefile==1){
-  filename<-paste0(mydir,"/",figdir,"/","COLAflow.eps")
+  filename<-"COLAflow.eps"
   #myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
   tmp <- export_svg(myflow)
   rsvg_eps(charToRaw(tmp), filename, width=3543) # Should be 9cm, 1000dpi
@@ -1101,7 +1062,7 @@ mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FT
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
 ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
 ftab<- fit_to_width(ftab,8)
-ftab
+#ftab #This line prevents knitting to Word
 tabnumber<-tabnumber+1
 
 # Calculate delay between session 1 and session 2 (fTCD)
@@ -1110,7 +1071,7 @@ for (i in 1:length(myftcd$ID)){
 }
 
 myftcd$fTCD_Date <- as.Date(myftcd$fTCD_Date, '%d/%m/%Y')
-myftcd$date_S1 <- as.Date(myftcd$date_S1)
+myftcd$date_S1 <- substring(myftcd$date,1,10) #strip off first 10 character for yr/month/day
 myftcd$date_S1 <- as.Date(myftcd$date_S1, '%d/%m/%Y')
 myftcd$date_diff <- difftime(myftcd$fTCD_Date, myftcd$date_S1, units = "days")
 
@@ -1121,15 +1082,15 @@ ftcd_date_diff_stats <- fivenum(myftcd$date_diff)
 ```
 Table `r tabnumber`: _Demographic characteristics of sample_
 
-Table `r tabnumber` shows demographic data for the subset of individuals tested on the online behavioural battery only, and the subset who also completed the session with fTCD. It is evident from inspection that differences between the two subgroups are not substantial.  The median time difference between the online battery and the fTCD session was `r ftcd_date_diff_stats[3]` days (range: `r ftcd_date_diff_stats[1]` to `r ftcd_date_diff_stats[5]` days).   
+Table `r tabnumber` shows demographic data for the subset of individuals tested on the online behavioural battery only, and the subset who also completed the session with fTCD. To obtain the total number completing the online session, the No FTCD data and With FTCD data columns should be summed. It is evident from inspection that differences between the two subgroups are not substantial.  The median time difference between the online battery and the fTCD session was `r ftcd_date_diff_stats[3]` days (range: `r ftcd_date_diff_stats[1]` to `r ftcd_date_diff_stats[5]` days).   
 
 ### 3.1.3 Subsample for Test-Retest Study  
 
 ```{r test-retest, echo=F}
 #need to read in sess1 and sess3 for the test-retest data
 
-sess1 <- read.csv(paste0(alldir[1],'/02-data/02.1_gorilla/sess1.csv'))
-sess3 <- read.csv(paste0(alldir[1],'/02-data/02.1_gorilla/sess3.csv'))
+sess1 <- read.csv(paste0(mydir,dir2,'sess1.csv'))
+sess3 <- read.csv(paste0(mydir,dir2,'sess3.csv'))
 mtab<-table(sess3$male,sess3$Rhanded)
 
 # Calculate delay between session 1 and session 3 for retest participants
@@ -1159,7 +1120,7 @@ nWCex <- length(w)
 
 
 ### 3.2.1 Exclusions  
-We adopted the same procedures as Parker et al (2021) for excluding participants. On Dichotic Listening, `r nDLex` participants were excluded because their accuracy on 'same' trials (where both ears heard the same syllable) was less than 75%.  On Rhyme Decision and Word Comprehension `r nRDex` and `r nWCex` participants respectively were excluded because overall accuracy was less than 75%. 
+We adopted the same procedures as Parker et al (2021) for excluding participants. On Dichotic Listening, `r nDLex` participants were excluded because their accuracy on 'same' trials (where both ears heard the same syllable) was less than 75%.  On Rhyme Decision and Word Comprehension `r nRDex` and `r nWCex` participants respectively were excluded because overall accuracy was less than 75%. No exclusions were made on the basis of the size of ear difference, which was substantial in some cases. 
 
 
 ### 3.2.2 Derivation of Laterality Indices  
@@ -1189,7 +1150,7 @@ DLsides <- ggplot(DLdat, aes(x=DL.L, y=DL.R, color=Handedness,shape=as.factor(DL
     annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/03-graphic-outputs/AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
+ggsave(paste0(mydir,"AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 
@@ -1221,7 +1182,7 @@ RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=
     annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/",figdir,"/AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
+ggsave(paste0(mydir,"AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 ```
@@ -1250,13 +1211,13 @@ WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.f
     annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"/",figdir,"/AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
+ggsave(paste0(mydir,"AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
 
 #plot with all 3 L vs. R scatterplots together in a row.
 allplot <- ggarrange(DLsides, RDTsides, WCsides, ncol = 1, nrow = 3,common.legend=TRUE)
 
 
-ggsave(paste0(mydir,"/",figdir,"/allLRbeh.eps"),width = 9, height = 25, units="cm", dpi=300)
+ggsave(paste0(mydir,"allLRbeh.eps"),width = 9, height = 25, units="cm", dpi=300)
 #also save to current project to enable access when knitting to word
 ggsave("allLRbeh.eps",width = 9, height = 25, units="cm", dpi=300)
 fignum<-fignum+1
@@ -1298,7 +1259,8 @@ dens2 <- ggplot(DLdat, aes(x = DL.zlat, fill = Handedness)) +
 dens1 + plot_spacer() + plot1 + dens2 + 
   plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
 
-DLdens <- ggsave(paste0(mydir,"/",figdir,"/AFig4_DLdens.eps"),width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)
+DLdens <- ggsave("AFig4_DLdens.eps",width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)
+
 ggsave("AFig4_DLdens.eps",width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)#resave to project folder
 
 suppfignum<- suppfignum+1
@@ -1312,7 +1274,7 @@ suppfignum<- suppfignum+1
 
 ### 3.2.3 Distribution of Laterality Indices  
 
-Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  For these, and subsequent analyses of handedness, a simple binary split into left- and right-handed was made according to self-reported writing hand.  
+Before testing specific predictions about interrelationships between measures, we conducted preliminary analysis on LIz values for all three online tasks, to test for normality, to check for significant lateralisation in left- and right-handers, to compare laterality between handedness groups, and to compute split-half and test-retest reliability for laterality indices.  For these, and subsequent analyses of handedness, a simple binary split into left- and right-handed was made according to whether the laterality index was above (R-handed) or below (L-handed) zero on the Edinburgh Handedness Inventory. 
 
 
 ```{r DL-ttests,echo=F, message=F, warning=F}
@@ -1383,9 +1345,9 @@ longdata.b <- pivot_longer(data = bLIdat, cols = c(3:5), names_to = 'Task', valu
 longdata.b$Task<-as.factor(longdata.b$Task)
 longdata.b$Task <- factor(longdata.b$Task, levels = c('Dichotic', 'Rhyme', 'Comprehension'))
 
-mypath<-paste0(mydir,"/",figdir)
+mypath<-mydir
 
-plotname<-paste0(mypath,'/beh_pirates.eps')
+plotname<-'beh_pirates.eps'
 setEPS()
 cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
 pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1, cex.axis=1, cex.names=1, ylab='R hem bias <--- LIz ---> L hem bias')
@@ -1394,8 +1356,19 @@ abline(h=0)
 
 
 
-fignum<-fignum+1
+#fignum<-fignum+1 #check if this is throwing out figure numbering?
 
+percentlat <- data.frame(matrix(NA,nrow=3,ncol=4))
+colnames(percentlat)<-c('task','Rlat','nolat','Llat')
+percentlat$task<-colnames(bLIdat)[3:5]
+pN <- nrow(bLIdat)
+for (c in 3:5){
+  thisrow<-c-2
+  percentlat[thisrow,2]<-100*length(which(bLIdat[,c]<(-1.96)))/pN
+  percentlat[thisrow,4]<-100*length(which(bLIdat[,c]>1.96))/pN
+  percentlat[thisrow,3]<-100-percentlat[thisrow,2]-percentlat[thisrow,4]
+}
+percentlat[,2:4]<-numformat(percentlat[,2:4],1)
 ```
 
 
@@ -1403,13 +1376,13 @@ fignum<-fignum+1
 
 
 
-As shown in Figure `r fignum` and Table `r tabnumber`, distributions of LIz on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. In addition, there was a small but statistically reliable difference between handedness groups, with stronger laterality in the right-handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study and found it to be high (Parker et al., 2021). Here we confirm excellent split-half reliability for this task. 
+As shown in Figure `r fignum` and Table `r tabnumber`, distributions of LIz on the three tasks were non-normal, and the three tasks showed very different patterns of laterality. As expected from previous studies, on dichotic listening there was a clear right ear advantage in both left- and right-handers. Nevertheless, on the criterion of having an absolute LIz score of 1.96 or more, only `r percentlat[1,4]`% of participants were reliably left-lateralised, with `r percentlat[1,3]`% unlateralised, and `r percentlat[1,2]`% reliably right-lateralised. There was a small but statistically reliable difference between handedness groups, with stronger laterality in the right-handers.  We did not assess test-retest reliability for this task, as we had done this in our previous study and found it to be high (Parker et al., 2021). Here we confirm excellent split-half reliability for this task. 
 
 
 
-The Rhyme Decision task was far less reliable, with split-half reliability [95% CI] of `r onlinesummary[11,3]` and test-retest reliability of `r onlinesummary[12,3]`.  These figures indicate that laterality on this test is well above chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised. Furthermore, there was no effect of handedness on laterality on this task.  
+The Rhyme Decision task was far less reliable, with split-half reliability [95% CI] of `r onlinesummary[11,3]` and test-retest reliability of `r onlinesummary[12,3]`. These figures indicate that stability of laterality on this test is well above chance, but there is a great deal of random variation. In addition, although the task showed statistically reliable laterality in both left- and right-handers in this large sample, the effect size was small, and most individuals were not significantly lateralised on the criterion of having an absolute LIz score of 1.96 or more: `r percentlat[2,4]`% of participants were reliably left-lateralised, with `r percentlat[2,3]`% unlateralised, and `r percentlat[2,2]`% reliably right-lateralised.  Furthermore, there was no effect of handedness on laterality on this task.  
 
-The Word Comprehension task did rather better than the other tasks in terms of reliability, with split-half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were faster when pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  We consider the implications of these findings in the Discussion below. 
+The Word Comprehension task did rather better than the other tasks in terms of reliability, with split-half reliability of `r onlinesummary[11,4]` though test-retest reliability was lower at `r onlinesummary[12,4]`. The striking observation about this task was that it showed a laterality bias in the opposite direction to what is usually seen in language tasks. Responses were faster when pictures, to be matched to the auditorily presented word,  were viewed in the left visual half-field, which projects directly to the right hemisphere. On the criterion of having an absolute LIz score of 1.96 or more: `r percentlat[3,4]`% of participants were reliably left-lateralised, with `r percentlat[3,3]`% unlateralised, and `r percentlat[3,2]`% reliably right-lateralised. Furthermore, there was a significant effect of handedness, with the laterality index being more negative in left-handers than in right-handers.  We consider the implications of these findings in the Discussion below. 
 
 
 ### 3.2.4 Testing Prediction 1: Fit of two-factor model to behavioural data 
@@ -1453,13 +1426,13 @@ RD_WC_plot <- bivplot2(bivdat,name1,name2)
 
 #For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
 allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 1, nrow = 3,common.legend=TRUE)
-ggsave(paste0(mydir,"/",figdir,"/allbiv.eps"),width = 9, height = 25, units="cm", dpi=300)
+
 ggsave('allbiv.eps', width = 9, height = 25, units="cm", dpi=300)
 fignum<-fignum+1
 ```
 ![Bivariate distributions of LIs on behavioural tasks](allbiv.eps) 
 
-Figure `r fignum-1` shows scatterplots of the bivariate relationships between the three variables. Spearman correlations are shown with 95% confidence intervals  estimated using the *spearman.ci()* function from the RVAideMemoire package (version 0.9-79; Hervé, 2021) with 1,000 iterations. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
+Figure `r fignum` shows scatterplots of the bivariate relationships between the three variables. Spearman correlations are shown with 95% confidence intervals  estimated using the *spearman.ci()* function from the RVAideMemoire package (version 0.9-79; Hervé, 2021) with 1,000 iterations. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
 
 Note that correlations will be influenced by test reliability. Indeed, the correlation between Rhyme Decision and Word Comprehension is close in magnitude to the split-half reliability of the two measures. An estimate of the association between these measures after adjusting for the split-half reliabilities can be obtained using the Spearman-Brown correction for attenuation, r.xy(corrected) = r.xy(observed)/sqrt(r.xx * r.yy), which gives a value of `r round(.44/sqrt(.436*.664),3)`.
 
@@ -1623,7 +1596,7 @@ for (t in 1:ntasks){
   
 }
 alltimes <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
-ggsave("~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
+
 
 ggsave("alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
 
@@ -1635,37 +1608,10 @@ ggsave("alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
 `r fignum <- fignum+1`
 ![Timecourse of left and right hemisphere blood flow velocity (left axis) and L-R difference (right axis) for six tasks in left- and right-handers)](alltimecourse.eps)
 
-Figure `r fignum-1` shows the mean time course of blood flow velocity on left and right channels for left- and right-handers. In addition, the difference between left and right channels is plotted in black, after adding 100 to the values so that they can be shown on the same plot (true scale is on right side axis). The laterality index is computed as the mean difference score (shown in black) over the period of interest. For Word Generation and Sentence Generation tasks, the LI is computed during a period corresponding to silent generation; the waveform peaks again after this period, corresponding to the activity from the subsequent spoken response. For the other tasks, a series of items is presented in each trial and no spoken response is required. The periodic fluctuations in the response correspond to the individual items that are responded to.  
+Figure `r fignum-1` shows the mean time course of blood flow velocity on left and right channels for left- and right-handers. In addition, the difference between left and right channels is plotted in black, after adding 100 to the values so that they can be shown on the same plot (true scale is on the right axis). The laterality index is computed as the mean difference score (shown in black) over the period of interest. For Word Generation and Sentence Generation tasks, the LI is computed during a period corresponding to silent generation; the waveform peaks again after this period, corresponding to the activity from the subsequent spoken response. For the other tasks, a series of items is presented in each trial and no spoken response is required. The periodic fluctuations in the response correspond to the individual items that are responded to.  
 
 Inspection of this figure indicates that we see a strong left hemisphere bias in both handedness groups for Word Generation, Sentence Generation and Phonological Decision, whereas the other tasks do not show this pattern.   
 
-
-<!--- Need to decide on colour scheme and stick to it-->
-```{r selectplots,echo=F, warning=F,message=F}
-tasknames <- c('Word generation','Sentence generation','Phonological decision','Word Decision','Sentence Decision','Syntactic decision')
-ddat$Handed<-as.factor(ddat$Rhanded)
-levels(ddat$Handed)<-c("Left","Right")
-for (i in 1:length(tasknames)){
-  col1<- paste0(LETTERS[i],"_mean_odd")
-  col2<- paste0(LETTERS[i],"_mean_even")
-  col3 <-paste0(LETTERS[i],"_mean_LI")
-  c1<-which(colnames(ddat)==col1)
-  c2<-which(colnames(ddat)==col2)
-  c3<-which(colnames(ddat)==col3)
-  h <- which(colnames(ddat)=='Handed')
-  
-  myfile <- ddat[,c(h,c1,c2,c3)]
-  mycolnames <- c('Odd','Even','All')
-  myrange=c(-5,6)
-  p2<-doscatterplus(myfile,tasknames[i],mycolnames,myrange)
-  p2
-   mypath<-paste0(mydir,"/",figdir)
-  plotname<-paste0(mypath,'/OddEven_',LETTERS[i],'.eps')
-  ggsave(plotname,p2,width = 14, height = 14, units="cm", dpi=300, device=cairo_ps)
-
-}
-#THESE PLOTS NOT CURRENTLY USED
-```
 
 ```{r accuracyftcd,echo=F,warning=F}
 #What is above chance performance for 2-choice task with 54 items (SD?
@@ -1723,8 +1669,7 @@ longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', valu
 longdata.d$Task <- as.factor(longdata.d$Task)
 levels(longdata.d$Task)<-c('A','B','C','D','E','F')
 
-mypath<-paste0(mydir,"/",figdir)
-plotname<-paste0(mypath,'/ftcd_pirates.eps')
+plotname<-'ftcd_pirates.eps'
  
 setEPS()
 cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
@@ -1755,7 +1700,7 @@ colnames(ftcdsummary)<-c('Statistic',LETTERS[1:6])
 ftcdsummary[,1]<-c('N','Mean (SD)','Skew','Kurtosis','Shapiro-Wilk normality','Mean (SD) L-hander','Mean (SD) R-hander','one-group t L-hander','one-group t R-hander','R-hander vs. L-hander t','Split-half rho [95% CI]')
 ```
 
-The pirate plot in Figure `r fignum` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) for left and right-handed participants.  
+The pirate plot in Figure `r fignum` shows LI values for the six tasks (A = Word Generation, B = Sentence Generation, C = Phonological Decision, D = Word Decision, E = Sentence Decision and F = Syntactic Decision) for left- and right-handed participants.  
 
 
 ```{r fill-ftcdsummary, echo=FALSE, warning=FALSE,message=F}
@@ -1799,6 +1744,9 @@ As noted above, there were a few participants with missing data on a single meas
 
 ```{r imputemissing,echo=F, include=F}
 nunames<- c('A_P1','B_P2','C_P3','D_R1','E_R2','F_R3') #cols for SEM; short names useful here. These cols with have imputed values
+tasknames <- c('Word generation','Sentence generation','Phonological decision','Word Decision','Sentence Decision','Syntactic decision')
+ddat$Handed<-as.factor(ddat$Rhanded)
+levels(ddat$Handed)<-c("Left","Right")
 
 thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','F_mean_LI')]
 
@@ -1806,7 +1754,6 @@ thisdat <- ddat[,c('A_mean_LI','B_mean_LI','C_mean_LI','D_mean_LI','E_mean_LI','
 thisdat.i <- mice(thisdat, m=1, maxit = 50, method = 'pmm', seed = 500,print=FALSE)
 ddati <-cbind(ddat[,c('ID','male','Handed','langgroup')],complete(thisdat.i,1))
 colnames(ddati)<-c('ID','male','Handed','langgroup',nunames)
-
 
 ```
 
@@ -1840,7 +1787,6 @@ w<-which(colnames(temp)%in%LIcols)
 colnames(temp)[w]<-tasknames
 myheatmap <- makeheatmap(temp,tasknames)
 
-ggsave(paste0(mydir,"/",figdir,"/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 ggsave("ftcd-heatmap.eps",width = 14, height = 14, units="cm", dpi=300)
 
 suppnum<-suppnum+1
@@ -1854,22 +1800,22 @@ Because Structural equation modeling (SEM) is not widely used in laterality rese
 
 Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. 
 
-Associations between latent factors and observed variables are shown in a path diagram, with latent factors in circles, and observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that path diagramss  have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignum-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
+Associations between latent factors and observed variables are shown in a path diagram, with latent factors in circles, and observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that path diagrams have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignum-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
 
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
 
-Path diagrams are shown below in `r fignum<-fignum+1`Figure `r fignum` (single factor model), and Figure `r fignum<-fignum+1`Figure `r fignum` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
+Path diagrams are shown below in `r fignum<-fignum+1`Figure `r fignum` (single factor model), and Figure `r fignum<-fignum+1` `r fignum` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
 There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
-For this reason, a range of  different kind of measure of model fit have been devised. The first is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
+For this reason, a range of  different measures of model fit has been devised. The first is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
 
-Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit   The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
+Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
 
-Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figures `r fignum-1`and `r fignum`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters, in which case the simpler model is preferred. 
+Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figures `r fignum-1` and `r fignum`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters, in which case the simpler model is preferred. 
 
-Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR. The model-fitting  Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
+Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR.  Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
  
 
 
@@ -1934,7 +1880,7 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #Creates a structural diagram for single factor model: nb does NOT include path estimates (these can be shown if we put 'par' rather than 'diagram', but it gets messy, and the parameters are shown instead in a table)
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
-pathfigname1<-paste0(mydir,"/",figdir,"/pathfigF1.eps")
+pathfigname1<-"pathfigF1.eps"
 mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #attempt to add spaces to make all same size doesn't seem to work
 
 # semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
@@ -1949,7 +1895,7 @@ sfit2 <- makeSEMtab(fit2)
 bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from this model written to col 3 of bigsummary
 
 #lavResiduals(fit2)
-pathfigname2<-paste0(mydir,"/",figdir,"/pathfigF2.eps")
+pathfigname2<-"pathfigF2.eps"
 mynodes2<-c(mynodes,'F2')
 doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
 
@@ -1990,7 +1936,7 @@ imgboth <- c(imageX, imageY)
   #image_write(imgboth, path=tname,format = "tiff")
   #image_write(imgboth, path=jname, format = "jpg")
   
-  image_write(imgboth, path=paste0(mydir,"/",figdir,"/","bothF1F2.eps"), format = "eps")
+  image_write(imgboth, path="bothF1F2.eps", format = "eps")
 }
 
 ```
@@ -2117,7 +2063,7 @@ fitmeasures(fit.2Fn,wantfits)
 bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summary from this model written to col 4 of bigsummary 
 anova(fit.2Fn,fit.2F)
 
-pathfigname2n<-paste0(mydir,"/",figdir,"/pathfigF2_revised.eps")
+pathfigname2n<-"pathfigF2_revised.eps"
 mynodes2<-c(mynodes,'F2')
 doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
 
@@ -2312,7 +2258,7 @@ tabnumber<-tabnumber+1
 
 ```
  
-Table `r tabnumber`: _Nested tests of model equivalence for left and right-handers_  
+Table `r tabnumber`: _Nested tests of model equivalence for left- and right-handers_  
 
 The approach we adopted is a standard one used when structural equation modeling (SEM) is applied to evaluation of measurement models in other domains, where it is described as a test of measurement invariance. Essentially, the data from left- and right-handers are analysed together in a series of nested models; these pose increasingly stringent constraints on which parameters of the model are allowed to vary for the two handedness groups. Detailed outputs of the nested models are given in Supplementary document `r suppnum`.
 
@@ -2360,10 +2306,10 @@ agfac2 <- aggregate(ddati$Factor2,by=list(ddati$Handed),FUN=sd)
 ```
 
 
-In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t (`r df1`) = `r t1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`.the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t (`r df2`) = `r t2`, `r pf2`. 
+In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t (`r df1`) = `r t1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`. The effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t (`r df2`) = `r t2`, `r pf2`. 
 
 **Evaluation of Prediction 3: Different model parameters for left- and right-handers **
-Our interpretation of this analysis was rather complex, given the range of possible results. Specifically we  in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
+Our interpretation of this analysis was rather complex, given the range of possible results. Specifically, in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
 The obtained result clearly indicated that there were different factor means for left- and right-handers, and this was sufficient to account for group differences. The handedness difference was striking for Factor 1, but more marginal for Factor 2. Thus the most parsimonious account of the data was that handedness differences could be explained solely in terms of a shift away from left-hemisphere bias in left-handers for a laterality factor that had loadings from language production tasks.  
 
 ### 3.3.6 Testing Prediction 4: Categorical Analysis of Laterality Indices  
@@ -2481,7 +2427,7 @@ Nevertheless, although we cannot conclude there is no effect of handedness, it i
 
 
 ## 3.4 Relationship Between Behavioural and fTCD Laterality Indices  
-### 3.4.1 Testing Prediction 5: LIs will be similar for compaarable behavioural and blood-flow measures  
+### 3.4.1 Testing Prediction 5: LIs will be similar for comparable behavioural and blood-flow measures  
 
 
 
@@ -2533,7 +2479,7 @@ w<-c(w,wx)
 colnames(temp)[w]<-c(behnames,tasknames)
 
 bigheatmap <- makeheatmap(temp,c(behnames,tasknames))
-ggsave(paste0(mydir,"/",figdir,"/bigheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+ggsave("bigheatmap.eps",width = 14, height = 14, units="cm", dpi=300)
 fignum<-fignum+1
 
 ```
@@ -2599,11 +2545,11 @@ tab.2Fny <- makeSEMtab(fit.2Fny)
 
 
 
-pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_bigA")
+pathfigname<-"pathfigF2_bigA"
 semPaths(fit.2Fnx, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
     sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
-pathfigname<-paste0(mydir,"/",figdir,"/pathfigF2_bigB")
+pathfigname<-"pathfigF2_bigB"
 semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
     sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
@@ -2615,16 +2561,18 @@ semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan
 modelnames<-c('No dichotic path','Dichotic <- Factor 1','Dichotic <- Factor 2')
 dichmodels<-cbind(modelnames,fitcompare[c(3,1,2),])
 dichmodels <- dichmodels[,c(1,2,5)]
+colnames(dichmodels)[1:2]<-c('Path to dichotic','DF')
+#dichmodels$Chisq<-numformat(dichmodels$Chisq,2) #another command that seems to upset flextable
 fd<-flextable(dichmodels)
 fd<-autofit(fd)
 fd
 tabnumber<-tabnumber+1
-#NEED TO CHANGE HEADERS BEFORE OUTPUT Model names, and df
+
 
 ```
 Table `r tabnumber`: _Fit statistics for models including Dichotic Listening_  
 
-In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero: $\chi$^2^  difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not preregistered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower $\chi$^2^  than the preregistered model (for full results see Supplementary Material `r suppnum`).
+In practice, a model including a free path from Dichotic Listening to Factor 2 gave a better fit than a model with the path fixed to zero (Table `r tabnumber`): $\chi$^2^  difference = `r round(dichmodels$Chisq[1]-dichmodels$Chisq[2],2)`, DF = 1, p < .001. This is not a strong test of our prediction, because it will be passed if there is even a weak correlation between dichotic LI and fTCD laterality indices.  Guided by the data, we ran an alternative model (not preregistered) with Dichotic Listening loading on Factor 1. This also gave excellent fit, with lower $\chi$^2^  than the preregistered model (for full results see Supplementary Material `r suppnum`).
 
 **Evaluation of Prediction 5: Equivalence of behavioural and fTCD laterality indices **  
 In our preregistration analysis plan, we stated: **_If the online measures do not correspond to the parallel measures from fTCD this could mean that these measures are insufficiently reliable to index laterality in individuals – this would be evidenced by poor split-half reliability, and would indicate the need to either abandon this approach or to seek better measures. If the measures are reliable, but 95% confidence intervals for path estimates of online measures span zero, we can conclude that the online measures are tapping different aspects of laterality than the fTCD measures. If measures are reliable and good fit is obtained for a two-factor model that incorporates the laterality indices from online measures, this would support the use of online tests as proxy measures for underlying lateralised brain activation_**  
@@ -2658,26 +2606,26 @@ In a final step of analysis, we considered adding the laterality indices from on
 ## 4.2 Left- Versus Right-Handers   
 For both behavioural and fTCD LIs, with just one exception, there was a consistent trend for stronger left-hemisphere bias in right-handers than in left-handers. This reached significance on all measures except fTCD Word Decision. The exception was online Rhyme Judgement, which was not left-lateralised and where means for left- and right-handers were very similar. 
 
-The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures (Woodhead et al., 2021), we had concluded that there was more dissociation between factors in left-handers, but this finding was not replicated here. There are two possible explanations for this discrepancy. First, the sample size in both the current and the previous study was small for this kind of analysis, raising the possibility that the initial finding was a false positive, or the current finding a false negative.  Even with the current sample size, power to detect model invariance is not high Second, the language tasks used with fTCD differed across studies. In the Woodhead et al study, we included a List Generation task, that was intended to be a relatively pure measure of phonological output, using overlearned sequences, as well as a Semantic Decision task, which involved judging whether two pictures were semantically related. The List Generation task was dropped because of low reliability, and the Word Decision task was substituted for Semantic Decision to give a purer measure of comprehension at the single word level. We cannot rule out the possibility that these tests would show different patterns of association in left- and right-handers. Note, however, that the data did not support an additional possibility, namely that left-handers are more variable than right-handers. The comparison of factor scores in the two handedness groups showed differences in means, but only small differences in standard deviations. 
+The SEM analysis allowed us to go beyond simple comparison of means to test whether the association between LIs showed a similar pattern in the two handedness groups. In our previous fTCD study using four of the same measures (Woodhead et al., 2021), we had concluded that there was more dissociation between factors in left-handers, but this finding was not replicated here. There are two possible explanations for this discrepancy. First, the sample size in both the current and the previous study was small for this kind of analysis, raising the possibility that the initial finding was a false positive, or the current finding a false negative.  Even with the current sample size, power to detect model invariance is not high. Second, the language tasks used with fTCD differed across studies. In the Woodhead et al. study, we included a List Generation task, that was intended to be a relatively pure measure of phonological output, using overlearned sequences, as well as a Semantic Decision task, which involved judging whether two pictures were semantically related. The List Generation task was dropped because of low reliability, and the Word Decision task was substituted for Semantic Decision to give a purer measure of comprehension at the single word level. We cannot rule out the possibility that these tests would show different patterns of association in left- and right-handers. Note, however, that the data did not support an additional possibility, namely that left-handers are more variable than right-handers. The comparison of factor scores in the two handedness groups showed differences in means, but only small differences in standard deviations. 
 
 Overall, we can conclude that the current data suggest that there is no reason to postulate different models for left- vs. right-handers. The substantial differences between these groups could be entirely accounted for in terms of differences in factor means, and was driven primarily by differences on Factor 1, which related to tasks involving verbal production. 
 
-These quantitative differences between laterality groups in handedness did not, however, translate into pronounced differences in proportions who were atypically lateralised on individual tasks, and most people had a mixture of left- and right-lateralisation across the whole fTCD battery.
+These quantitative differences between handedness groups did not, however, translate into pronounced differences in proportions who were atypically lateralised on individual tasks, and most people had a mixture of left- and right-lateralisation across the whole fTCD battery.
 
 ## 4.3 Right Hemisphere Lateralisation for Word Comprehension  
-The finding of a slight bias to right hemisphere lateralisation for single word comprehension is unexpected. Woodhead et al. (2021), using fTCD, showed left lateralisation in right-handers for a semantic decision task that involved judging if two (unnamed) pictured items were semantically related. A meta-analysis of fMRI studies by Vigneau et al. (2011) found that right-hemisphere involvement in lexical-semantic tasks was extremely limited. Typically, tasks used in fMRI involved thinking explicitly about meaning; e.g.  Binder et al. (1996) devised a classic semantic decision task that is highly left-lateralised, which involves listening to animal names and deciding if they met specific semantic criteria (e.g. "native to the United States"). Another consideration is that  written rather than auditory presentation is commonly used in fMRI studies to avoid interference from scanner noise. In contrast, our current task required only a direct matching of a spoken word to one of a pair of semantically-related pictures. This task was the easiest in the battery, with near-ceiling performance by all participants, and it could be that it was insufficiently challenging to engage lateralised language systems. It might be tempting to suppose that right-hemisphere bias was induced by the viewing of pictured items, but if that were the case, we should also have seen this bias in other tasks in the battery such as Phonological Decision, and in the Semantic Decision task used by Woodhead et al. (2021).
+The finding of a slight bias to right hemisphere lateralisation for single word comprehension is unexpected. Woodhead et al. (2021), using fTCD, showed left lateralisation in right-handers for a semantic decision task that involved judging if two (unnamed) pictured items were semantically related. A meta-analysis of fMRI studies by Vigneau et al. (2011) found that right-hemisphere involvement in lexical-semantic tasks was extremely limited. Typically, tasks used in fMRI involved thinking explicitly about meaning; e.g.  Binder et al. (1996) devised a classic semantic decision task that is highly left-lateralised, which involves listening to animal names and deciding if they met specific semantic criteria (e.g. "native to the United States"). Another consideration is that  written, rather than auditory, presentation is commonly used in fMRI studies to avoid interference from scanner noise. In contrast, our current task required only a direct matching of a spoken word to one of a pair of semantically-related pictures. This task was the easiest in the battery, with near-ceiling performance by all participants, and it could be that it was insufficiently challenging to engage lateralised language systems. It might be tempting to suppose that right-hemisphere bias was induced by the viewing of pictured items, but if that were the case, we should also have seen this bias in other tasks in the battery such as Phonological Decision, and in the Semantic Decision task used by Woodhead et al. (2021).
 
 The relatively low reliability of the task, in both behavioural and fTCD formats, indicates the need for caution in interpretation. We might be tempted to dismiss the result, except for the fact that the bias was found both in the online behavioural version of the task (see Table `r tabonlinesummary` and in the analogous Word Decision fTCD task (see Table `r ftcdtabnumber`). Furthermore, on the behavioural task, left-handers showed a stronger effect than right-handers, in line with their reduced left-hemisphere bias on other tasks. This consistent picture, however, is challenged by the fact that the correlation between LIs on the online and fTCD versions of the task was close to zero. 
 
-Overall, the pattern of results is puzzling, and we will need more reliable measures of word comprehension to determine whether it is meaningful. It does raise the possibility that where semantic decision tasks are lateralised, this may relate to task demands that involve explicit reasoning about word meanings.
+Overall, the pattern of results is puzzling, and we will need more reliable measures of word comprehension to determine whether it is meaningful. It does raise the possibility that where semantic decision tasks are lateralised, this may relate to task demands that involve explicit reasoning about word meanings.In addition, we need to be aware that other, nonlinguistic, factors, such as presentation rate may also affect laterality indices (Payne, Gutierrez-Sigut, Subik, Woll, & MacSweeney, 2015).
 
 
 ## 4.4 Differences Between Behavioural and fTCD Measures of Laterality  
-The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. This is despite the fact that both tasks are well-lateralised with good reliability. Furthermore, validity of the online dichotic listening task is supported the fact that it showed a small but reliable difference in laterality for left- and right-handers, similar to that previously reported by Karlsson et al. (2019), who used in-person rather than online testing.  
+The lack of agreement between online and fTCD laterality indices is disappointing for those hoping to use behavioural measures as proxies for more direct brain measures of laterality. It is, of course, possible that stronger associations might be seen with better measures: behavioural measures obtained under laboratory conditions are likely to be more reliable than those obtained online; the tasks we developed for fTCD might have limitations in terms of variation in strategies used by participants, or in the impact of nonlinguistic task demands that could also engage lateralised systems. Nevertheless, even for dichotic listening, a task that has a long track record as a behavioural laterality index, and word generation, the gold standard laterality measure in fTCD, the correlation between LIs was weak. This is despite the fact that both tasks are consistently lateralised with good reliability. Furthermore, validity of the online dichotic listening task is supported by the fact that it showed a small but reliable difference in laterality for left- and right-handers, similar to that previously reported by Karlsson et al. (2019), who used in-person rather than online testing.  
 
 Several researchers have proposed that when optimal methods are used, dichotic listening and/or visual half-field methods can be useful indicators of language laterality (Van der Haegen et al., 2013; Westerhausen, 2019), and it would seem that, when the goal is to categorise individuals as left- or right-lateralised for language, strong lateralisation on such behavioural measures is usually a good indicator of laterality on brain measures. Nevertheless, many people do not show such strong lateralisation, and when studies have considered associations between laterality indices from dichotic listening and fMRI, correlations have been unimpressive; e.g. Bethmann et al. (2007) reported a correlation of .38, finding that many individuals with a left-ear advantage on dichotic listening were left-lateralised for language on a synonym decision task. Data extracted from a scatterplot by Van der Haegen et al. (2013) gave a Spearman correlation between dichotic listening and fMRI (word generation) of .46 (N = 62), in a sample that excluded cases of ambiguous laterality on fMRI (those with absolute value of LI below .6). Hund-Georgiadis et al. (2002) tested 17 left-handers and 17 right-handers and found Spearman correlation of 0.56 between laterality indices from dichotic listening and semantic encoding on fMRI (computed from data extracted from scatterplot). Gerrits et al. (2020) found that a laterality index from a visual half-field task had a Spearman correlation of .54 with laterality on word generation from fMRI. 
 
-It is well worth pursuing the goal of standardizing behavioural laterality measures and working towards optimising their reliability, as exemplified by work by Westerhausen and Samuelsen (2020). We suspect, however, that the lack of agreement between different kinds of laterality measure might not be resolved simply by improving reliability. If, as we propose, language laterality is not unitary, then the agreement between different measures will depend on the relative contribution of different lateralised systems. In this regard, it is worth noting that fMRI studies of dichotic listening indicate activation that extends well beyond the temporal lobes to include bilateral activity in frontal lobes, which seems in part dependent on the inhibitory demands of the task (Jäncke & Shah, 2002; Westerhausen et al., 2014).
+It is well worth pursuing the goal of standardizing behavioural laterality measures and working towards optimising their reliability, as exemplified by work by Westerhausen and Samuelsen (2020). We suspect, however, that the lack of agreement between different laterality measures might not be resolved simply by improving reliability. If, as we propose, language laterality is not unitary, then the agreement between different measures will depend on the relative contribution of different lateralised systems. In this regard, it is worth noting that fMRI studies of dichotic listening indicate activation that extends well beyond the temporal lobes to include bilateral activity in frontal lobes, which seems in part dependent on the inhibitory demands of the task (Jäncke & Shah, 2002; Westerhausen et al., 2014).
 
 
 
@@ -2685,11 +2633,12 @@ It is well worth pursuing the goal of standardizing behavioural laterality measu
 
 ## 4.5 Interpreting the Two-Factor Structure    
 
-Although our data did not support the simple two-factor structure of laterality that we predicted, we were able to obtain a good fit for a model that included additional paths. This two-factor account is reminiscent of the dual stream model of Hickok and Poeppel (2007), who postulated a dorsal stream from superior temporal to premotor cortices via the arcuate fasciculus, and a ventral stream from temporal cortex to anterior inferior frontal gyrus. The former is implicated integrating auditory speech with articulator motor actions, and is lateralised, whereas the latter is not lateralised, and is involved in access to conceptual memory and mapping of sound to meaning.  However, as noted in our previous study, the exclusive loading of Sentence Generation on factor 1, and the loading of Sentence Decision on both factors is not entirely consistent with the dual stream account. We also previously found List Generation, which would be expected to involve the dorsal stream, was not lateralised.  
+Although our data did not support the simple two-factor structure of laterality that we predicted, we were able to obtain a good fit for a model that included additional paths. This two-factor account is reminiscent of the dual stream model of Hickok and Poeppel (2007), who postulated a dorsal stream from superior temporal to premotor cortices via the arcuate fasciculus, and a ventral stream from temporal cortex to anterior inferior frontal gyrus. The former is implicated in integrating auditory speech with articulator motor actions, and is lateralised, whereas the latter is not lateralised, and is involved in access to conceptual memory and mapping of sound to meaning.  However, as noted in our previous study, the exclusive loading of Sentence Generation on factor 1, and the loading of Sentence Decision on both factors is not entirely consistent with the dual stream account. We also previously found List Generation, which would be expected to involve the dorsal stream, was not lateralised.  
 
 We conclude by considering what commonalities there are between tasks that characterise each factor.  
 ```{r taskanalysis,echo=F}
-tasks <- read.csv(paste0(alldir[1],"/04-table-outputs/task_details.csv"))
+
+tasks <- read.csv(paste0(mydir,dir2,"task_details.csv"))
 ftasks <- flextable(tasks[,1:7])
 
 ftasks<-fit_to_width(ftasks,8,inc=1L)
@@ -2706,39 +2655,8 @@ Sentence Decision also behaved unexpectedly, in that it had significant loadings
 
 
 
-```{r densplotexplore,echo=F,include=F}
 
-#This uses a function defined above which makes individual density plots by handedness.  Here they are assembled into a column so one can visualise the change in overall laterality.
-latcols<-c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
-latnames<-c("Word Generation","Sentence Generation","Phonological Decision","Word Decision","Sentence Decision","Syntactic Decision")
-w<-which(colnames(ddati) %in% latcols)
-means<-colMeans(ddati[,w])
-nuorder <- order(means,decreasing=T)
-nucols<-min(w)+nuorder-1
-plotlist<-NULL
-for (i in 1:6){
-  filename<-paste0(mydir,'/',figdir,'/densplot_',i,'.eps')
-  thiscol<-colnames(ddati)[nucols[i]]
-  thisgroup<-'Handed'
-  mylab<-latnames[nuorder[i]]
-  thisplot <- densplots(ddati,thiscol,thisgroup,mylab)
-  ggsave(filename,width = 9, height = 6, units="cm", dpi=300)
-  #There should be a way to avoid the next bit of clunky code!
-  d6<-thisplot
-  if(i==1){d1<-thisplot}
-  if(i==2){d2<-thisplot}
-  if(i==3){d3<-thisplot}
-  if(i==4){d4<-thisplot}
-  if(i==5){d5<-thisplot}
 
-}
-alldens <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 1, nrow = 6,common.legend=TRUE)
-ggsave(paste0(mydir,"/",figdir,"alldens.eps"),width = 9, height = 21, units="cm", dpi=300)
-
-```
-
-<!---![Density plots showing LIz scores for six fTCD tasks ordered by overall left-hemisphere bias.](Dropbox/COLA_RR_Analysis/03-graphic-outputs/alldens.eps)
-Nice density plots but they really just show same information as the pirate plots, so not so sure we need them here?-->
 As seen in Figure `r piratenumber`, the four tasks that load on Factor 1 are all significantly lateralised, at least in right-handers. In contrast, those loading on Factor 2 include two tasks that are not significantly lateralised.  
 
 In interpreting this finding, we should first rule out two trivial explanations for the factor structure uncovered in SEM. First, this structure cannot be regarded as an artefact of including tasks differing in degree of laterality. This is because factor structure in SEM is computed solely on the basis of covariances between measures, and means do not affect it. Thus, we could add a constant to the LIs for tasks D and E to make them lateralised, and the factor solution would remain the same. 
@@ -2805,7 +2723,9 @@ Moshagen, M., & Erdfelder, E. (2016). A new strategy for testing structural equa
 Ocklenburg, S., Ströckens, F., Bless, J. J., Hugdahl, K., Westerhausen, R., & Manns, M. (2016). Investigating heritability of laterality and cognitive control in speech perception. Brain and Cognition, 109, 34–39. https://doi.org/10.1016/j.bandc.2016.09.003  
 Oldfield, R. C. (1971). The assessment and analysis of handedness: the Edinburgh inventory. Neuropsychologia, 9, 97-113.  
 Orsini, D. L., Satz, P., Soper, H. V., & Light, R. K. (1985). The role of familial sinistrality in cerebral organization. Neuropsychologia, 23(2), 223–232. https://doi.org/10.1016/0028-3932(85)90106-x  
-Parker, A. J., Woodhead, Z. V. J., Thompson, P. A., & Bishop, D. V. M. (2021). Assessing the reliability of an online behavioural laterality battery: A pre-registered study. Laterality, 26(4), 359–397. https://doi.org/10.1080/1357650X.2020.1859526  
+Parker, A. J., Woodhead, Z. V. J., Thompson, P. A., & Bishop, D. V. M. (2021). Assessing the reliability of an online behavioural laterality battery: A pre-registered study. Laterality, 26(4), 359–397. https://doi.org/10.  
+Payne, H., Gutierrez-Sigut, E., Subik, J., Woll, B., & MacSweeney, M. (2015). Stimulus rate increases lateralisation in linguistic and non-linguistic tasks measured by functional transcranial Doppler sonography. Neuropsychologia, 72, 59–69. https://doi.org/10.1016/j.neuropsychologia.2015.04.019
+.1080/1357650X.2020.1859526.   
 Porac, C., & Coren, S. (1976). The dominant eye. Psychological Bulletin, 83(5), 880–897. https://doi.org/10.1037/0033-2909.83.5.880  
 Pornprasertmanit, S., Miller, P., Schoemann, A., & Jorgensen, T. D. (2020). simsem: SIMulated Structural Equation Modeling. R package version 0.5-15. https://CRAN.R-project.org/package=simsem.  
 R Core Team. (2016). R: A language and environment for statistical computing. Vienna, Austria: R Foundation for Statistical Computing. Retrieved from https://www.R-project.org/  
@@ -2844,10 +2764,16 @@ The authors declare no competing interests.
 
 ## Author contributions
 Adam J. Parker: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; Zoe V. J. Woodhead: Conceptualisation, Methodology, Validation, Formal analysis, Investigation, Data Curation, Writing - Review and Editing, Visualisation, Supervision; David P. Carey: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Margriet A. Groen: Conceptualisation, Writing - Review and Editing, Supervision; Eva Gutierrez-Sigut: Methodology, Writing - Review and Editing;
-Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hudson: Supervision; Emma M. Karlsson: Conceptualisation, Methodology, Writing - Review and Editing; Mairéad MacSweeney: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Heather Payne: Methodology, Writing - Review and Editing; Nuala Simpson: Project Administration; Paul A. Thompson: Formal analysis, Data Curation; Writing - Review and Editing; Kate E. Watkins: Conceptualisation, Writing - Review and Editing, Ciara Egan: Methodology, Investigation; Jack H. Grant: Methodology, Investigation; Sophie Harte: Methodology, Investigation; Brad T. Hudson: Methodology, Investigation; Maria Sablik: Investigation; Dorothy V. M. Bishop: Conceptualisation, Methodology, Formal analysis, Writing - original draft, Supervision, Funding Acquisition.
+Jessica Hodgson: Methodology, Writing - Review and Editing, Supervision; John Hudson: Supervision; Emma M. Karlsson: Conceptualisation, Methodology, Writing - Review and Editing; Mairéad MacSweeney: Conceptualisation, Methodology, Writing - Review and Editing, Supervision; Heather Payne: Methodology, Writing - Review and Editing; Nuala Simpson: Project Administration; Paul A. Thompson: Formal analysis, Data Curation; Writing - Review and Editing; Kate E. Watkins: Conceptualisation, Writing - Review and Editing, Ciara Egan: Methodology, Investigation; Jack H. Grant: Methodology, Investigation; Sophie Harte: Methodology, Investigation; Brad T. Hudson: Methodology, Investigation; Maria Sablik: Investigation; Nicholas A. Badcock: Investigation, Writing – Review and Editing;  Dorothy V. M. Bishop: Conceptualisation, Methodology, Formal analysis, Writing - original draft, Supervision, Funding Acquisition.
+
+## Data availability  
+Raw data, analysis scripts and materials are all available on Open Science Framework: https://osf.io/g9tqh/. 
+
 
 ```{r sessioninfo, echo=F}
-writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
+writeLines(capture.output(sessionInfo()), "COLA_RR_analysis_sessionInfo.txt")
+save.image() #retain all variables from this session so can be used with supplement files
+#saved info is in .Rdata
 ```
 
 # Supplementary file `r suppcorr`
