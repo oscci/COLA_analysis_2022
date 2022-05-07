@@ -115,7 +115,7 @@ here::i_am("COLA_RR_Results.rmd") #working directory will be set to this by rmd
 
 # Folder 'ftcd_task_means' - large folder of means from L and R channels for each task and participant - needed to create timecourse plot, but once it is made, can skip that chunk.
 
-# Folder 'figs' : create blank folder to which figures will be written
+# Folder 'figs' : folder to which figures will be written; also includes predrawn figures WordCompDemo.pdf and 
 
 # Folder 'suppdata': blank folder that will be used to save Odd-Even model results for supplementary
 
@@ -861,7 +861,8 @@ A total of 108 experimental images were selected from the MultiPic databank (Du�
 
 Each image pair was presented a total of four times, with each image twice in either the left or right visual field. The name of each image was presented twice: once when the image was in the right visual field, and once when the image was in the left. `r fignum <- fignum+1`See Figure `r fignum` for an example. The images were displaced at 7.9 degrees of visual angle from the point of fixation. Gorilla’s screen scaling tool was used to maintain consistency of stimulus size across browsers and computers. In total, 208 trials were presented across four blocks.  
 
-![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right. _This figure has been modified from the preregistered version for clarity._](WordCompDemo.pdf) 
+### Figure `r fignum`  
+![Schematic illustration of a trial on the word comprehension task. First, participants are presented with a fixation cross for 600 ms. A word, in this case 'drum', is presented aurally, along with two semantically related parafoveal images that are visible for 150 ms. Participants then indicate which of the two images matched the word. In this case participants would indicate that the word matched the image on the right. _This figure has been modified from the preregistered version for clarity._](figs/WordCompDemo.pdf) 
 
 #### 2.3.7.2 Procedure  
 Participants completed a familiarisation procedure (where each picture was shown along with its spoken name) and a number of practice trials. They then completed 208 experimental trials (four blocks of 52 stimuli). Each trial began with a central fixation cross which was visible for 600 ms. The target word was then presented aurally along with two semantically related parafoveal images that were visible for 150 ms. Participants indicated whether the oral word matched the image in the left or right visual field by pressing Q for the left visual field and P for the right visual field. Participants’ responses triggered the next trial. Accuracy and response times were recorded.  
@@ -911,7 +912,8 @@ Timings for the tasks are shown in Figure `r fignum`. All stimulus materials for
 
 Task order was counterbalanced between participants to avoid order effects using a replicated Latin square design using a customised script in R Studio. Details of task A are described by Woodhead et al. (2018), and Tasks B, C, E and F by Woodhead et al. (2019). Task D was designed for this study and is described below.  
 
-![Timings within a single trial for the six tasks used with fTCD](tasktimings.pdf) 
+### Figure `r fignum`  
+![Timings within a single trial for the six tasks used with fTCD](figs/tasktimings.pdf) 
 
 Task D (Word Decision) used the same 54 picture pairs and audio stimuli that were used for the online Word Comprehension task. The procedure for this task in fTCD has been designed to match that of the Sentence Decision task (task E). In each epoch, a pair of drawings was presented for 3.33 seconds, one above the other, and the spoken word for one of the drawings was played. Participants were required to respond by button press to indicate which drawing matched the spoken word. Each pair of drawings was presented twice, with a different drawing used as the target word, creating 108 epochs in total. Epochs were presented in a pseudorandomised order, with no repetitions of a drawing pair in successive epochs. The same order was used for all participants. The target location was pseudorandomised so that the target was presented at the top / bottom of the screen (and therefore eliciting a left / right button press) in 50% of all epochs to avoid a response bias. In each fTCD trial, six epochs (drawing pairs) were presented, each lasting 3.33 seconds. The pseudorandom order was designed so that within an fTCD trial, there were equal numbers of top or bottom targets. This ensured that odd-even split-half reliability data would not be affected by trial-to-trial variation in which hand is used. Participants were instructed to respond as quickly and accurately as possible.  
 
@@ -1033,7 +1035,7 @@ myflow<-grViz("digraph flowchart {
 
 makefile<-1
 if(makefile==1){
-  filename<-"COLAflow.eps"
+  filename<-here("figs/COLAflow.eps")
   #myflow %>% export_svg %>% charToRaw %>% rsvg %>% jpeg::writeJPEG(filename)
   tmp <- export_svg(myflow)
   rsvg_eps(charToRaw(tmp), filename, width=3543) # Should be 9cm, 1000dpi
@@ -1048,8 +1050,8 @@ if(makefile==1){
 
   
 `r fignum<-fignum+1`
-
-![Participant recruitment flowchart](COLAflow.eps)
+### Figure `r fignum`  
+![Participant recruitment flowchart](figs/COLAflow.eps)
 
 
 ### 3.1.1 Departures From Pre-registration Plan   
@@ -1390,8 +1392,8 @@ for (c in 3:5){
 percentlat[,2:4]<-numformat(percentlat[,2:4],1)
 ```
 
-
-![Pirate plot distributions of LIz scores on online tasks](beh_pirates.eps)  
+### Figure `r fignum`  
+![Pirate plot distributions of LIz scores on online tasks](figs/beh_pirates.eps)  
 
 
 
@@ -1449,7 +1451,8 @@ allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 1, nrow = 3,comm
 ggsave(here('figs/allbiv.eps'), width = 9, height = 25, units="cm", dpi=300)
 fignum<-fignum+1
 ```
-![Bivariate distributions of LIs on behavioural tasks](allbiv.eps) 
+### Figure `r fignum`  
+![Bivariate distributions of LIs on behavioural tasks](figs/allbiv.eps) 
 
 Figure `r fignum` shows scatterplots of the bivariate relationships between the three variables. Spearman correlations are shown with 95% confidence intervals  estimated using the *spearman.ci()* function from the RVAideMemoire package (version 0.9-79; Hervé, 2021) with 1,000 iterations. It is evident from inspection that we can reject model C, in which all three LIs are independent, and model B1, where only Dichotic Listening and Rhyme Decision are correlated. The strongest correlation is between the two visual tasks, Rhyme Decision and Word Comprehension, as predicted by model B2. 
 
@@ -1624,7 +1627,8 @@ ggsave(here("figs/alltimecourse.eps"),width = 19, height = 19, units="cm", dpi=3
 ### 3.3.1 Cerebral Blood Flow Velocity 
 
 `r fignum <- fignum+1`
-![Timecourse of left and right hemisphere blood flow velocity (left axis) and L-R difference (right axis) for six tasks in left- and right-handers)](alltimecourse.eps)
+### Figure `r fignum`  
+![Timecourse of left and right hemisphere blood flow velocity (left axis) and L-R difference (right axis) for six tasks in left- and right-handers)](figs/alltimecourse.eps)
 
 Figure `r fignum-1` shows the mean time course of blood flow velocity on left and right channels for left- and right-handers. In addition, the difference between left and right channels is plotted in black, after adding 100 to the values so that they can be shown on the same plot (true scale is on the right axis). The laterality index is computed as the mean difference score (shown in black) over the period of interest. For Word Generation and Sentence Generation tasks, the LI is computed during a period corresponding to silent generation; the waveform peaks again after this period, corresponding to the activity from the subsequent spoken response. For the other tasks, a series of items is presented in each trial and no spoken response is required. The periodic fluctuations in the response correspond to the individual items that are responded to.  
 
@@ -1705,7 +1709,8 @@ fignum<-fignum+1
 piratenumber <- fignum
 ```
 
-![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers.](ftcd_pirates.eps)
+### Figure `r fignum`  
+![Distributions of fTCD LIs on six tasks for 104 left-handers and 91 right-handers.](figs/ftcd_pirates.eps)
 
 
 ```{r doppler-ttests,echo=F}
@@ -1809,7 +1814,9 @@ ggsave(here("figs/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=30
 suppnum<-suppnum+1
 
 ```
-![Heatmap showing correlations between laterality indices from six fTCD tasks](ftcd-heatmap.eps) 
+
+### Figure `r fignum`  
+![Heatmap showing correlations between laterality indices from six fTCD tasks](figs/ftcd-heatmap.eps) 
 
 
 #### 3.3.4.1 Structural Equation Modeling   
@@ -1822,7 +1829,7 @@ Associations between latent factors and observed variables are shown in a path d
 
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
 
-Path diagrams are shown below in `r fignum<-fignum+1`Figure `r fignum` (single factor model), and Figure `r fignum<-fignum+1` `r fignum` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
+Path diagrams are shown below in Figure `r fignum` (single factor model), and Figure `r fignum<-fignum+1` `r fignum` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
 There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
@@ -1860,12 +1867,13 @@ dev.off()
 }
 ```
 
-
-![One-factor model, showing standardized path coefficients obtained in the current analysis](pathfigF1.eps) 
+### Figure `r fignum`  
+![One-factor model, showing standardized path coefficients obtained in the current analysis](figs/pathfigF1.eps) 
 
 `r fignum<-fignum+1`
 
-![Two-factor model, showing standardized path coefficients obtained in the current analysis](pathfigF2.eps) 
+### Figure `r fignum`  
+![Two-factor model, showing standardized path coefficients obtained in the current analysis](figs/pathfigF2.eps) 
 
 
 ```{r factormodels,echo=F,include=F, warning=F,message=F}
@@ -1897,8 +1905,7 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #Creates a structural diagram for single factor model: nb does NOT include path estimates (these can be shown if we put 'par' rather than 'diagram', but it gets messy, and the parameters are shown instead in a table)
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
-pathfigname1<-"pathfigF1.eps"
-pathfigname1 <- here('figs/pathfigname1.eps')
+pathfigname1<-here("figs/pathfigF1.eps")
 mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #attempt to add spaces to make all same size doesn't seem to work
 
 # semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
@@ -1913,8 +1920,7 @@ sfit2 <- makeSEMtab(fit2)
 bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from this model written to col 3 of bigsummary
 
 #lavResiduals(fit2)
-pathfigname2<-"pathfigF2.eps"
-pathfigname2 <- here('figs/pathfigname2.eps')
+pathfigname2<-here("figs/pathfigF2.eps")
 mynodes2<-c(mynodes,'F2')
 doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
 
@@ -2081,7 +2087,7 @@ fitmeasures(fit.2Fn,wantfits)
 bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summary from this model written to col 4 of bigsummary 
 anova(fit.2Fn,fit.2F)
 
-pathfigname2n<-"pathfigF2_revised.eps"
+pathfigname2n<-here("figs/pathfigF2_revised.eps")
 mynodes2<-c(mynodes,'F2')
 doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
 
@@ -2118,7 +2124,8 @@ We used the lavaan() package (Rosseel, 2021) to perform the preregistered model 
 
 Therefore, as planned, we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021). Fuller results from the analysis are given in Supplementary material.  Because we had data from a single session, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Decision and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was good. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignum` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
 
-![Factor structure of best-fitting model.](pathfigF2_revised.eps)
+### Figure `r fignum`  
+![Factor structure of best-fitting model.](figs/pathfigF2_revised.eps)
 **Evaluation of Prediction 2: Separable factors for receptive and production fTCD laterality measures **
 This prediction was not confirmed. The baseline hypothesis of a single laterality factor was also rejected. A modification of the two-factor model that allowed additional paths from Phonological Decision to Factor 2, and from Sentence Decision to Factor 1 gave a good fit. 
 
@@ -2502,7 +2509,8 @@ fignum<-fignum+1
 
 ```
 
-![Heatmap with behavioural and fTCD laterality indices](bigheatmap.eps)  
+### Figure `r fignum`  
+![Heatmap with behavioural and fTCD laterality indices](figs/bigheatmap.eps)  
 
 We had preregistered two data checks: 1) Online measures that have split-half reliability below .6 will be excluded from further analysis. 2) Online measures of word comprehension and rhyme decision will only be taken forward to the next stage of analysis if they have a correlation of at least .11 with the counterpart measure from fTCD (Word Decision and phonological decision respectively).
 
@@ -2860,7 +2868,7 @@ fpf2
 
 Figure S`r suppdich`.1 shows the raw data from which laterality indices were computed, for the three behavioural tasks, colour-coded by handedness.  The point type indicates whether the absolute individual z-lat score was greater than 1.96, indicating reliable lateralisation for that individual.
 
-![Responses to stimuli on left and right: online behavioural laterality tasks_](allLRbeh.eps)
+![Responses to stimuli on left and right: online behavioural laterality tasks_](figs/allLRbeh.eps)
   
 Note that on the Dichotic Listening task there is inevitably a negative correlation between these totals, because on each trial the response is either left or right: hence, the more responses are 'left' the fewer are 'right', and vice versa. The black line shows the point of equality, where the number correct is the same for left and right. For this task, the points are distinguished for those where the proportion on one side is significantly different from .5 (filled circles), versus those who are equally likely to respond to L or R (crosses, which are bunched around the black line). It is evident from this plot that a high proportion of participants are significantly lateralised, and that overall the sample shows a right ear advantage, i.e., there are more points above the black line than below it. 
 
@@ -2875,6 +2883,6 @@ As with Rhyme Decision, Word Comprehension involved responding to laterally pres
 
 
 Figure S`r suppdich`.2  
-![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](Afig4_DLdens.eps)
+![Density plots and scatterplot showing relationship between conventional laterality index and LIz for dichotic listening.](figs/Afig4_DLdens.eps)
 
 
