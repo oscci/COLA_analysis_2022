@@ -1,7 +1,7 @@
 ---
 title: "Inconsistent language lateralisation -  testing the dissociable language laterality hypothesis using behaviour and lateralised cerebral blood flow"
 author: "COLA consortium*"
-date: "2 May 2022"
+date: "5 May 2022"
 output:
   word_document: default
   reference_docx: mystyle.docx
@@ -16,7 +16,7 @@ output:
 ^3^ Corresponding author, <dorothy.bishop@psy.ox.ac.uk>    
 
 ^a^Department of Experimental Psychology, University of Oxford, UK  
-^b^School of Psychology, Bangor University, UK  
+^b^School of Human and Behavioural Sciences, Bangor University, UK  
 ^c^Department of Psychology, Lancaster University, UK  
 ^d^Department of Psychology, University of Essex, UK  
 ^e^Deafness, Cognition and Language Research Centre, University College London, UK 
@@ -79,6 +79,7 @@ usePackage("magick") #used to combine path diagrams to single figure
 usePackage("readr")
 usePackage("semPlot")
 usePackage("sjPlot")
+usePackage("coin") #used for linear-by-linear association test (ordinal chi)
 
 options(scipen=999)
 
@@ -719,7 +720,7 @@ Cerebral lateralisation for language has been studied both in populations and wi
 Tasks that do not show a population bias to left or right may nevertheless be lateralised within individuals – but with absent or reduced population bias to left-sided functioning. For example, if we have a language task where there is a 50:50 mixture of left- and right-lateralised individuals, the population mean will indicate no lateralisation, suggesting that both hemispheres participate in the task in individuals. However, a subset of individuals may nevertheless be reliably lateralised to one side or the other, but with equal proportions being left-lateralised or right-lateralised. In that case, we should find people who have different language functions mediated by opposite hemispheres.
 This notion is compatible with suggestive evidence that some people have discrepant language lateralisation for different tasks measured using fMRI (e.g. Ramsey, Sommer, Rutten, & Kahn, 2001; Lee, Swanson, Sabsevitz, Hammeke, Scott, Possing, & Binder, 2008) or for different brain regions when performing a single task (Bethmann et al., 2007). It has, however, been difficult to draw firm conclusions due to a lack of reliable and validated laterality measures and well-powered studies in this area. An additional problem is the lack of available data on individual participants in the majority of studies that have used fMRI, electrophysiology or behavioural methods to assess laterality.  
 
-It is important to clarify the nature of atypical lateralisation, because cerebral asymmetry has clinical implications for such issues as epilepsy surgery and recovery from aphasia, as well as informing our understanding of brain-behaviour associations, and the neurobiological basis of the human language capacity. For these reasons we designed a multi-centre study to quantify several measures of cerebral asymmetry using behavioural and physiological measures, in a sample enriched with left-handed participants. We planned to acquire a large dataset of reliable language laterality measures, including behavioural methods and functional transcranial Doppler ultrasound (fTCD), which is shared following the principles of open research.  
+It is important to clarify the nature of atypical lateralisation, because cerebral asymmetry has clinical implications for such issues as epilepsy surgery and recovery from aphasia, as well as informing our understanding of brain-behaviour associations, and the neurobiological basis of the human language capacity. For these reasons we designed a multi-centre study to quantify several measures of cerebral asymmetry using behavioural and physiological measures, in a sample enriched with left-handed participants. We acquired a large dataset of reliable language laterality measures, including behavioural methods and functional transcranial Doppler ultrasound (fTCD), which is shared following the principles of open research.  
 
 ## 1.1 Individual Differences in Language Lateralisation
 Woodhead, Bradshaw, Wilson, Thompson and Bishop (2019) and Woodhead, Thompson, Karlsson and Bishop (2020) compared language lateralisation for a range of tasks designed to engage different aspects of language functioning. These studies used fTCD, which quantifies lateralisation by directly comparing blood flow in left and right middle cerebral arteries during performance of an activation task. A group of 31 left-handers and 43 right-handers performed six language tasks twice on two occasions. Tasks were selected based on the dual-stream model of Hickok and Poeppel (2007), which postulates that language functioning engages two parallel processing streams. The dorsal pathway feeds forward to the inferior frontal gyrus where phonological representations are translated into articulation and is strongly left-lateralised. The ventral pathway, involving the middle and inferior temporal gyri, maps phonological representations onto lexical conceptual representations, and is thought to have weak or absent left-sided dominance. The two streams are not independent; they are both connected to a left-lateralised combinatorial network. Woodhead et al. (2019, 2020) selected tasks involving List Generation (covertly reciting overlearned sequences such as days of the week, months of the year) and Phonological Decision (judging if pictured words rhymed) to index dorsal stream activity. To engage the ventral pathway they selected tasks involving Semantic Decision (judging if pictured words belonged in the same semantic category) and Syntactic Judgement (judging whether a series of nonsense words such as "The tarben yipped a lev near the kruss" had grammatical structure). Tests of Sentence Generation (covertly describing a picture) and Sentence Decision (selecting a picture to match the meaning of a spoken sentence) were predicted to involve both pathways.
@@ -802,7 +803,7 @@ The exclusion criteria were as follows:
 
 `r suppnum<-suppnum+1`
 
-The initial screening questionnaire was administered on the Gorilla platform (www.gorilla.sc; Anwyl-Irvine, Massonnié, Flitton, Kirkham & Evershed, 2020), and is provided in Suppelementary Material `r suppnum`. Note that we did not exclude those who speak more than one language, provided they met our stringent criteria for native-level competence in English (see below). We also gathered information on bilingualism/multilingualism in the initial demographic questionnaire, so it would be possible to determine if this had any impact on results. Participants were told that this test was part of a multistage study and they might be invited back for in-person testing. Although there was no obligation on them to do so, if they were in principle willing, they had the opportunity to provide contact details.  
+The initial screening questionnaire was administered on the Gorilla platform (www.gorilla.sc; Anwyl-Irvine, Massonnié, Flitton, Kirkham & Evershed, 2020), and is provided in Supplementary Material `r suppnum`. Note that we did not exclude those who speak more than one language, provided they met our stringent criteria for native-level competence in English (see below). We also gathered information on bilingualism/multilingualism in the initial demographic questionnaire, so it would be possible to determine if this had any impact on results. Participants were told that this test was part of a multistage study and they might be invited back for in-person testing. Although there was no obligation on them to do so, if they were in principle willing, they had the opportunity to provide contact details.  
 
 Although this study did not include fMRI, we prioritised participants who were likely to be eligible for fMRI in a future phase of the research. The initial screening questionnaire checked whether participants were in principle willing to return for an MRI scan, and whether they were aware of any contraindications to being scanned.  
 
@@ -1855,7 +1856,7 @@ Because Structural equation modeling (SEM) is not widely used in laterality rese
 
 Structural equation modeling (Kline, 2011) is a method that allows a formal test of adequacy of competing models for explaining patterns of association between variables. The underlying assumption of this approach is that observed variables can be treated as indicators of underlying, unobserved latent variables. 
 
-Associations between latent factors and observed variables are shown in a path diagram, with latent factors in circles, and observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. The important point to note is that path diagramss  have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignum-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
+Associations between latent factors and observed variables are shown in a path diagram, with latent factors in circles, and observed variables in boxes. Single-headed arrows indicate causal paths, and double-headed arrows indicate variances. Although means can be incorporated in SEM (and we shall be doing this in our analysis), the main use of SEM is to analyse patterns of covariances. Path diagrams have a precise mathematical interpretation, and can be converted into linear equations that specify the covariances between observed variables. Thus it is possible to obtain a measure of goodness of fit for observed data in relation to a model by comparing how far the observed covariances agree with those predicted by the model. We can already see by inspecting the heatmap of Figure `r fignum-1` that a single-factor model is unlikely to provide a good fit to the observed data, because it would not predict the clustering of correlations that is evident. 
 
 
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
@@ -1864,13 +1865,13 @@ Path diagrams are shown below in `r fignum<-fignum+1`Figure `r fignum` (single f
 
 There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
-For this reason, a range of  different kind of measure of model fit have been devised. The first is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
+For this reason, a range of different measures of model fit has been devised. The first is the Root Mean Square Error of Approximation (RMSEA), a measure of approximate fit in the population that is largely independent of sample size. RMSEA is a measure of "badness of fit", where a value of zero indicates good fit. The Standardized Root Mean Square Residual (SRMR) considers the average size of fitted residuals after the model is fitted, and also ranges from 0 to 1. For both RMSEA and SRMR, values below .05 are generally regarded as indicating good model fit (Schermelleh-Engel et al., 2003).  
 
 Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit   The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
 
 Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figures `r fignum-1`and `r fignum`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters, in which case the simpler model is preferred. 
 
-Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR. The model-fitting  Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
+Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR. Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
  
 
 
@@ -2120,7 +2121,7 @@ anova(fit.2Fn,fit.2F)
 
 pathfigname2n<-paste0(mydir,"/",figdir,"/pathfigF2_revised.eps")
 mynodes2<-c(mynodes,'F2') #see next line: need to reorder for correct designation
-mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision",  "   Syntactic  \n  Decision","   Word   \n  Decision"  ,   "   Sentence  \n  Decision","F1","F2")
+mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision",  "   Sentence  \n  Decision", "   Syntactic  \n  Decision","   Word   \n  Decision"    ,"F1","F2")
 
 doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
 
@@ -2363,10 +2364,10 @@ agfac2 <- aggregate(ddati$Factor2,by=list(ddati$Handed),FUN=sd)
 ```
 
 
-In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t (`r df1`) = `r t1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`.the effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t (`r df2`) = `r t2`, `r pf2`. 
+In a further exploratory analysis, we compared left- and right-handers on mean factor scores. Values for Factor 1 were: Left-handers mean =  `r numformat(fact1$estimate[1],2)`, SD = `r numformat(agfac1$x[1],2)`; Right-handers, mean =  `r numformat(fact1$estimate[2],2)`, SD = `r numformat(agfac1$x[2],2)`.  For Factor 1, the effect size for handedness (Cohen's d) was `r es1`, and a t-test gave t (`r df1`) = `r t1`, `r pf1`. For Factor 2, Left-handers mean =  `r numformat(fact2$estimate[1],2)`, SD = `r numformat(agfac2$x[1],2)`; Right-handers, mean =  `r numformat(fact2$estimate[2],2)`, SD = `r numformat(agfac2$x[2],2)`. The effect size for handedness (Cohen's d) was `r es2`, and a t-test gave t (`r df2`) = `r t2`, `r pf2`. 
 
 **Evaluation of Prediction 3: Different model parameters for left- and right-handers **
-Our interpretation of this analysis was rather complex, given the range of possible results. Specifically we  in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
+Our interpretation of this analysis was rather complex, given the range of possible results. Specifically, in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
 The obtained result clearly indicated that there were different factor means for left- and right-handers, and this was sufficient to account for group differences. The handedness difference was striking for Factor 1, but more marginal for Factor 2. Thus the most parsimonious account of the data was that handedness differences could be explained solely in terms of a shift away from left-hemisphere bias in left-handers for a laterality factor that had loadings from language production tasks.  
 
 ### 3.3.6 Testing Prediction 4: Categorical Analysis of Laterality Indices  
@@ -2419,9 +2420,135 @@ for (i in 1:6){
 
   
 ```
-Table `r tabnumber`: _Proportions showing left lateralisation on fTCD tasks_
 
-Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at `r round(mean(mydiff), 0)`% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from `r round(min(mydiff), 0)`% for Syntactic Decision to `r round(max(mydiff), 0)`% for Sentence Decision, but did not meet our prespecified significance criterion for any measure.
+Table `r tabnumber`: _Proportions showing percentages of left lateralisation on fTCD tasks, with $\chi$^2^ test for L vs R hander difference_
+
+Results are shown in Table `r tabnumber`.  The trend is similar for all six tasks, with the proportion who are left-lateralised averaging at `r round(mean(mydiff), 0)`% lower in left-handers than in right-handers, regardless of the mean LI for the task. The difference ranged from `r round(min(mydiff), 0)`% for Syntactic Decision to `r round(max(mydiff), 0)`% for Sentence Decision, but did not meet our prespecified significance criterion for any measure.  
+
+
+
+```{r 3cat-assignment, echo=F}
+#use SE to identify those with signif lat
+mycols<-paste0(LETTERS[1:6],'_mean_LI')
+mycolse<-paste0(LETTERS[1:6],'_mean_se')
+for (i in 1:6){
+  c<- which(colnames(ddat)==mycols[i])
+  cs <- which(colnames(ddat)==mycolse[i])
+  myvector<-rep(2, nrow(ddat)) #default is category 1, which is bilateral
+  mytemp <- ddat[,c]/ddat[,cs]
+  w<-which(mytemp < (-1.65))
+  myvector[w]<-3
+  w<-which(mytemp > 1.65)
+  myvector[w]<-1
+  ddat[,(1+ncol(ddat))]<-myvector
+  colnames(ddat)[ncol(ddat)] <- paste0(LETTERS[i],'_cat3lat')
+}
+```
+
+```{r cat3-analysis,echo=F}
+chidf3 <- data.frame(matrix(NA,nrow=6,ncol=9)) #table for 3 categories
+colnames(chidf3) <- c('Task','L-hander %L','L-hander %B','L-hander %R','R-hander %L','R-hander %B','R-hander %R','Z','p')
+nucols <- paste0(LETTERS[1:6],'_cat3lat') #names of columns with 3-category laterality for each task
+  myL <- filter(ddat,Handed=='Left') #left-handers only
+  myR <- filter(ddat,Handed=='Right')#right-handers only
+for (i in 1:6){
+    c<-which(colnames(ddat)==nucols[i]) #find column with 3cat laterality code for this task
+ 
+  myt<-table(ddat$Handed,ddat[,c])
+  mytp <- prop.table(myt,1)
+  chitab<-lbl_test(myt) #linear by linear association test, from coin package. Used for ordinal data
+  chidf3[i,1]<-LETTERS[i]
+  chidf3[i,2]<-round(100*mytp[1,1],1)
+  chidf3[i,3]<-round(100*mytp[1,2],1)
+  chidf3[i,4]<-round(100*mytp[1,3],1)
+  chidf3[i,5]<-round(100*mytp[2,1],1)
+  chidf3[i,6]<-round(100*mytp[2,2],1)
+  chidf3[i,7]<-round(100*mytp[2,3],1)
+   chidf3[i,8]<-round(statistic(chitab),2)
+   pp <- 2*(1-pnorm(statistic(chitab)))
+   chidf3[i,9]<-pformat2(pp)
+  
+
+}
+write.csv(chidf3,'cat3_preftable.csv',row.names=F)
+
+  
+```
+
+```{r catreliab-assignment, echo=F}
+#In response to reviewer suggestion re reliability of categories, use odd and evens
+for (j in 1:2){
+mycols<-paste0(LETTERS[1:6],'_mean_odd')
+if(j==2){mycols<-paste0(LETTERS[1:6],'_mean_even')}
+for (i in 1:6){
+  c<-which(colnames(ddat)==mycols[i])
+  myvector<-rep(NA, nrow(ddat))
+  w<-which(ddat[,c]>0.000000001)
+  myvector[w]<-1
+  w<-which(ddat[,c]<0)
+  myvector[w]<-0
+  ddat[,(1+ncol(ddat))]<-myvector
+  colnames(ddat)[ncol(ddat)] <- paste0(LETTERS[i],'_catlat_odd')
+  if(j==2){
+    colnames(ddat)[ncol(ddat)] <- paste0(LETTERS[i],'_catlat_even')}
+ }
+}
+ncol<-length(colnames(ddat))
+ddat[,(ncol+1):(ncol+6)]<-NA
+colnames(ddat)[(ncol+1):(ncol+6)]<- paste0(LETTERS[1:6],'_catlatOE')
+for(i in 1:6){
+  c1<-paste0(LETTERS[1:6],'_catlat_odd')
+  c2<-paste0(LETTERS[1:6],'_catlat_even')
+  w1<-which(colnames(ddat)==c1[i])
+  w2<-which(colnames(ddat)==c2[i])
+  ddat[,(ncol+i)]<- 10*ddat[,w1]+ddat[,w2]
+  
+}
+
+#make little table to show inconsistent cases
+inconsistents <-data.frame(matrix(NA,nrow=6,ncol=4))
+colnames(inconsistents)<-c('Task','LL','RR','inconsistent')
+w<-which(colnames(ddat)=='A_catlatOE')
+for (i in 1:6){
+  temptab<-table(ddat[,(w+i-1)])
+  temptab[3]<-temptab[2]+temptab[3]
+
+  ptab<-prop.table(temptab[c(1,3,4)])
+  inconsistents[i,c(3,4,2)]<-round(100*ptab,1)
+}
+ inconsistents[,1]<-c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
+```
+
+
+```{r catreliab-analysis,echo=F}
+chidf3 <- data.frame(matrix(NA,nrow=6,ncol=9)) #table for 3 categories
+colnames(chidf3) <- c('Task','L-hander %L','L-hander %B','L-hander %R','R-hander %L','R-hander %B','R-hander %R','Z','p')
+nucols <- paste0(LETTERS[1:6],'_cat3lat') #names of columns with 3-category laterality for each task
+  myL <- filter(ddat,Handed=='Left') #left-handers only
+  myR <- filter(ddat,Handed=='Right')#right-handers only
+for (i in 1:6){
+    c<-which(colnames(ddat)==nucols[i]) #find column with 3cat laterality code for this task
+ 
+  myt<-table(ddat$Handed,ddat[,c])
+  mytp <- prop.table(myt,1)
+  chitab<-lbl_test(myt) #linear by linear association test, from coin package. Used for ordinal data
+  chidf3[i,1]<-LETTERS[i]
+  chidf3[i,2]<-round(100*mytp[1,1],1)
+  chidf3[i,3]<-round(100*mytp[1,2],1)
+  chidf3[i,4]<-round(100*mytp[1,3],1)
+  chidf3[i,5]<-round(100*mytp[2,1],1)
+  chidf3[i,6]<-round(100*mytp[2,2],1)
+  chidf3[i,7]<-round(100*mytp[2,3],1)
+   chidf3[i,8]<-round(statistic(chitab),2)
+   pp <- 2*(1-pnorm(statistic(chitab)))
+   chidf3[i,9]<-pformat2(pp)
+  
+
+}
+write.csv(chidf3,'cat3_preftable.csv',row.names=F)
+
+  
+```
 
 Our preregistered analysis plan stated: **_If we find no significant difference between handedness groups, then we can conclude that any true difference in the percentage of left-lateralised individuals is 17% or less, i.e., much lower than the estimates of left-sided language lateralisation for left- and right-handers from lesion or Wada studies (67% and 95% respectively, a difference of 28%) We anticipate that all measures will differentiate left- from right-handers with our sample size of 224; any measure that does not do so would be regarded as an exception to the general rule that handedness is weakly predictive of language lateralisation._**  Clearly, this prediction is not supported by the observed data (albeit with a smaller sample size). 
 
@@ -2473,11 +2600,15 @@ SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catl
 ```
 It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on $\chi$^2^  test, $\chi$^2^  = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tests included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
-It is noteworthy that this more categorical analysis finds rates of "atypical", i.e., non-left, lateralisation on language tasks that are task-dependent, and are lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs. `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised. 
+It is noteworthy that this more categorical analysis finds rates of "atypical", i.e., non-left, lateralisation on language tasks that are task-dependent, and are lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs. `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised.  
+
+This raises the question of how reliable the categorisation of laterality is with fTCD. In response to a reviewer suggestion, we recategorised participants using just the odd or even trials on these tasks, making it possible to identify cases where lateralisation as left or right was inconsistent. The percentages with inconsistent laterality, when a binary divide was placed at zero, were as follows: Word Generation, `r inconsistents[1,4]`%; Sentence Generation, `r inconsistents[2,4]`%; Phonological Decision, `r inconsistents[3,4]`%; Word Decision, `r inconsistents[4,4]`%; Sentence Decision, `r inconsistents[5,4]`%; Syntactic Decision, `r inconsistents[6,4]`%. 
+
+
 
 **Evaluation of Prediction 4: On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised.**  Our preregistered analysis did not support this prediction, but this negative result should be interpreted cautiously. 
 
-It would be premature, given the observed data, to assume that there was no handedness effect on consistent left-lateralisation. First, the categorical analysis is less sensitive than the analysis of continuous laterality indices shown in Table `r ftcdtabnumber`, which clearly indicate reduced lateralisation for left-handers on a subset of tasks. Furthermore, as shown in our prior analyses, the different laterality indices are not independent, and hence Bonferroni correction, which assumes independence of measures,  is over-conservative. We drew a binary divide at zero, but this means that many cases close to zero will not be clearly lateralised. An alternative approach would have been to make a three-way division between lateralised left, not lateralised, and lateralised right. The main reason for not doing that was that the numbers in the clearly lateralised groups would be relatively small, giving low power.  
+It would be premature, given the observed data, to assume that there was no handedness effect on consistent left-lateralisation. First, the categorical analysis is less sensitive than the analysis of continuous laterality indices shown in Table `r ftcdtabnumber`, which clearly indicate reduced lateralisation for left-handers on a subset of tasks. Furthermore, as shown in our prior analyses, the different laterality indices are not independent, and hence Bonferroni correction, which assumes independence of measures,  is over-conservative. We drew a binary divide at zero, but this means that many cases close to zero will not be clearly lateralised. An alternative approach would have been to make a three-way division between lateralised left, not lateralised, and lateralised right. This alternative analysis is presented in Supplementary Material `r suppnum<-suppnum+1` `r suppnum`.
 
 Nevertheless, although we cannot conclude there is no effect of handedness, it is evident that on the fTCD measures, the differences between left- and right-handers are modest, and smaller than reported in the literature on Wada testing. The most striking finding is that, when we use just a categorical left- vs. right-hemisphere coding, a large proportion of people are not consistently in their lateralisation across measures,  regardless of handedness. 
 
