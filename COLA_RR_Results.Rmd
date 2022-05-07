@@ -2,7 +2,7 @@
 title: Inconsistent language lateralisation -  testing the dissociable language laterality
   hypothesis using behaviour and lateralised cerebral blood flow
 author: "COLA consortium*"
-date: "5 May 2022"
+date: "7 May 2022"
 output:
   word_document: default
   reference_docx: mystyle.docx
@@ -10,6 +10,7 @@ output:
     df_print: paged
 ---
 
+<--- updated May 7--->
 <!--- modified May 5 after comparison with submitted--->
 <!-- further comments to be addressed can be found on this document https://docs.google.com/document/d/1WO56tKUxUmsAPKSWHIJSIxrismyvNdIdk8LORTIBfh4/edit?usp=sharing. This has been downloaded on the writeup bit of Dropbox project-->
 
@@ -46,9 +47,6 @@ knitr::opts_chunk$set(echo = TRUE)
     require(p, character.only = TRUE)
  }
 usePackage("tidyverse")
-# usePackage('dplyr')
-# usePackage('tidyr')
-# usePackage('ggplot2')
 usePackage('yarrr') #for pirate plots
 #usePackage("osfr") #for reading files from OSF
 #usePackage("stringr")
@@ -90,6 +88,7 @@ usePackage("magick") #used to combine path diagrams to single figure
 usePackage("readr")
 usePackage("semPlot")
 usePackage("sjPlot")
+usePackage("here") #for controlling paths
 
 options(scipen=999)
 
@@ -97,6 +96,30 @@ tabnumber <-0 #initialise counter for tables
 fignum <-0 # initialise counter for figs
 suppfignum<-0 
 suppnum <- 0
+
+here::i_am("COLA_RR_Results.rmd") #working directory will be set to this by rmd
+#We use 'here' package to ensure results are written and read relative to this
+#NB here does not like directories that start with numeric characters etc.
+#This is the file structure that you need to run this script smoothly.
+
+#Script itself lives in top level of directory
+
+# Folder 'data' within that directory contains processed files created by Gorilla.Processing.Script_forOSF.rmd:
+# "combined_data.csv"  
+# "combined_data_origbaseline.csv" 
+# "sess1.csv"
+# "sess2.csv"
+# "ftcd_data.csv"
+# "ftcd_data_origbaseline.csv"
+# "task_details.csv"  - not really data, but stored here as it is read in by this script
+
+# Folder 'ftcd_task_means' - large folder of means from L and R channels for each task and participant - needed to create timecourse plot, but once it is made, can skip that chunk.
+
+# Folder 'figs' : create blank folder to which figures will be written
+
+# Folder 'suppdata': blank folder that will be used to save Odd-Even model results for supplementary
+
+
 ```
 
 <!--- GENERIC FUNCTIONS START -->
@@ -526,20 +549,20 @@ densplots<-function(mydat,thiscol,thisgroup,mylab){
 
  
 ```{r readcombined,echo=F}
-#Script is set up so you can run the whole script with different subsets of participants. If you want to do that, you need to make a folder within your working directory called 'supplementary' where alternative outputs will be stored. 
-wdir<-getwd()
-wdir<-"/Users/dorothybishop/Dropbox/COLA_RR_Analysis" #really need to sort out 'here' - this is not satisfactory
+#Script is set up so you can run the whole script with different subsets of participants. If you want to do that, you need to make a folder within your working directory called 'supplementary' where alternative outputs will be stored. Note that this is now superseded by separate script for creating suppolementary document.
+
+wdir<-here("COLA_RR_Results.rmd") 
 mydir <- paste0(wdir,"/")
 alldir <- c(mydir,paste0(mydir,"supplementary"))
 
 dir2 <-"02-data/" 
 
 useorigbaseline <- 0 #should be set to zero unless creating alternative file for supplement. This will undergo usual processing and then be saved as ddati_origbaseline file which can be read in for the supplement.
-readfile<-paste0(alldir[1],dir2,"combined_data.csv")
+readfile<-"data/combined_data.csv" #we use 'here' below to ensure this is specified relative to top level file, set in initial chunk
 if(useorigbaseline==1){
-  readfile<-paste0(alldir[1],dir2,"combined_data_origbaseline.csv")
+  readfile<-"data/combined_data_origbaseline.csv" 
 }
-combdat <- read.csv(readfile)
+combdat <- read.csv(here(readfile))
 
 #Create a code for handedness based on EHI
 combdat$selfrep_Rhand<-combdat$Rhanded #this is self-report
@@ -1089,8 +1112,8 @@ Table `r tabnumber` shows demographic data for the subset of individuals tested 
 ```{r test-retest, echo=F}
 #need to read in sess1 and sess3 for the test-retest data
 
-sess1 <- read.csv(paste0(mydir,dir2,'sess1.csv'))
-sess3 <- read.csv(paste0(mydir,dir2,'sess3.csv'))
+sess1 <- read.csv(here('data/sess1.csv'))
+sess3 <- read.csv(here('data/sess3.csv'))
 mtab<-table(sess3$male,sess3$Rhanded)
 
 # Calculate delay between session 1 and session 3 for retest participants
@@ -1150,7 +1173,7 @@ DLsides <- ggplot(DLdat, aes(x=DL.L, y=DL.R, color=Handedness,shape=as.factor(DL
     annotate("text", x=71, y=44, label= "Below diagonal:\nL Ear Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
+ggsave(here("figs/AFig1_DLsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 
@@ -1182,7 +1205,7 @@ RDTsides <- ggplot(RDTdat, aes(x=RDT.Lmean, y=RDT.Rmean, color=Handedness,shape=
     annotate("text", x=7.1, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
+ggsave(here("figs/AFig2_RDTsides.eps"),width = 14, height = 9.5, units="cm", dpi=300)
 
 
 ```
@@ -1211,15 +1234,13 @@ WCsides <- ggplot(WCdat, aes(x=WC.Lmean, y=WC.Rmean, color=Handedness,shape=as.f
     annotate("text", x=6.9, y=6.5, label= "Below diagonal:\nRVF Advantage",size=2.8) + 
   theme(text = element_text(size = 8)) 
 
-ggsave(paste0(mydir,"AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
+ggsave(here("figs/AFig3_WCsides.eps"),width = 14 , height = 9.5, units="cm", dpi=300)
 
 #plot with all 3 L vs. R scatterplots together in a row.
 allplot <- ggarrange(DLsides, RDTsides, WCsides, ncol = 1, nrow = 3,common.legend=TRUE)
 
 
-ggsave(paste0(mydir,"allLRbeh.eps"),width = 9, height = 25, units="cm", dpi=300)
-#also save to current project to enable access when knitting to word
-ggsave("allLRbeh.eps",width = 9, height = 25, units="cm", dpi=300)
+ggsave(here("figs/allLRbeh.eps"),width = 9, height = 25, units="cm", dpi=300)
 fignum<-fignum+1
 
 ```
@@ -1259,9 +1280,8 @@ dens2 <- ggplot(DLdat, aes(x = DL.zlat, fill = Handedness)) +
 dens1 + plot_spacer() + plot1 + dens2 + 
   plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
 
-DLdens <- ggsave("AFig4_DLdens.eps",width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)
+DLdens <- ggsave(here("figs/AFig4_DLdens.eps"),width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)
 
-ggsave("AFig4_DLdens.eps",width = 14, height = 12, units="cm", dpi=300, device=cairo_ps)#resave to project folder
 
 suppfignum<- suppfignum+1
 ```
@@ -1347,9 +1367,8 @@ longdata.b$Task <- factor(longdata.b$Task, levels = c('Dichotic', 'Rhyme', 'Comp
 
 mypath<-mydir
 
-plotname<-'beh_pirates.eps'
 setEPS()
-cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
+cairo_ps(here('figs/beh_pirates.eps'), fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
 pirateplot(data = longdata.b, LIz ~ Handed * Task,  cex.lab=1, cex.axis=1, cex.names=1, ylab='R hem bias <--- LIz ---> L hem bias')
 
 abline(h=0)
@@ -1427,7 +1446,7 @@ RD_WC_plot <- bivplot2(bivdat,name1,name2)
 #For now am making a plot with all 3 scatterplots together in a row. Easy to change layout if needed.
 allplot <- ggarrange(DL_RD_plot, DL_WC_plot, RD_WC_plot, ncol = 1, nrow = 3,common.legend=TRUE)
 
-ggsave('allbiv.eps', width = 9, height = 25, units="cm", dpi=300)
+ggsave(here('figs/allbiv.eps'), width = 9, height = 25, units="cm", dpi=300)
 fignum<-fignum+1
 ```
 ![Bivariate distributions of LIs on behavioural tasks](allbiv.eps) 
@@ -1469,9 +1488,8 @@ poistart=6 # period of interest start
 poiend=23 # period of interest end
 
 ## Read in data
-datadir <- "~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_task_means/"
-ftcddata <- read.csv("~/Dropbox/COLA_RR_Analysis/02-data/02.2_ftcd/ftcd_data.csv")
-w<-which(is.na(ftcddata$A_exclude)) #all cases with no signal
+ftcddata <- read.csv(here("data/ftcd_data.csv"))
+w<-which(ftcddata$No_signal==1)#all cases with no signal
 ftcddata <- ftcddata[-w,] 
 
 ftcddata$Nexclude <- ftcddata$A_exclude + ftcddata$B_exclude + ftcddata$C_exclude + ftcddata$D_exclude + ftcddata$E_exclude + ftcddata$F_exclude
@@ -1480,7 +1498,7 @@ ftcddata <- ftcddata %>% filter(Nexclude <= 1)
 #NB; some are NA on Nexclude - I checked and these are both cases with just one missing
 
 # Load in the first one to find out how big it is
-tmpfile <- read.csv(paste0(datadir, '3151603_WG.csv'))
+tmpfile <- read.csv(here('ftcd_task_means/3151603_WG.csv'))
 
 # Get the x-axis (time) information from tmpfile
 mytime <- tmpfile$time
@@ -1499,9 +1517,9 @@ for (t in 1:ntasks){
     for (s in 1:nsubj){
       # Read in the data
       mysubname <- ftcddata$Gorilla_ID[mysubj[s]]
-      myfile <- paste0(datadir,mysubname,'_',tasks[t],'.csv')
-      if (file.exists(myfile)){
-        mydat <- read.csv(myfile)
+      myfile <- paste0('ftcd_task_means/',mysubname,'_',tasks[t],'.csv')
+      if (file.exists(here(myfile))){
+        mydat <- read.csv(here(myfile))
         Ldata[ , s] <- mydat$Lmean
         Rdata[ , s] <- mydat$Rmean
         diffdata[,s]<-100+mydat$meanDiff #NB we add 100 to the difference so we can put it on the same plot
@@ -1598,7 +1616,7 @@ for (t in 1:ntasks){
 alltimes <- ggarrange(d1,d2,d3,d4,d5,d6, ncol = 2, nrow = 3,common.legend=TRUE)
 
 
-ggsave("alltimecourse.eps",width = 19, height = 19, units="cm", dpi=300)
+ggsave(here("figs/alltimecourse.eps"),width = 19, height = 19, units="cm", dpi=300)
 
   # The POI ends earlier for WG and SG tasks, due to REPORT phase
 ```
@@ -1634,7 +1652,7 @@ for(i in 1:6){
 }
 poordata<-unique(poordata)
 poordatalist<-combdat[poordata,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
-write.csv(poordatalist,'poordatacases.csv',row.names=F)
+write.csv(poordatalist,here('data/poordatacases.csv'),row.names=F)
 datalist<-combdat[,c(1,acccols,ncol(combdat)-1,ncol(combdat))]
 acctab<-describe(datalist[,2:7])
 
@@ -1669,10 +1687,9 @@ longdata.d <- pivot_longer(data = LIdata, cols = c(3:8), names_to = 'Task', valu
 longdata.d$Task <- as.factor(longdata.d$Task)
 levels(longdata.d$Task)<-c('A','B','C','D','E','F')
 
-plotname<-'ftcd_pirates.eps'
  
 setEPS()
-cairo_ps(plotname, fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
+cairo_ps(here('figs/ftcd_pirates.eps'), fallback_resolution=300, width=19/2.54, height=15/2.54) # convert width and height to inches
 pirateplot(data = longdata.d, LI ~ Handed * Task, ylim=c(-6,8))
 
 abline(h=0)
@@ -1787,7 +1804,7 @@ w<-which(colnames(temp)%in%LIcols)
 colnames(temp)[w]<-tasknames
 myheatmap <- makeheatmap(temp,tasknames)
 
-ggsave("ftcd-heatmap.eps",width = 14, height = 14, units="cm", dpi=300)
+ggsave(here("figs/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 
 suppnum<-suppnum+1
 
@@ -1881,6 +1898,7 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
 pathfigname1<-"pathfigF1.eps"
+pathfigname1 <- here('figs/pathfigname1.eps')
 mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #attempt to add spaces to make all same size doesn't seem to work
 
 # semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
@@ -1896,12 +1914,12 @@ bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from 
 
 #lavResiduals(fit2)
 pathfigname2<-"pathfigF2.eps"
+pathfigname2 <- here('figs/pathfigname2.eps')
 mynodes2<-c(mynodes,'F2')
 doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
 
 
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
-
 
 #I checked whether the one-factor model would fit better if we specified a 2-group solution with handedness groups; it did not
 #measurementInvariance(model=model.1F,estimator="WLSMV",data=ddati,group="Handed")
@@ -1964,7 +1982,7 @@ ddat_OE$randgroup<-1+rbinom(nrow(ddat_OE),1,.5) #create random group 1 or 2 for 
 mygroup <-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 
-write.csv(ddat_OE,'ddat_OE.csv',row.names=F) #save this for use in Supplementary tables
+write.csv(mydat,here('suppdata/ddat_OE.csv'),row.names=F) #save this for use in Supplementary tables
 
 #Model that is same as Woodhead et al
 model.2FZW <- '
@@ -2454,12 +2472,12 @@ ddati <-cbind(ddati[,1:ncol],complete(thisdat.j,1))
 
 #We save the data frame, which will be used for the big Supplementary output file. 
 if(useorigbaseline==1){
-  write.csv(ddati,'ddati_origbaseline.csv',row.names=F)
+  write.csv(ddati,here('data/ddati_origbaseline.csv'),row.names=F)
 }
 
 #here we save the version with original baseline that will be used in supplement.
 if(useorigbaseline==0){
-  write.csv(ddati,'ddati.csv',row.names=F)
+  write.csv(ddati,here('data/ddati.csv'),row.names=F)
 }
 ```
 
@@ -2479,7 +2497,7 @@ w<-c(w,wx)
 colnames(temp)[w]<-c(behnames,tasknames)
 
 bigheatmap <- makeheatmap(temp,c(behnames,tasknames))
-ggsave("bigheatmap.eps",width = 14, height = 14, units="cm", dpi=300)
+ggsave(here("figs/bigheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 fignum<-fignum+1
 
 ```
@@ -2545,11 +2563,11 @@ tab.2Fny <- makeSEMtab(fit.2Fny)
 
 
 
-pathfigname<-"pathfigF2_bigA"
+pathfigname<-here("figs/pathfigF2_bigA")
 semPaths(fit.2Fnx, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
     sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
-pathfigname<-"pathfigF2_bigB"
+pathfigname<-here("figs/pathfigF2_bigB")
 semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 8, 
     sizeMan2 = 5,filetype='eps',filename=pathfigname,width=3,height=2) #draws a path diagram
 
@@ -2561,6 +2579,7 @@ semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan
 modelnames<-c('No dichotic path','Dichotic <- Factor 1','Dichotic <- Factor 2')
 dichmodels<-cbind(modelnames,fitcompare[c(3,1,2),])
 dichmodels <- dichmodels[,c(1,2,5)]
+dichmodels[,3]<-round(dichmodels[,3],1)
 colnames(dichmodels)[1:2]<-c('Path to dichotic','DF')
 #dichmodels$Chisq<-numformat(dichmodels$Chisq,2) #another command that seems to upset flextable
 fd<-flextable(dichmodels)
@@ -2638,7 +2657,7 @@ Although our data did not support the simple two-factor structure of laterality 
 We conclude by considering what commonalities there are between tasks that characterise each factor.  
 ```{r taskanalysis,echo=F}
 
-tasks <- read.csv(paste0(mydir,dir2,"task_details.csv"))
+tasks <- read.csv(here("data/task_details.csv"))
 ftasks <- flextable(tasks[,1:7])
 
 ftasks<-fit_to_width(ftasks,8,inc=1L)
