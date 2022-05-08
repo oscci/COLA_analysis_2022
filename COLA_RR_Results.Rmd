@@ -4,10 +4,10 @@ title: Inconsistent language lateralisation -  testing the dissociable language 
 author: "COLA consortium*"
 date: "8 May 2022"
 output:
-  word_document: default
-  reference_docx: mystyle.docx
   html_document:
     df_print: paged
+  reference_docx: mystyle.docx
+  word_document: default
 ---
 
 <!--- updated May 7---  based on submitted, with some text corrections>
@@ -1063,7 +1063,7 @@ The disruption due to these factors meant we did not meet our target numbers for
 
 To justify this approach, we considered whether either raw or absolute laterality indices were correlated with either of the language screening measures and showed they were not  (See section 3.5 below and Supplementary file `r suppnum<-suppnum+1` `r suppnum` `r suppcorr<-suppnum`).
 
-Figure `r fignum` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r sum(testtab[1,]` left-handers, `r sum(testtab[1,2:3]` of whom were seen for fTCD assessment, and `r sum(testtab[2,]` right-handers, `r sum(testtab[2,2:3]` of whom were seen for fTCD assessment. 
+Figure `r fignum` presents the original preregistered recruitment flowchart modified to show actual numbers recruited. In total we tested `r sum(testtab[1,])` left-handers, `r sum(testtab[1,2:3])` of whom were seen for fTCD assessment, and `r sum(testtab[2,])` right-handers, `r sum(testtab[2,2:3])` of whom were seen for fTCD assessment. 
 
 Figure `r fignum` also shows the new rather than preregistered approach to the language screen. Group H (high proficiency) corresponds to cases who meet preregistered criteria: they are either native English speakers, or non-native speakers who passed the preregistered criterion for language competence (LexTALE of 80 or more, and no more than 3 errors on full Games with Words test). Group M (moderate proficiency) failed the language screen. In the original flowchart, the language screen was used to exclude those in group M prior to Step 2, whereas in the final study, we included these individuals. In Supplementary file 3 we compare the current results with those obtained using the original, stringent language cutoff (i.e., excluding Group M), and show that differences are minimal.
 
@@ -1087,7 +1087,7 @@ mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FT
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
 ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
 ftab<- fit_to_width(ftab,8)
-#ftab #This line prevents knitting to Word
+ftab #This line prevents knitting to Word
 tabnumber<-tabnumber+1
 
 # Calculate delay between session 1 and session 2 (fTCD)
@@ -1831,7 +1831,7 @@ Associations between latent factors and observed variables are shown in a path d
 
 SEM does not arrive at a single algebraic estimation of model fit, but rather uses a maximum likelihood approach, whereby values for the paths from the factors to the observed variables are first assigned starting values, and the expected covariances between variables are computed with these values, and then compared to observed covariances. This process is iterated many times with different path estimates, with an algorithm adjusting paths on each run to reduce the mismatch between observed and expected (i.e., model-implied) covariances. 
 
-Path diagrams are shown below in Figure `r fignum` (single factor model), and Figure `r fignum<-fignum+1` `r fignum` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
+Path diagrams are shown below in Figure `r fignum+1` (single factor model), and Figure `r fignum<-fignum+1` `r fignum+1` (two-factor model). **_The two-factor model is equivalent to Figure 4 from the preregistered document_**.  These include one path to each factor shown as a dotted line. This is a fixed parameter, set to 1, which is necessary to scale the estimates. Computationally, it makes no difference to the solution which path is fixed: for each factor this can be either one of the paths from an observed variable, or the variance of the factor. All the other paths are free to vary, and the estimation process will consider different values, to converge on a solution that gives the best fit. Some paths may have little impact on the solution, and may be dropped without any deterioration of fit. 
 
 There is no single method for evaluating the fit of a model to observed data (Schermelleh-Engel et al., 2003). A $\chi$^2^ test can give an estimate of the extent of departure of observed values from expectation: a good model is one where $\chi$^2^ is small and has a high associated p-value, indicating that any difference between expectation and observation is likely to just reflect sampling error. It is usually possible to improve the fit by including additional paths or factors in a model until good fit is achieved, but this does not mean that the model is better: the goal is rather to obtain a parsimonious and theoretically meaningful model that does not include arbitrary parameters that are specified solely to fit the data. Note, however, that values of $\chi$^2^ are dependent on sample size, and with small samples, a small $\chi$^2^ value may suggest good fit, when differences between observed and model-implied covariances are large; in effect small samples may lack power to detect departures from model predictions, whereas large samples risk finding significant departures from perfect fit on the basis of trivial mismatch. 
 
@@ -1839,7 +1839,7 @@ For this reason, a range of  different measures of model fit has been devised. T
 
 Other indices have been developed that penalise models with a large number of parameters. The Comparative Fit Index (CFI) measures relative improvement of fit of a model relative to a model that assumes independence of all variables. CFI values of .95 or more are conventionally regarded as indicating acceptable fit. The Tucker-Lewis Index (TLI) similarly compares chi square of the observed model with an independence model, with values of .97 or more indicating good model fit (Schermelleh-Engel et al., 2003).
 
-Models are 'nested' when a simple model model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figures `r fignum-1` and `r fignum`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters, in which case the simpler model is preferred. 
+Models are 'nested' when a simple model can be derived from a more complex model by fixing at least one free parameter in the complex model. In Figures `r fignum` and `r fignum+1`, the one-factor model is equivalent to the two-factor model if the covariance between F1 and F2 is fixed to one.  In such cases, model fit can be compared by subtraction of the $\chi$^2^ and degrees of freedom for the two models; the difference in $\chi$^2^  is then evaluated; if it is nonsignificant, this indicates that the simpler model gives as good a fit as a complex model with more parameters, in which case the simpler model is preferred. 
 
 Following recommendations by Schermelleh-Engel et al. (2003) we report here values for $\chi$^2^, CFI, TLI, RMSEA and SRMR.  Detailed outputs for all SEM analyses are available in Supplementary document `r suppnum`. 
  
@@ -1924,7 +1924,7 @@ bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from 
 #lavResiduals(fit2)
 pathfigname2<-here("figs/pathfigF2.eps")
 #needed to reorder mynodes2 for correct specification
-mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision",  "   Syntactic  \n  Decision","   Word   \n  Decision"  ,   "   Sentence  \n  Decision","F1","F2")
+mynodes2<-c("  Word \nGeneration" , "   Sentence \nGeneration", "Phonological\nDecision", " Word   \n  Decision"  ,   "   Sentence  \n  Decision", "   Syntactic  \n  Decision",  "F1","F2")
 doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
 
 
@@ -2091,8 +2091,9 @@ bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summar
 anova(fit.2Fn,fit.2F)
 
 pathfigname2n<-here("figs/pathfigF2_revised.eps")
-mynodes2<-c(mynodes,'F2')
-doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes2) #call function to draw path diagram
+mynodes3<-mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision", "   Sentence  \n  Decision",  "   Syntactic  \n  Decision"," Word   \n  Decision"  ,    "F1","F2")
+doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
+doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes3) #call function to draw path diagram
 
 
 #look at residuals for diagnostics
@@ -2128,8 +2129,9 @@ We used the lavaan() package (Rosseel, 2021) to perform the preregistered model 
 Therefore, as planned, we divided the sample into two random subsamples, 1 and 2. The first subsample was used in an exploratory analysis, based on that used by Woodhead et al (2021), and the second for cross-validation. Fuller results from the analysis are given in Supplementary material.  Because we had data from a single session, for both exploratory and cross-validation analyses, we used the LIs from the odd and even trials to give two indicators per task. We started with a model with two factors, where all 12 measures (2 measures from 6 tasks) were allowed to load on both factors, except for Sentence Generation. This was an indicator variable with a loading of 1 on Factor 1, and no loading on Factor 2. To ensure model identification, the variance of Factor 1 was free to vary, and variance of Factor 2 was set to 1. Although this model converged with good fit, there were warnings indicating problems with unfeasibly small eigenvalues. However, when non-significant paths were dropped from the model (from Word Decision and Syntactic Decision to Factor 1, and from Word Generation to Factor 2), there was good model convergence with plausible parameters and excellent fit (CFI = 1 and RMSEA = 0). This same model was then evaluated with the hold-out sample, and again the fit was good. We therefore took this model forward to the next stage of analysis, first checking the fit with the original full sample and with the original LIs based on all trials. The path diagram is shown in Figure `r fignum` and summary output is shown in Table `r tabnumber`;  the fit was a significant improvement on the fit of the original 2-factor model. 
 
 ### Figure `r fignum`  
-![Factor structure of best-fitting model.](figs/pathfigF2_revised.eps)
-**Evaluation of Prediction 2: Separable factors for receptive and production fTCD laterality measures **
+![Revised two-factor model, showing standardized path coefficients obtained in the final analysis.](figs/pathfigF2_revised.eps)
+
+**Evaluation of Prediction 2: Separable factors for receptive and production fTCD laterality measures **  
 This prediction was not confirmed. The baseline hypothesis of a single laterality factor was also rejected. A modification of the two-factor model that allowed additional paths from Phonological Decision to Factor 2, and from Sentence Decision to Factor 1 gave a good fit. 
 
 
@@ -2338,7 +2340,7 @@ In a further exploratory analysis, we compared left- and right-handers on mean f
 
 **Evaluation of Prediction 3: Different model parameters for left- and right-handers **
 Our interpretation of this analysis was rather complex, given the range of possible results. Specifically, in the preregistration we stated: **_"The simplest result would be to confirm structural invariance, i.e., no difference in model parameters for left- vs. right-handers. This is unlikely, given our prior results, but it would indicate that handedness is unrelated to language laterality profile. On the basis of prior results we anticipate the best-fitting model will require different factor means for left- and right-handers. If so, we will ask whether specifying different means is sufficient to explain group differences – this would indicate we can conceptualise the effect of handedness in terms of a population mean shift. Our simulated data suggests we may also need to specify different residuals for the two groups, reflecting greater variance in left-handers; if confirmed, this would indicate that a mean shift is insufficient to explain handedness effects, and suggest the underlying laterality distribution may contain a mixture of left- and right-biased individuals._**
-The obtained result clearly indicated that there were different factor means for left- and right-handers, and this was sufficient to account for group differences. The handedness difference was striking for Factor 1, but more marginal for Factor 2. Thus the most parsimonious account of the data was that handedness differences could be explained solely in terms of a shift away from left-hemisphere bias in left-handers for a laterality factor that had loadings from language production tasks.  
+The obtained result clearly indicated that there were different factor means for left- and right-handers, and this was sufficient to account for group differences. The handedness difference was striking for Factor 1, but more marginal for Factor 2. Thus the most parsimonious account of the data was that handedness differences could be explained solely in terms of a shift away from left-hemisphere bias in left-handers for a laterality factor that had loadings from language generation tasks.  
 
 ### 3.3.6 Testing Prediction 4: Categorical Analysis of Laterality Indices  
 Prediction 4 was: _On categorical analysis, individuals who depart from left-brained laterality on one or more tasks will be more likely to be left-handed than those who are consistently left-lateralised._
@@ -2446,7 +2448,7 @@ Our preregistered analysis plan stated: **_If we find no significant difference 
 
 We had preregistered a subsidiary analysis as follows: **_After testing associations for individual measures, we will categorise individuals as either consistently left-lateralised on all tests, or right-lateralised on one or more tests, and conduct a $\chi$^2^ test contrasting the proportion of left- and right-handers on this composite measure._**  
 
-The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tests, using the same cutoff of zero,  is shown in Table `r tabnumber+1`. 
+The proportions of left- and right-handers who are left-lateralised on between 0 and 6 tasks, using the same cutoff of zero,  is shown in Table `r tabnumber+1`. 
 
 Table `r tabnumber+1`: _Proportions of left- and right-handers with between 0 and 6 tasks left-lateralised on fTCD._    
 
@@ -2490,7 +2492,7 @@ SG_right_Lprop <- sum(ddat$B_catlatL[which(ddat$Rhanded==1)])/length(ddat$B_catl
 
 
 ```
-It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on $\chi$^2^  test, $\chi$^2^  = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tests included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tests. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
+It is evident from Table `r tabnumber` that a minority of individuals is consistently left-lateralised on all six tasks, regardless of handedness. The trend is for more right-handers to show this pattern than left-handers, but this difference is not significant on $\chi$^2^  test, $\chi$^2^  = `r round(mychiN$statistic,2)`, `r pformat(mychiN$p.value)`.  However, two of the tasks included in this analysis, Word Decision and Syntactic Decision, were not left-lateralised at the population level, and it could be argued they would just add noise to the analysis, which was intended to identify those who departed from the typical pattern of left-lateralisation. We therefore added an exploratory analysis, in which we excluded these two tasks. When only Word Production, Sentence Production, Phonological Decision and Syntactic Comprehension were considered, `r round(100*tabN4[5,1]/sum(tabN4[1:5,1]),1)`% of left-handers and `r round(100*tabN4[5,2]/sum(tabN4[1:5,2]),1)`% of right-handers were consistently left-lateralised. 
 
 It is noteworthy that this more categorical analysis finds rates of "atypical", i.e., non-left, lateralisation on language tasks that are task-dependent, and are lower than typically observed when methods such as Wada test or fMRI are used. This is the case even for the most lateralised task, Sentence Generation, where `r round(SG_right_Lprop*100, 0)`% of right-handers vs. `r round(SG_left_Lprop*100, 0)`% of left-handers were left-lateralised.  
 
@@ -2500,7 +2502,7 @@ This raises the question of how reliable the categorisation of laterality is wit
 
 It would be premature, given the observed data, to assume that there was no handedness effect on consistent left-lateralisation. First, the categorical analysis is less sensitive than the analysis of continuous laterality indices shown in Table `r ftcdtabnumber`, which clearly indicate reduced lateralisation for left-handers on a subset of tasks. Furthermore, as shown in our prior analyses, the different laterality indices are not independent, and hence Bonferroni correction, which assumes independence of measures,  is over-conservative. We drew a binary divide at zero, but this means that many cases close to zero will not be clearly lateralised. An alternative approach would have been to make a three-way division between lateralised left, not lateralised, and lateralised right. The main reason for not doing that was that the numbers in the clearly lateralised groups would be relatively small, giving low power.  
 
-Nevertheless, although we cannot conclude there is no effect of handedness, it is evident that on the fTCD measures, the differences between left- and right-handers are modest, and smaller than reported in the literature on Wada testing. The most striking finding is that, when we use just a categorical left- vs. right-hemisphere coding, a large proportion of people are not consistently in their lateralisation across measures,  regardless of handedness. 
+Nevertheless, although we cannot conclude there is no effect of handedness, it is evident that on the fTCD measures, the differences between left- and right-handers are modest, and smaller than reported in the literature on Wada testing. The most striking finding is that, when we use just a categorical left- vs. right-hemisphere coding, a large proportion of people are not consistent in their direction of lateralisation across measures,  regardless of handedness. 
 
 
 
@@ -2512,7 +2514,7 @@ Nevertheless, although we cannot conclude there is no effect of handedness, it i
 Our fifth prediction was: **_the laterality profile obtained with the online language battery will be significantly associated with the profile seen with the direct measurement of cerebral blood flow using fTCD, with laterality on dichotic listening and word comprehension relating more strongly to receptive language tasks, and rhyme decision to language generation tasks._**
 
 
-A preliminary inspection of correlations between online and fTCD laterality indices (Figure `r fignum`) showed very little relationship between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (Word Decision and Phonological Decision respectively).
+A preliminary inspection of correlations between online and fTCD laterality indices (Figure `r fignum+1`) showed very little relationship between the two, even for the two measures, Word Comprehension and Rhyme Decision, that have analogues in fTCD (Word Decision and Phonological Decision respectively).
 
 
 ```{r preparedata,echo=F}
@@ -2678,7 +2680,7 @@ Considering first the online behavioural data, the most noteworthy observation w
 
 For the fTCD data, results were generally in good agreement with Woodhead et al. (2021), with good reliability of LIs on most tasks, even though some tasks were not left-lateralised. As in our previous study (Woodhead et al., 2019), the LI on Syntactic Decision task had good reliability, and a distinctive pattern of association with other LIs, despite being unlateralised. This observation shows that lack of lateralisation at the population level does not mean that all individuals use both hemispheres equally for the task: it seems rather that the population contains a mixture of people, some of whom consistently prefer the left hemisphere, others the right, and others more equally balanced. The LI from the Word Decision task was the least reliable in the battery, yet again showed quite distinctive patterns of selective association with other tasks. 
 
-With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered, alternative two-factor model that involved a division between language production and language reception. This accounted for significantly more variance than the single-factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two sub samples to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
+With fTCD we were able to subject the single factor model to a stronger test, because we had sufficient tasks for Structural Equation Modeling. Consistent with Woodhead et al (2021), we could reject a single factor model; this gave a poor fit to the data, as it could not account for the fact that the correlations between LIs tended to form clusters. We tested a preregistered, alternative two-factor model that involved a division between language generation and language reception. This accounted for significantly more variance than the single-factor model, but still left a great deal unexplained, and overall the fit was poor. Accordingly, following our preregistration, we divided the sample into two sub samples to explore different models and found one that gave good fit, which was then replicated in the second half of the sample. This again had a two factor structure, but had two of the tasks, Phonological Decision and Syntactic Comprehension, loading on both the factors. 
 
 In a final step of analysis, we considered adding the laterality indices from online tasks to the model. The correlations between LIs from online tasks and fTCD were generally weak, and these measures did not help differentiate models.  A model that included Dichotic Listening gave better fit when a non-zero path was included, than when it was set to zero, but the best fit was seen for a model where Dichotic Listening loaded on Factor 1 (with language production tasks), rather than for our prespecified model where Dichotic Listening was regarded as an indicator of Factor 2 (with receptive tasks).
 
@@ -2753,7 +2755,7 @@ To some extent, this is less of an explanation than a redescription of the data,
 
 ## 5. Conclusions  
 
-Language laterality in individuals is not a single dimension, but varies depending on task demands. A simple two-factor model that distinguished tasks involving language production and comprehension was superior to a single-factor model in accounting for individual variation, but tasks did not neatly map onto the two factors. Previously, we had suggested that a different factor structure would be seen in left- and right-handers, but that was not the case for the current dataset: handedness determined the mean level of laterality on a language production factor, but not the covariance between factors. 
+Language laterality in individuals is not a single dimension, but varies depending on task demands. A simple two-factor model that distinguished tasks involving language generation and comprehension was superior to a single-factor model in accounting for individual variation, but tasks did not neatly map onto the two factors. Previously, we had suggested that a different factor structure would be seen in left- and right-handers, but that was not the case for the current dataset: handedness determined the mean level of laterality on a language production factor, but not the covariance between factors. 
 Behavioural laterality measures, assessed online, were only weakly related to laterality measured using fTCD. 
 The full dataset provides unique possibilities for assessing associations between different laterality measures and is openly available for exploration by other researchers without restriction. 
 
