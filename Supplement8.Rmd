@@ -1,14 +1,12 @@
 ---
 title: 'Supplementary file 8: Full SEM output'
-date: "29/03/2022"
+date: "11/5/2022"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
-  word_document:
-    toc: yes
-    toc_depth: 3
-    reference_docx: mystyle.docx
+  word_document: null
+  toc_depth: 3
+  reference_docx: mystyle.docx
+  html_document:
+    df_print: paged
 ---
 
 
@@ -27,8 +25,8 @@ usePackage("semTools")
 usePackage("lavaan")
 usePackage("semPlot")
 usePackage("pander")
-usePackage("semPlot")
-usePackage("kableExtra")
+usePackage("here") #for controlling paths
+here::i_am("COLA_RR_Results.rmd") 
 
 options(scipen=999)
 
@@ -60,7 +58,8 @@ pformat=function(myp){
 #This function adds to the bigsummary data frame - it takes the paths and a few diagnostic stats from myfit and writes to writecol in bigsummary. If comparisonfit is specified, it will also do a $\chi$^2^  comparison with that model and put p value in final row.
 addmodel <- function(bigsummary,myfit,comparisonfit,myfitname,writecol,dich){
   colnames(bigsummary)[writecol]<-myfitname #name of the model as column name
-ss<- summary(myfit,standardized=TRUE)$PE #get standardized coefficients from current model
+#ss<- summary(myfit,standardized=TRUE)$PE #THIS DOES NOT GIVE STANDARDIZED VALUES!
+ss<-standardizedsolution(myfit)
 bigsummary[1,writecol]<-lavInspect(myfit,'nobs') #sample size goes in 1st row
 thisrow<-2 #initialise counter for factor loadings; starts row 3, after title
 #if a relevant path exists, put its estimate in correct row; first Factor1, then Factor2
@@ -94,7 +93,7 @@ fm <- numformat(fitmeasures(myfit,wantfits),2)
 w<-which(wantfits=='rmsea')
 #need to bolt upper and lower ci to this value. These are set to be last 2 indices
 y<-which(wantfits=='rmsea.ci.lower')
-fm[w]<-paste0(fm[w], " [",fm[y],"-",fm[(y+1)],"]")
+fm[w]<-paste0(fm[w], " [",fm[y],", ",fm[(y+1)],"]")
 
 w<-which(wantfits=='chisq')
 #need to bolt pvalue to this value. 
@@ -182,7 +181,7 @@ return(bigsummary)
 initbigsummary2 <- function(){
 bigsummary2 <- data.frame(matrix(NA,nrow=25,ncol=4))
 colnames(bigsummary2)<-c('Estimate','Model.1F','Model.2F','Model.2Fn')
-bigsummary2[,1]<-c('N participants','Stand. paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','G -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','G -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
+bigsummary2[,1]<-c('N participants','Standardized paths [SE]','A -> Fac1','B -> Fac1','C -> Fac1','D -> Fac1','E -> Fac1','F -> Fac1','G -> Fac1','A -> Fac2','B -> Fac2','C -> Fac2','D -> Fac2','E -> Fac2 ','F -> Fac2','G -> Fac2','Fac1~~Fac2','Fit indices','CFI','TLI','SRMR','RMSEA [95% CI]','chisq','robust chisq','DF')
 return(bigsummary2)
 }
 ```
@@ -196,39 +195,43 @@ model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3'
 model.2F <- '
 f1 =~  A_P1 + B_P2+C_P3
 f2 =~  NA * D_R1 + E_R2 +F_R3  
-f2~~1 * f2
+f2~~1 * f2 #variance of F2 is set to 1
 
 '
 
 model.2Fn <- '
-f1 =~  A_P1 +B_P2+C_P3+ E_R2
-f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3 
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3  #2 factor model:
 
-f2~~1 * f2
+f2~~1*f2 #variance of F2 is set to 1
 '
-
 #Models including dichotic listening
 
-model.2Fnbase <- '
-f1 =~  A_P1 +B_P2+C_P3+ E_R2
-f2 =~  NA*D_R1+E_R2 +F_R3 + C_P3  +0 * G_R4  #2 factor model:
-
-f2~~1 * f2
-'
-
 #To help format output, for now the dichotic LIz is labelled as G_R4
-model.2Fnx <- '
-f1 =~  A_P1 +B_P2+C_P3+ E_R2
-f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3  +G_R4  #2 factor model with DL on factor 2:
+#Base model: dichotic included but with path set to zero
 
-f2~~1 * f2
+model.2Fnbase <- '
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3 +0*G_R4  #2 factor model:
+
+f2~~1*f2
 '
 
-model.2Fny <- '
-f1 =~  A_P1 +B_P2+C_P3+ E_R2+G_R4
-f2 =~  NA * D_R1+E_R2 +F_R3 + C_P3    #2 factor model with DL on factor 1:
 
-f2~~1 * f2
+#Dichotic loads on factor 2
+model.2Fnx <- '
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3 +G_R4  #2 factor model, dichotic on Fac2:
+
+f2~~1*f2
+'
+
+#Dichotic loads on factor 1
+model.2Fny <- '
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2+G_R4
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3  #2 factor model, dichotic on Fac1:
+
+f2~~1*f2
 '
 
 ```
@@ -237,7 +240,7 @@ f2~~1 * f2
 
 # Terminology  
 
-In the numerical outputs, summary labels are used for the six fTCD variables, as follows:
+In the numerical outputs, summary labels are used for the six fTCD variables, as follows:  
 A_P1: Word Generation  
 B_P2: Sentence Generation  
 C_P3: Phonological Decision  
@@ -260,8 +263,8 @@ bigsumfit1$X<-NA #extra column
 
 colnames(bigsumfit1)[2:5]<-c('Fit1: Full Sample','Fit1: Selected Sample','Fit1: Full Sample - Orig. baseline','Fit1: Selected Sample - Orig. baseline')
 
-ddati <- read.csv('ddati.csv')
-ddatOB <- read.csv('ddati_origbaseline.csv')
+ddati <- read.csv(here('data/ddati.csv'))
+ddatOB <- read.csv(here('data/ddati_origbaseline.csv'))
 
 fit1A <- cfa(model.1F, estimator="WLSMV",data=ddati,test="robust") 
 bigsumfit1<- addmodel(bigsumfit1,fit1A,NA,'Model.1F',writecol=2,dich=0)
@@ -318,11 +321,11 @@ fit2nD <- cfa(model.2Fn, estimator="WLSMV",data=rdatOB,test="robust")
 bigsumfit2n<- addmodel(bigsumfit2n,fit2nD,NA,'Model.2Fn',writecol=5,dich=0)
 
 colnames(bigsumfit2n)[2:5]<-c('Modified 2 Factor: \nFull Sample','Modified 2 Factor: \nSelected Sample','Modified 2 Factor: \nFull Sample - Orig. baseline','Modified 2 Factor: \nSelected Sample - Orig. baseline')
-bigsumfit2n<-bigsumfit2n[-c(2,6,8:10,16),]
+bigsumfit2n<-bigsumfit2n[-c(6,8:10,16),] #exclude rows for paths not included
 
 
 ```
-This table shows the covariance and means matrix for the raw data for the full sample, using the -5 to 2 s baseline, as reported in main paper.  
+This table shows the covariance and means matrix for the raw data for the full sample, using the -5 to 2 s baseline, as reported in main paper. Minor discrepancies from Table 3 (main paper) for means in final row reflect inclusion of imputed values for missing data here. 
 
 ```{r covmatrix,echo=F}
 #Function to create covariance matrix with means in last row.
@@ -404,7 +407,7 @@ pandoc.table(ft_pe,justify='left')
 pandoc.p("")
 
 pandoc.header("Standardized path estimates", level = 3) 
-ft_se <- parameterEstimates(myfit)
+ft_se <- standardizedsolution(myfit)
 ft_se[,4:9]<-numformat(ft_se[,4:9],3)
 pandoc.table(ft_se,justify='left')
 pandoc.p("")
@@ -438,27 +441,22 @@ pandoc.p("")
 
 # Exploratory analysis leading to modified two-factor model  
   
-An initial model was based on the original bifactor model of Woodhead et al (2021), with all tasks having paths to both factors, except that Sentence Generation paths were set to 1, and linked to Factor 1 only, and were not linked to Factor 2. Paths for the odd and even versions of each task were equated, as were the variances for odd and even versions.  
-Although the fit measures seemed reasonable, this model threw a warning message, with the matrix being not positive definite, indicating the result could not be trusted.
 
-```{r summaryofOE,echo=F,include=F}
-ddat_OE<-read.csv("ddat_OE.csv")
+
+```{r summaryofOE,echo=F}
+ddat_OE<-read.csv(here("data/ddat_OE.csv"))
 mygroup<-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
-
-#Model that is same as Woodhead et al
-model.2FZW <- '
-f1 =~  1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
-       a*A_o+a*A_e +
+#for compatability with Woodhead et al, path B is fixed (though fit unaffected by choice of what is fixed)
+model.2FZWa <- '
+f1 =~  NA*A_o+equal("f1=~A_o")*A_e+ #same path value for A_o and A_e
+       1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
        c*C_o+c*C_e+
-       d*D_o+d*D_e+
-       e*E_o+e*E_e+
-       f*F_o+f*F_e
+       e*E_o+e*E_e
 f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e
        e2*E_o+e2*E_e+
        f2*F_o+f2*F_e+
-       a2*A_o+a2*A_e +
-       c2*C_o+c2*C_e  #only B is omitted from f2
+       c2*C_o+c2*C_e  #B is already omitted from f2
 
 f2~~1*f2
 A_o~~av*A_o #equate variances for odds and evens
@@ -475,66 +473,7 @@ F_o~~fv*F_o
 F_e~~fv*F_e
 '
 
-fit.2FZW.1 <- cfa(model.2FZW,estimator="WLSMV", data=mydat)
-wantfits <- c('CFI','rmsea','chisq','df')
-fitmeasures(fit.2FZW.1,wantfits)
-#This gives matrix not positive definite
 
-#Paths suggest dropping nonsig paths from f1 to D and F 
-# and A from F2 (B is already missing from f2 as was excluded from model)
-setEPS()
-postscript('OddEvenSEMorig.eps')
-semPaths(fit.2FZW.1, "diagram", weighted = FALSE,  shapeMan = "rectangle", 
-    rotation=4,edge.color='black',asize=2,whatLabels='est',bg='white',width=9,height=10) #draws a path diagram
-
-dev.off()
-myfitmeasures<- c('CFI','TLI','SRMR','rmsea','chisq','chisq.scaled','df','pvalue','pvalue.scaled')
-thisfm<-as.data.frame(round(fitmeasures(fit.2FZW.1,myfitmeasures),3))
-thisfm$Value<-thisfm[,1]
-thisfm[,1]<-myfitmeasures
-colnames(thisfm)<-c('Fit measure','Value')
-ft<-flextable(thisfm)
-ft<-autofit(ft)
-
-```
-  
-
-
-## Result from problematic exploratory 2-factor SEM with odd and even LIs (Random half sample) 
-
-![Original two-factor model, derived from exploratory analysis on half the sample, showing standardized path coefficients. ](OddEvenSEMorig.eps)  
-
-`r ft`  
-
-## Model with dropped paths  
-It was evident from inspection of the estimated paths, that those from task D (Word Comprehension) and F (Syntactic Decision) to Factor 1 were non-significant, as was the path from A (Word Generation) to Factor 2.  These observations were used to guide development of a modified two-factor model that excluded those paths. 
-
-```{r model2FZWmodified,echo=F,include=F}
-
-model.2FZWa <- '
-f1 =~  NA*A_o+equal("f1=~A_o")*A_e+
-       b*B_o+b*B_e +
-       c*C_o+c*C_e+
-       e*E_o+e*E_e
-f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ 
-       c*C_o+c*C_e+
-       e2*E_o+e2*E_e+
-       f2*F_o+f2*F_e
-f1~~1*f1
-f2~~1*f2
-A_o~~av*A_o #equate variances for odds and evens
-A_e~~av*A_e
-B_o~~bv*B_o
-B_e~~bv*B_e
-C_o~~cv*C_o
-C_e~~cv*C_e
-D_o~~dv*D_o
-D_e~~dv*D_e
-E_o~~ev*E_o
-E_e~~ev*E_e
-F_o~~fv*F_o
-F_e~~fv*F_e
-'
 
 fit.2FZWa.1 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
 
@@ -546,47 +485,48 @@ fit.2FZWa.2 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
 
 #Path diagram
 setEPS()
-postscript('OddEvenSEM.eps')
+postscript(here('figs/SEM_OE_model.eps'))
 semPaths(fit.2FZWa.1, "diagram", weighted = FALSE,  shapeMan = "rectangle", 
     rotation=4,edge.color='black',asize=2,whatLabels='est',bg='white',width=9,height=10) #draws a path diagram
-
 dev.off()
+
+
 
 
 ```
 
 Exploratory analysis used a random half of the sample, and took mean LIs for odd and even trials to ensure model identification. We started with the bifactor model of Woodhead et al. (2021) and dropped nonsignificant paths, which gave the final modified two-factor model.  
-The model syntax was specified in lavaan, as follows:  
+The model syntax was specified in lavaan. Note that lavaan will fix the first path to a factor by default, unless it is specified as NA. Here we explicitly specify the fixed path by setting its index to 1, for compatibility with Woodhead et al. Model specification was as follows:  
 
-f1 =~  NA * A_o + equal("f1=~A_o") * A_e+  
-       b * B_o + b * B_e +  
-       c * C_o + c * C_e +  
-       e * E_o + e * E_e  
-f2 =~  NA * D_o + equal("f2=~D_o") * D_e +   
-       c * C_o + c * C_e +  
-       e2 * E_o + e2 * E_e+  
-       f2 * F_o + f2 * F_e  
-f1 ~~ 1 * f1  
-f2 ~~ 1 * f2  
-A_o ~~ av * A_o #equate variances for odds and evens  
-A_e ~~ av * A_e  
-B_o ~~ bv * B_o  
-B_e ~~ bv * B_e  
-C_o ~~ cv * C_o  
-C_e ~~ cv * C_e  
-D_o ~~ dv * D_o  
-D_e ~~ dv * D_e  
-E_o ~~ ev * E_o  
-E_e ~~ ev * E_e  
-F_o ~~ fv * F_o  
-F_e ~~ fv * F_e'
-
+model.2FZW <- '  
+f1 =~  NA*A_o+equal("f1=~A_o")*A_e+ #same path value for A_o and A_e  
+       1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e; this path fixed  
+       c*C_o+c*C_e+  
+       e*E_o+e*E_e
+f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e  
+       e2*E_o+e2*E_e+  
+       f2*F_o+f2*F_e+  
+       c2*C_o+c2*C_e   
+  
+f2~~1*f2  
+A_o~~av*A_o #equate variances for odds and evens  
+A_e~~av*A_e  
+B_o~~bv*B_o  
+B_e~~bv*B_e  
+C_o~~cv*C_o  
+C_e~~cv*C_e  
+D_o~~dv*D_o  
+D_e~~dv*D_e  
+E_o~~ev*E_o  
+E_e~~ev*E_e  
+F_o~~fv*F_o  
+F_e~~fv*F_e  
 
 Note that the _e and _o subscripts refer to laterality indices computed from odd and even trials for each task. The paths to the factors and the variances are equated across odd and even versions of each laterality index. Summary output with the initial test sample was as follows:
 
-## Result from exploratory 2-factor SEM with odd and even LIs (Random half sample) 
+## Result from exploratory 2-factor SEM with odd and even LIs (First half sample) 
 
-![Modified two-factor model, derived from exploratory analysis on half the sample, showing standardized path coefficients. ](OddEvenSEM.eps)  
+![Modified two-factor model, derived from exploratory analysis on first half of the sample, showing unstandardized path coefficients. ](figs/SEM_OE_model.eps)  
 
 
 ```{r basicSEMout,echo=F,include=F}
@@ -606,7 +546,7 @@ return(semlist)
 
 ```
 
-## Result from comfirmatory 2-factor SEM with odd and even LIs (Hold-out half sample)  
+## Result from exploratory 2-factor SEM with odd and even LIs (First half sample)  
 
 ```{r oddevenout1,echo=F,include=F}
 
@@ -616,12 +556,13 @@ semlist<-SEMout(fit.2FZWa.1 ,myfitmeasures)
 
 ```{r showflextable1,echo=F}
 flextable(semlist[[1]])
-pandoc.p("")
+
 flextable(semlist[[2]])
 
 
 ```
 
+## Result from confirmatory 2-factor SEM with odd and even LIs (2nd half sample)  
 The same model was then tested in the second random half of the sample. For this holdout sample, the summary was:
 
 ```{r oddevenout2,echo=F,include=F}
@@ -631,7 +572,6 @@ semlist<-SEMout(fit.2FZWa.2 ,myfitmeasures)
 
 ```{r showflextable2,echo=F}
 flextable(semlist[[1]])
-pandoc.p("")
 flextable(semlist[[2]])
 
 
@@ -643,24 +583,28 @@ flextable(semlist[[2]])
 
 We first show the covariance matrix and means separately for the left- and right-handed subgroups. 
 
-## Covariances and mean for Left-handers, N = `r length(which(ddati$Handed=='Left'))`
-```{r Lhandercov,echo=F}
+```{r counthanders,echo=F}
+NL = length(which(ddati$Handed=='Left'))
+NR = length(which(ddati$Handed=='Right'))
+```
+## Covariance matrix for left-handers (N = `r NL`)
+```{r covsL,echo=F}
 load('SEMtab2groups.RData')
 
 docov(ddati[ddati$Handed=='Left',])
 
 ```
 
-## Covariances and means for Right-handers, N = `r length(which(ddati$Handed=='Right'))`
-```{r Rhandercov,echo=F}
+## Covariance matrix for right-handers (N = `r NR`)
+```{r covsR,echo=F}
 
 
 docov(ddati[ddati$Handed=='Right',])
 
 ```
 
-## Factor loadings and fit measures for sequential models
-The tables below show the factor loadings and fit measures for the sequence of models used to test model invariance, with estimates for left-handers in columns denoted by _L, and those for right-handers in columns denoted by _R.  
+
+The tables below show the unstandardized factor loadings and fit measures for the sequence of models used to test model invariance, with estimates for left-handers in columns denoted by _L, and those for right-handers in columns denoted by _R.  
 
 
 
