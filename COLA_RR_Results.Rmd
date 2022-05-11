@@ -55,9 +55,7 @@ usePackage("ggExtra") #for marginal plots
 usePackage("ggpubr")
 usePackage("patchwork") #for combining plots in ggplot
 usePackage("flextable")
-#
 
-# usePackage("here") #to find filepaths
 usePackage("kableExtra")
 #
 usePackage("ggstatsplot")
@@ -113,11 +111,12 @@ here::i_am("COLA_RR_Results.rmd") #working directory will be set to this by rmd
 # "ftcd_data_origbaseline.csv"
 # "task_details.csv"  - not really data, but stored here as it is read in by this script
 
+# Additional files will be created as script is run. Note 'ddat-OE.csv' is created so it can be read when creating Supplementary outputs. 
+
 # Folder 'ftcd_task_means' - large folder of means from L and R channels for each task and participant - needed to create timecourse plot, but once it is made, can skip that chunk.
 
-# Folder 'figs' : folder to which figures will be written; also includes predrawn figures WordCompDemo.pdf and 
+# Folder 'figs' : folder to which figures will be written; also includes predrawn figures WordCompDemo.pdf and tasktimings.pdf
 
-# Folder 'suppdata': blank folder that will be used to save Odd-Even model results for supplementary
 
 
 ```
@@ -1987,7 +1986,7 @@ ddat_OE$randgroup<-1+rbinom(nrow(ddat_OE),1,.5) #create random group 1 or 2 for 
 mygroup <-1
 mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 
-write.csv(mydat,here('suppdata/ddat_OE.csv'),row.names=F) #save this for use in Supplementary tables
+write.csv(ddat_OE,here('data/ddat_OE.csv'),row.names=F) #save this for use in Supplementary tables
 
 #Model that is same as Woodhead et al, i.e. path B is fixed
 model.2FZW <- '
@@ -2027,7 +2026,7 @@ fitmeasures(fit.2FZW.1,wantfits)
 # and A from F2 (B is already missing from f2 as was excluded from model)
 model.2FZWa <- '
 f1 =~  NA*A_o+equal("f1=~A_o")*A_e+ #same path value for A_o and A_e
-       B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
+       1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
        c*C_o+c*C_e+
        e*E_o+e*E_e
 f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e
@@ -2036,7 +2035,6 @@ f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e
        c2*C_o+c2*C_e  #B is already omitted from f2
 
 f2~~1*f2
-f1~~1*f1
 A_o~~av*A_o #equate variances for odds and evens
 A_e~~av*A_e
 B_o~~bv*B_o
@@ -2575,11 +2573,12 @@ We had predicted that Dichotic Listening, as a receptive task, should load on th
 
 
 ```{r newmodelx,echo=F,include=F}
+
 #Base model: dichotic included but with path set to zero
 
 model.2Fnbase <- '
-f1 =~  A_P1 +B_P2+C_P3+ E_R2
-f2 =~  NA*D_R1+ E_R2+F_R3 + C_P3 +0*DL_z  #2 factor model:
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3 +0*DL_z  #2 factor model:
 
 f2~~1*f2
 '
@@ -2589,13 +2588,13 @@ summary(fit.2Fnbase)
 wantfits <- c('CFI','rmsea','chisq','df')
 fitmeasures(fit.2Fn,wantfits)
 
+#Dichotic loads on factor 2
 model.2Fnx <- '
-f1 =~  A_P1+B_P2 +C_P3+ E_R2
-f2 =~  NA*D_R1+ E_R2+F_R3 + C_P3 +DL_z   #2 factor model, dichotic on Fac2:
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3 +DL_z  #2 factor model, dichotic on Fac2:
 
 f2~~1*f2
 '
-
 fit.2Fnx <- cfa(model.2Fnx,estimator="WLSMV", data=ddati)
 summary(fit.2Fnx)
 wantfits <- c('CFI','rmsea','chisq','df')
@@ -2603,14 +2602,13 @@ fitmeasures(fit.2Fnx,wantfits)
 
 
 
-
+#Dichotic loads on factor 1
 model.2Fny <- '
-f1 =~  A_P1+B_P2 +C_P3+ E_R2+DL_z
-f2 =~  NA*D_R1++ E_R2+F_R3 + C_P3    #2 factor model, dichotic on Fac1:
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2+DL_z 
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3  #2 factor model, dichotic on Fac1:
 
 f2~~1*f2
 '
-
 fit.2Fny <- cfa(model.2Fny,estimator="WLSMV", data=ddati)
 summary(fit.2Fny)
 wantfits <- c('CFI','rmsea','chisq','df')
@@ -2641,7 +2639,7 @@ semPaths(fit.2Fny, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan
 modelnames<-c('No dichotic path','Dichotic <- Factor 1','Dichotic <- Factor 2')
 dichmodels<-cbind(modelnames,fitcompare[c(3,1,2),])
 dichmodels <- dichmodels[,c(1,2,5)]
-dichmodels[,3]<-round(dichmodels[,3],1)
+dichmodels[,3]<-round(dichmodels[,3],2)
 colnames(dichmodels)[1:2]<-c('Path to dichotic','DF')
 fd<-flextable(dichmodels)
 fd<-autofit(fd)
