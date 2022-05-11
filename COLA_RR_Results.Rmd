@@ -2,12 +2,12 @@
 title: Inconsistent language lateralisation -  testing the dissociable language laterality
   hypothesis using behaviour and lateralised cerebral blood flow
 author: "COLA consortium*"
-date: "8 May 2022"
+date: "10 May 2022"
 output:
+  word_document: default
+  reference_docx: mystyle.docx
   html_document:
     df_print: paged
-  reference_docx: mystyle.docx
-  word_document: default
 ---
 
 <!--- updated May 7---  based on submitted, with some text corrections>
@@ -1087,7 +1087,7 @@ mycomb$ftcd <- factor(mycomb$ftcd,levels=c(0,1),labels=c("No FTCD data","With FT
 demog.table <- table1(~ Gender + age + Native+ Bilingual+EHI.LI|(factor(ftcd)+Handedness) , data=mycomb,overall=F)
 ftab <- t1flex(demog.table) #convert from table1 to flextable format to allow formatting of width etc
 ftab<- fit_to_width(ftab,8)
-ftab #This line prevents knitting to Word
+#ftab #This line prevents knitting to Word
 tabnumber<-tabnumber+1
 
 # Calculate delay between session 1 and session 2 (fTCD)
@@ -1858,6 +1858,7 @@ return(bigsummary)
 ```{r doSemPaths,echo=F,warning=F,message=F}
 #Path diagram for SEM saved to file in .eps format
 doSemPath <- function(myfit,mytitle,mypathfigname,mynodes){
+  #NB order of mynodes is important! default is for them to be ordered in the same order as they occur in the model specification - mynodes gives the long names
 setEPS()
 postscript(mypathfigname)
 
@@ -1880,13 +1881,13 @@ dev.off()
 
 ```{r factormodels,echo=F,include=F, warning=F,message=F}
 #In lavaan, we first define the factor model between quotes
-#So this step doesn't do anything - just sets up the model to be run later
+#This step doesn't do anything - just sets up the model to be run later
 
-#This is definition of single factor model we will use here. A_P1 will be index variable with path of 1. 
+#This is definition of single factor model we will use here. A_P1 will be index variable with path of 1; this is default in lavaan - the first mentioned will be the index variable unless specified as NA
 model.1F <- 'f1 =~  A_P1 + B_P2  + C_P3 +D_R1 + E_R2 + F_R3' 
 
 
-#2 factor production/reception model
+#2 factor production/reception model; we fix path from A and also variance of F2
 model.2F <- '
 f1 =~  A_P1 + B_P2+C_P3
 f2 =~  NA*D_R1 + E_R2 +F_R3 #2 factor model: 
@@ -1908,14 +1909,9 @@ bigsummary<- addmodel(bigsummary,fit1,NA,'Model.1F',writecol=2) #summary from th
 #lots of details of this here
 #https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths
 pathfigname1<-here("figs/pathfigF1.eps")
-mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #attempt to add spaces to make all same size doesn't seem to work
+mynodes<-c('  Word \nGeneration','  Sentence \nGeneration','Phonological\nDecision','   Word   \n  Decision','   Sentence  \n  Decision','   Syntactic  \n  Decision','F1') #spaces added to make all same size
 
-# semPaths(fit1, "diagram", weighted = FALSE,  shapeMan = "rectangle", sizeMan = 12, 
-#     sizeMan2 = 5,rotation=4,edge.color='black',nodeLabels=mynodes,whatLabels='est',edge.label.cex = 1.1, filetype='eps',filename=pathfigname1,width=9,height=6) #draws a path diagram
-
-
-
-doSemPath(fit1,'Single Factor',pathfigname1,mynodes) #call function to draw path diagram
+doSemPath(fit1,'',pathfigname1,mynodes) #call function specified earlier to draw path diagram. 2nd term can be used for a title, but now made blank
   
 fit2 <- cfa(model.2F, estimator="WLSMV",data=ddati)
 sfit2 <- makeSEMtab(fit2)
@@ -1925,7 +1921,7 @@ bigsummary<- addmodel(bigsummary,fit2,fit1,'Model.2F',writecol=3) #summary from 
 pathfigname2<-here("figs/pathfigF2.eps")
 #needed to reorder mynodes2 for correct specification
 mynodes2<-c("  Word \nGeneration" , "   Sentence \nGeneration", "Phonological\nDecision", " Word   \n  Decision"  ,   "   Sentence  \n  Decision", "   Syntactic  \n  Decision",  "F1","F2")
-doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
+doSemPath(fit2,'',pathfigname2,mynodes2) #call function to draw path diagram
 
 
 #anova(fit1,fit2) #compares model fit -if significant, means 2nd model is better fit than 1st. This information is now included in bigsummary.
@@ -1993,10 +1989,10 @@ mydat<- ddat_OE[ddat_OE$randgroup==mygroup,]
 
 write.csv(mydat,here('suppdata/ddat_OE.csv'),row.names=F) #save this for use in Supplementary tables
 
-#Model that is same as Woodhead et al
+#Model that is same as Woodhead et al, i.e. path B is fixed
 model.2FZW <- '
-f1 =~  1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
-       a*A_o+a*A_e +
+f1 =~  NA*A_o+equal("f1=~A_o")*A_e+ #same path value for A_o and A_e
+       1*B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
        c*C_o+c*C_e+
        d*D_o+d*D_e+
        e*E_o+e*E_e+
@@ -2030,16 +2026,17 @@ fitmeasures(fit.2FZW.1,wantfits)
 #Paths suggest dropping nonsig paths from f1 to D and F 
 # and A from F2 (B is already missing from f2 as was excluded from model)
 model.2FZWa <- '
-f1 =~  NA*B_o+equal("f1=~B_o")*B_e+
-       a*A_o+a*A_e +
+f1 =~  NA*A_o+equal("f1=~A_o")*A_e+ #same path value for A_o and A_e
+       B_o+equal("f1=~B_o")*B_e+  #same path value for B_o and B_e
        c*C_o+c*C_e+
        e*E_o+e*E_e
-f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ 
-       c*C_o+c*C_e+
+f2 =~  NA*D_o+equal("f2=~D_o")*D_e+ #same path value for D_o and D_e
        e2*E_o+e2*E_e+
-       f2*F_o+f2*F_e
-f1~~1*f1
+       f2*F_o+f2*F_e+
+       c2*C_o+c2*C_e  #B is already omitted from f2
+
 f2~~1*f2
+f1~~1*f1
 A_o~~av*A_o #equate variances for odds and evens
 A_e~~av*A_e
 B_o~~bv*B_o
@@ -2053,6 +2050,9 @@ E_e~~ev*E_e
 F_o~~fv*F_o
 F_e~~fv*F_e
 '
+
+
+
 
 fit.2FZWa.1 <- cfa(model.2FZWa,estimator="WLSMV", data=mydat)
 
@@ -2074,10 +2074,10 @@ fitmeasures(fit.2FZWa.2,wantfits)
 ```{r new2factor-with-all,echo=F,include=F}
 
 
-mydat<- ddati #back to full LI scores and full group
+mydat<- ddati #back to full LI scores and full group; fixed to B again
 model.2Fn <- '
-f1 =~  B_P2+A_P1 +C_P3+ E_R2
-f2 =~  NA*F_R3 + C_P3+D_R1+ E_R2   #2 factor model:
+f1 =~  NA*A_P1 +1*B_P2+C_P3+ E_R2
+f2 =~  NA*C_P3+D_R1+ E_R2 +F_R3  #2 factor model:
 
 f2~~1*f2
 '
@@ -2091,9 +2091,8 @@ bigsummary<- addmodel(bigsummary,fit.2Fn ,fit.2F,'Model.2Fn',writecol=4) #summar
 anova(fit.2Fn,fit.2F)
 
 pathfigname2n<-here("figs/pathfigF2_revised.eps")
-mynodes3<-mynodes2<-c("   Sentence \nGeneration","  Word \nGeneration" ,  "Phonological\nDecision", "   Sentence  \n  Decision",  "   Syntactic  \n  Decision"," Word   \n  Decision"  ,    "F1","F2")
-doSemPath(fit2,'Two Factor',pathfigname2,mynodes2) #call function to draw path diagram
-doSemPath(fit.2Fn,'Two Factor - Revised',pathfigname2n,mynodes3) #call function to draw path diagram
+mynodes3<-mynodes2<-c(" Word \nGeneration" , "   Sentence \nGeneration", "Phonological\nDecision", "   Sentence  \n  Decision", " Word   \n  Decision"  , "   Syntactic  \n  Decision",    "F1","F2")
+doSemPath(fit.2Fn,'',pathfigname2n,mynodes3) #call function to draw path diagram
 
 
 #look at residuals for diagnostics
