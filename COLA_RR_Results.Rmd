@@ -2,7 +2,7 @@
 title: Inconsistent language lateralisation -  testing the dissociable language laterality
   hypothesis using behaviour and lateralised cerebral blood flow
 author: "COLA consortium*"
-date: "10 May 2022"
+date: "12 May 2022"
 output:
   word_document: default
   reference_docx: mystyle.docx
@@ -13,10 +13,6 @@ editor_options:
     wrap: 72
 ---
 
-```{=html}
-<!--- updated May 7---  based on submitted, with some text corrections>
-<!--- modified May 5 after comparison with submitted--->
-```
 ```{=html}
 <!-- This script will create output files in the working directory. It needs to have these files available in a subdirectory, currently called COLAbits:
 task_details.csv  
@@ -2513,7 +2509,8 @@ for (t in 1:ntasks){
     geom_vline(xintercept = poiend, linetype = "dotted", alpha = 0.8) +  # End of POI
     ggtitle(longtasks[t])
   thisplot
-  ggsave(paste0('~/Dropbox/COLA_RR_Analysis/03-graphic-outputs/ftcd_grandmeanx_', tasks[t],'.eps'),
+
+  ggsave(paste0('figs/ftcd_grandmeanx_', tasks[t],'.eps'),
          width = 14,
          height = 9, units="cm", dpi=300)
   d6<-thisplot
