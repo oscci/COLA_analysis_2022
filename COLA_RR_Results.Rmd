@@ -133,9 +133,27 @@ here::i_am("COLA_RR_Results.rmd") #working directory will be set to this by rmd
 
 ```{r numformat,echo=F}
 #Format numbers so they have same n decimal places, even if zero at end
+#This returns a string
 
 numformat=function(mynum,ndecimals){
   newnum <- format(round(mynum,ndecimals),nsmall=ndecimals)
+  return(newnum)
+}
+
+```
+
+```{r corformat,echo=F}
+#Format correlation so they have same n decimal places,and no initial zero
+
+corformat=function(mynum,ndecimals){
+  newnum <- format(round(mynum,ndecimals),nsmall=ndecimals)
+  neg<-''
+  if(mynum<0){
+    neg<-'-'
+    mynum<-substring(newnum,2)} #strip off minus sign - will put it back later
+  newnum<-substring(newnum,2) #strip off initial zero
+  newnum<-paste0(neg,newnum)
+  
   return(newnum)
 }
 
@@ -194,7 +212,7 @@ x<-which(colnames(mydf)==paste0(mytask,'_exclude'))
 odds<-which(colnames(mydf)==paste0(mytask,'_mean_odd'))
 evens<-which(colnames(mydf)==paste0(mytask,'_mean_even'))
   }
-  
+
 thisdat<-mydf[mydf[,x]==0,]
 thisdat$thiscol<-thisdat[,w]
 normp <-shapiro.test(thisdat$thiscol)$p.value
@@ -222,14 +240,15 @@ mysummary[11,writecolnum]<-paste0(numformat(cor.eo$estimate,2),' [',numformat(co
 
 
 
+
 return(mysummary)
 }
 ```
 
 ```{r trianglefunction,echo=F}
-#Gets upper triangle of a correlation matrix
- get_upper_tri <- function(cormat){
-    cormat[lower.tri(cormat,diag=T)]<- NA
+#Gets upper (or lower if specified) triangle of a correlation matrix
+ get_tri <- function(cormat){
+    cormat[upper.tri(cormat,diag=F)]<- NA
     return(cormat)
   }
 ```
@@ -237,32 +256,49 @@ return(mysummary)
 ```{r heatmapfunction,echo=F}
 #Make a heatmap
 # http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
-makeheatmap <- function(mydf,mycols){
+makeheatmap <- function(mydf,mycols,pearsons){
 cormat <- cor(mydf[,mycols],use="complete.obs")
-
-melted_cormat <- melt(cormat)
+for (i in 1:length(mycols)){
+    cormat[i,i]<-pearson_splits[i,2] #put split half correlation on diagonal
+}
+melted_cormat <- melt(cormat) #whole correlation matrix in a table
 head(melted_cormat)
 
-upper_tri <- get_upper_tri(cormat)
+mytri <- get_tri(cormat)
 # Melt the correlation matrix
 
-melted_cormat <- melt(upper_tri, na.rm = TRUE)
+melted_cormat <- melt(mytri, na.rm = TRUE)
+
+melted_cormat$mycolour<-'NA'  #colour used to set diagonal values to have  frame
+melted_cormat$corlabel<-'' #formatting correlation matrix to 2 decimals
+
+for (r in 1:nrow(melted_cormat)){
+  if(melted_cormat$Var1[r]==melted_cormat$Var2[r]){
+    melted_cormat$mycolour[r]<-'grey'
+  }
+    melted_cormat$corlabel[r]<-corformat(melted_cormat$value[r],2)
+}
+
+
 # Heatmap
 
-ggheatmap <- ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
- geom_tile(color = "white")+
+#original heatmap
+ggheatmap <- ggplot(data = melted_cormat, aes(Var1, Var2, fill = value))+
+ geom_tile(color = melted_cormat$mycolour,size=1.5)+
  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   midpoint = 0, limit = c(-0.2,1), space = "Lab", 
    name="Pearson\nCorrelation") +
-  theme_minimal()+ 
+  theme_linedraw()+ 
  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
     size = 12, hjust = 1))+
 theme(axis.text.y = element_text(
-    size = 12, hjust = 1))+
+    size = 10, hjust = 1))+
+  scale_y_discrete(limits=rev)+ #gets tasks in same order for x and y axis!
  coord_fixed()
 
+#add some formatting
 myheatmap <- ggheatmap + 
-geom_text(aes(Var2, Var1, label = round(value,2)), color = "black", size = 4) +
+geom_text(aes(Var1, Var2, label = corlabel), color = "black", size = 4) +
 theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank(),
@@ -271,10 +307,81 @@ theme(
   panel.background = element_blank(),
   axis.ticks = element_blank(),
   legend.justification = c(1, 0),
-  legend.position = c(0.5, 0.7),
+  legend.position = c(0.5, 0.2),
   legend.direction = "horizontal")+
   guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
                 title.position = "top", title.hjust = 0.5))
+
+return(myheatmap)}
+```
+
+
+```{r heatmapLR,echo=F}
+#Make a heatmap with L and R below and above diagonal
+#Pearson split half reliabilities are read in and added to diagonal
+# http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
+makeLRheatmap <- function(mydf,mycols,pearson_splits,shortnames){
+#if shortnames is TRUE, change to short form of names
+shortcolnames<-c('X.Dichotic','Y.Rhyme Dec','Z.Word Comp','A.Word Gen','B.Sent Gen','C.Phon Dec','D.Word Dec','E.Sent Dec','F.Synt Dec')
+if (shortnames==T){
+  for (i in 1:length(mycols)){
+    thiscol<-which(colnames(mydf)==mycols[i])
+    colnames(mydf)[thiscol]<-shortcolnames[i]
+  }
+  mycols<-shortcolnames
+}
+  
+corL <- cor(mydf[mydf$Handed=='Left',mycols],use="complete.obs")
+corR <- cor(mydf[mydf$Handed=='Right',mycols],use="complete.obs")
+corboth<-corL #we copy the correlation matrix for L, then substitute R values in upper triangel
+for(i in 1:length(mycols)){
+  for (j in i:length(mycols)){
+    corboth[i,j]<-corR[i,j]
+  }
+}
+for (i in 1:length(mycols)){
+    corboth[i,i]<-pearson_splits[i,2] #put split half correlation on diagonal
+}
+melted_cormat <- melt(corboth) #whole correlation matrix in a table suitable for heatmap plot
+melted_cormat$mycolour<-'NA'  #colour used to set diagonal values to have  frame
+melted_cormat$corlabel<-'' #formatting correlation matrix to 2 decimals
+
+for (r in 1:nrow(melted_cormat)){
+  if(melted_cormat$Var1[r]==melted_cormat$Var2[r]){
+    melted_cormat$mycolour[r]<-'grey'
+  }
+    melted_cormat$corlabel[r]<-corformat(melted_cormat$value[r],2)
+}
+
+
+#original heatmap
+ggheatmap <- ggplot(data = melted_cormat, aes(Var1, Var2, fill = value))+
+ geom_tile(color = melted_cormat$mycolour,size=1.5)+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-0.2,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_linedraw()+  #original had theme_minimal which made labels faint
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 10, hjust = 1))+
+theme(axis.text.y = element_text(
+    size = 10, hjust = 1))+
+  scale_y_discrete(limits=rev)+ #gets tasks in same order for x and y axis!
+ coord_fixed()
+
+#add some formatting
+#the corformat function should strip off initial zero but it doesn't, so substring used here to ensure it happens
+myheatmap <- ggheatmap + 
+geom_text(aes(Var1, Var2, label =corlabel), color = "black", size = 4)+
+theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank())+
+  guides(fill = guide_colorbar(barwidth = 1, barheight = 5,
+               title.position = "top", title.hjust = 0.5))
+ 
 
 return(myheatmap)}
 ```
@@ -1764,7 +1871,8 @@ RH6c <- langtab[2,3]
 LH6d <-langtab[1,4]
 RH6d <-langtab[2,4]
 
-
+#A, B, C are the main boxes, X, Y Z etc are the labels on the left. By creating links between them coloured white, they are correctly positioned but we don't see the links
+#Labels for boxes are defined below in section with square brackets
 
 myflow<-grViz("digraph flowchart {
   node [fontname = arial, shape = plaintext]
@@ -1796,7 +1904,7 @@ myflow<-grViz("digraph flowchart {
 }
   
   [1]: paste0('Aged 16-50; Hearing and vision;','\\n','Native language; Neurological','\\n', 'history; Developmental disorders;','\\n', 'fMRI screening; Willingness to','\\n','attend Session 2')
-  [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 28 L-handed + 25 R-handed)' )  
+  [2]: paste0('Demographic questionnaire','\\n','Language proficiency measures','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n','Planned: 300 L-handed + 150 R-handed', '\\n','Actual: ',LH1,' L-handed + ',RH1,' R-handed','\\n','(Retested: 29 L-handed + 24 R-handed)' )  
   [3]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or UWA','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
   [4]: paste0('Included','\\n', LH4,' L-handed + ',RH4,' R-handed','\\n','(Planned: 112 L-handed + 112 R-handed)')
   [5]: paste0('No signal: ','\\n', LH5,' L-handed + ',RH5,' R-handed','\\n','Poor quality:','\\n ',LH5a,' L-handed + ',RH5a,' R-handed')
@@ -1815,6 +1923,44 @@ if(makefile==1){
 
 ```
 
+```{r graphicalabsbit,echo=F}
+#Tried a minimised version of the flowchart for graphical abstract, but in the end omitted it.
+mygraphabs<-grViz("digraph flowchart {
+  node [fontname = arial, shape = plaintext]
+          X[label= 'Step 1\\nOnline behavioural\\ntesting']
+          Y[label = 'Step 2\\nFunctional transcranial\\nDoppler ultrasound']
+          Z[label= 'After exclusions']
+   node [fontname = arial, shape = rectangle, color = black]
+  A [label = '@@1']
+  B[label='@@2']
+  C [label='@@3']
+
+
+  A -> B 
+  B-> C
+
+
+  
+      X -> Y [alpha=0,color='white']
+      Y -> Z [alpha=0,color='white']
+
+              }
+}
+  
+
+  [1]: paste0('Demographic questionnaire','\\n','Handedness/footedness/eyedness','\\n','3 lateralisation tasks','\\n',LH1,' L-handed + ',RH1,' R-handed')  
+  [2]: paste0('At Oxford, Bangor, London','\\n',' Lincoln, Lancaster, or W.Australia','\\n','6 language tasks','\\n',LH2,' L-handed + ',RH2,' R-handed')
+  [3]: paste0(LH4,' L-handed + ',RH4,' R-handed')
+
+")
+
+
+  filename<-here("figs/graphabsflow.eps")
+  tmp <- export_svg(mygraphabs)
+  rsvg_eps(charToRaw(tmp), filename, width=3543) # Should be 9cm, 1000dpi
+
+
+```
 # 3. Results
 
 ## 3.1 Participants
@@ -2644,6 +2790,17 @@ for (i in 1:6){
      cex = .8)
 }
 
+#pdf version for graphical abstract
+pdf(file='figs/piratepdf.pdf',width=7,height=4)
+pirateplot(data = longdata.d, LI ~ Handed * Task, ylim=c(-6,8))
+
+abline(h=0)
+
+for (i in 1:6){
+  text(horizpts[i], vertpts[i], tasknames2[i], #add label for task
+     cex = .8)
+}
+dev.off()
 
 
 fignum<-fignum+1
@@ -2723,7 +2880,7 @@ to impute these missing values.
 
 ```{r imputemissing,echo=F, include=F}
 nunames<- c('A_P1','B_P2','C_P3','D_R1','E_R2','F_R3') #cols for SEM; short names useful here. These cols with have imputed values
-tasknames <- c('Word generation','Sentence generation','Phonological decision','Word Decision','Sentence Decision','Syntactic decision')
+tasknames <- c('Word Generation','Sentence Generation','Phonological Decision','Word Decision','Sentence Decision','Syntactic Decision')
 ddat$Handed<-as.factor(ddat$Rhanded)
 levels(ddat$Handed)<-c("Left","Right")
 
@@ -2758,11 +2915,11 @@ indicators can load on two factors. This was compared to a unitary
 model, in which all tasks load on a single factor.
 
 `r fignum <- fignum+1`Figure `r fignum` shows the pattern of
-correlations between LIs for the different tasks as a heatmap. The
+correlations between LIs for the different tasks as a heatmap, with values for left-handers above the diagonal and those for right-handers below. Pearson correlations are shown here, as these relate more directly to the analysis of covariances that is the basis of Structural Equation Modeling. The
 two-factor model predicts that correlations will form two clusters, with
 positive correlations within the first three tests, and within the last
 three tests, but weaker or absent correlations across these two clusters
-of measures. The heatmap shows moderate correlations within both
+of measures. In both handedness groups, the heatmap shows moderate correlations within both
 clusters of measures, and generally lower correlations across clusters,
 but there are some exceptions. Notably, there is a moderate correlation
 between Phonological Decision and Sentence Decision, which was not
@@ -2782,18 +2939,18 @@ LIcols <- c("A_P1","B_P2","C_P3","D_R1","E_R2","F_R3")
 temp<-ddati #make copy with full names for variables and use this for heatmap
 w<-which(colnames(temp)%in%LIcols)
 colnames(temp)[w]<-tasknames
-myheatmap <- makeheatmap(temp,tasknames)
+#myheatmap <- makeheatmap(temp,tasknames)
 
-ggsave(here("figs/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+#ggsave(here("figs/ftcd-heatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 
 suppnum<-suppnum+1
-
+#NB we have substituted a heatmap showing L and R hander correlations with reliabilities on diagonal - this is created below and added manually after knitting
 ```
 
 ### Figure `r fignum`
 
 ![Heatmap showing correlations between laterality indices from six fTCD
-tasks](figs/ftcd-heatmap.eps)
+tasks,, with values for L-handers above the diagonal, R-handers below the diagonal, and split-half reliability on the diagonal (cells with grey frame).](figs/ftcd-heatmap.eps)
 
 #### 3.3.4.1 Structural Equation Modeling
 
@@ -3788,6 +3945,25 @@ if(useorigbaseline==0){
 
 ```{r bigheatmap,echo=F}
 
+#First make little dataframe with split half reliabilities based on those with complete data on all 9 tasks - using Pearson this time for compatibility with SEM
+
+pearson_splits<-data.frame(matrix(NA,ncol=2,nrow=9))
+colnames(pearson_splits)<-c('Task','r')
+forpearson<-filter(combdat,DopExclude==0,ftcd==1)
+temptasks<-c('DL','RDT','WC','A','B','C','D','E','F')
+for (i in 1:length(temptasks)){
+  oddname<-paste0(temptasks[i],'.odd.zlat')
+  evenname<-paste0(temptasks[i],'.even.zlat')
+  if(i>3){
+    oddname<-paste0(temptasks[i],'_mean_odd')
+    evenname<-paste0(temptasks[i],'_mean_even')
+  }
+  oddcol<-which(colnames(combdat)==oddname)
+  evencol<-which(colnames(combdat)==evenname)
+  r<-cor(forpearson[,oddcol],forpearson[,evencol],use='complete.obs')
+  pearson_splits[i,2]<-r
+}
+
  #need to ensure online LIs from excluded are not included
 mycolsb<-c("DL_z","RDT_z","WC_z",  "A_P1", "B_P2","C_P3", "D_R1","E_R2", "F_R3")
 behnames<-c("Dichotic","Rhyme Decision","Word Comprehension")
@@ -3798,17 +3974,27 @@ wx<-which(colnames(temp) == mycolsb[i])
 w<-c(w,wx)
 }
 colnames(temp)[w]<-c(behnames,tasknames)
+pearson_splits[,1]<-c(behnames,tasknames)
 
-bigheatmap <- makeheatmap(temp,c(behnames,tasknames))
-ggsave(here("figs/bigheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+#THis is used in graphical abstract, includes reliability on diag
+graphicalheatmap <- makeLRheatmap(temp,c(behnames,tasknames),pearson_splits,shortnames=T)
+ggsave(here("figs/bigLRheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+
 fignum<-fignum+1
+
+#This heatmap now substituted for earlier figure with ftcd
+ftcdLRheatmap <- makeLRheatmap(temp,tasknames,pearson_splits[4:9,],shortnames=F)
+ggsave(here("figs/ftcdLRheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
+
+#This is original big heatmap with upper triangle only, now with reliab on diag as well
+bigheatmap <- makeheatmap(temp,c(behnames,tasknames),pearson_splits)
+ggsave(here("figs/bigheatmap.eps"),width = 14, height = 14, units="cm", dpi=300)
 
 ```
 
 ### Figure `r fignum`
 
-![Heatmap with behavioural and fTCD laterality
-indices](figs/bigheatmap.eps)
+![Heatmap with correlations between  behavioural and fTCD laterality indices for both handedness groups combined. The diagonal (cells with grey frames) shows split-half reliability based on participants who completed both sets of measures.](figs/bigheatmap.eps)
 
 We had preregistered two data checks: 1) Online measures that have
 split-half reliability below .6 will be excluded from further analysis.
@@ -4119,9 +4305,7 @@ performance by all participants, and it could be that it was
 insufficiently challenging to engage lateralised language systems. It
 might be tempting to suppose that right-hemisphere bias was induced by
 the left-right scanning of pictured items, but if that were the case, we
-should also have seen this bias in Rhyme Decision, and we should not
-have seen it in the fTCD Word Decision task, where pictures are
-presented vertically.
+should also have seen this bias in Rhyme Decision (which was weakly left-lateralised), and we should not have found a rightward bias in the fTCD Word Decision task, where pictures are presented vertically.
 
 The relatively low reliability of the task, in both behavioural and fTCD
 formats, indicates the need for caution in interpretation. We might be
