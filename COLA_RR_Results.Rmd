@@ -2530,6 +2530,7 @@ Decision) were `r n_excludeLI[1]`, `r n_excludeLI[2]`,
 <!-- Plot is created by fctd_task_plots.R-->
 
 ```{r maketimecourse,echo=F,message=F,warning=F}
+## This chunk was updated on 10 July 2022 because the POI was wrongly depicted. The dotted vertical lines denoting both baseline and POI had disappeared when the combined plots were converted to .eps. These are now reinstated, and the white on black labels made smaller to ensure they do not extend beyond the bounds of baseline and POI intervals. 
 ## Based on ftcd_task_plots.R script to create fTCD timecourse plots for each of the 6 language tasks. ZW Feb 2022
 
 ## The script uses data produced during the fTCD preprocessing. 
@@ -2656,12 +2657,12 @@ for (t in 1:ntasks){
     scale_x_continuous(breaks = seq(-5, 25, by=5),name = "Time (s)")+
     geom_hline(yintercept = 100, linetype="solid", alpha = 0.8) +
     geom_vline(xintercept = 0, linetype="solid", alpha = 0.8) +
-    annotate(geom="label", x=-1, y=95, label="Baseline",hjust=0.5,size=3,fill='black',colour='white')+
-    annotate(geom="label", x=(poistart+poiend)/2, y=95, label="Period of Interest",hjust=0.5,size=3,fill='black',colour='white')+
-    geom_vline(xintercept = basestart, linetype = "dotted", alpha = 0.8) + # Start of Baseline
-    geom_vline(xintercept = baseend, linetype = "dotted", alpha = 0.8) + # End of Baseline
-    geom_vline(xintercept = poistart, linetype = "dotted", alpha = 0.8) + # Start of POI
-    geom_vline(xintercept = poiend, linetype = "dotted", alpha = 0.8) +  # End of POI
+    annotate(geom="label", x=(basestart+baseend)/2, y=95, label="Baseline",hjust=0.5,size=2.5,fill='black',colour='white')+
+    annotate(geom="label", x=(poistart+poiend)/2, y=95, label="Period of Interest",hjust=0.5,size=2.5,fill='black',colour='white')+
+    geom_vline(xintercept = basestart, linetype = "dotted", alpha = 1) + # Start of Baseline
+    geom_vline(xintercept = baseend, linetype = "dotted", alpha = 1) + # End of Baseline
+    geom_vline(xintercept = poistart, linetype = "dotted", alpha = 1) + # Start of POI
+    geom_vline(xintercept = poiend, linetype = "dotted", alpha = 1) +  # End of POI
     ggtitle(longtasks[t])
   thisplot
 
